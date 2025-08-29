@@ -1,0 +1,90 @@
+{
+  "name": "css-classes-from-html",
+  "displayName": "CSS Classes from HTML",
+  "description": "Automatically generate CSS from HTML class attributes with Figma integration",
+  "version": "1.0.0",
+  "publisher": "vutov-mykola",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other",
+    "Formatters"
+  ],
+  "keywords": [
+    "css",
+    "html",
+    "figma",
+    "generator",
+    "classes"
+  ],
+  "main": "extension.js",
+  "activationEvents": [
+    "onCommand:cssclassesfromhtml.generateCSS"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "cssclassesfromhtml.generateCSS",
+        "title": "Generate CSS from HTML"
+      }
+    ],
+    "configuration": {
+      "title": "CSS Classes from HTML",
+      "properties": {
+        "cssclassesfromhtml.language": {
+          "type": "string",
+          "default": "uk",
+          "enum": [
+            "uk",
+            "en"
+          ],
+          "description": "Language for comments"
+        },
+        "cssclassesfromhtml.includeGlobal": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include global styles"
+        },
+        "cssclassesfromhtml.includeReset": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include CSS reset"
+        },
+        "cssclassesfromhtml.responsive": {
+          "type": "boolean",
+          "default": true,
+          "description": "Generate responsive styles"
+        },
+        "cssclassesfromhtml.darkMode": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include dark mode support"
+        },
+        "cssclassesfromhtml.figmaEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Figma integration"
+        }
+      }
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/VuToV-Mykola/css-classes-from-html"
+  },
+  "bugs": {
+    "url": "https://github.com/VuToV-Mykola/css-classes-from-html/issues"
+  },
+  "homepage": "https://github.com/VuToV-Mykola/css-classes-from-html#readme",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0"
+  },
+  "scripts": {
+    "package": "vsce package"
+  }
+}
