@@ -1,90 +1,86 @@
 {
   "name": "css-classes-from-html",
   "displayName": "CSS Classes from HTML",
-  "description": "Automatically generate CSS from HTML class attributes with Figma integration",
-  "version": "1.0.0",
+  "description": "Generate CSS classes from HTML with Figma integration",
+  "version": "0.0.3",
   "publisher": "vutov-mykola",
+  "author": {
+    "name": "VuToV-Mykola",
+    "email": "vutov.mykola@gmail.com"
+  },
+  "license": "MIT",
+  "icon": "media/icon.png",
   "engines": {
     "vscode": "^1.74.0"
   },
-  "categories": [
-    "Other",
-    "Formatters"
-  ],
-  "keywords": [
-    "css",
-    "html",
-    "figma",
-    "generator",
-    "classes"
-  ],
-  "main": "extension.js",
-  "activationEvents": [
-    "onCommand:cssclassesfromhtml.generateCSS"
-  ],
+  "categories": ["Other", "Snippets", "Formatters"],
+  "keywords": ["css", "html", "figma", "generator", "classes", "styles"],
+  "activationEvents": [],
+  "main": "./extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "cssclassesfromhtml.generateCSS",
-        "title": "Generate CSS from HTML"
+        "command": "cssclasssfromhtml.generateCSS",
+        "title": "Generate CSS from HTML",
+        "category": "CSS Generator"
       }
     ],
+    "keybindings": [
+      {
+        "key": "ctrl+shift+h",
+        "command": "cssclasssfromhtml.generateCSS",
+        "when": "editorTextFocus"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "cssclasssfromhtml.generateCSS",
+          "when": "resourceExtname == .html",
+          "group": "1_modification"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "cssclasssfromhtml.generateCSS",
+          "when": "editorLangId == html"
+        }
+      ]
+    },
     "configuration": {
       "title": "CSS Classes from HTML",
       "properties": {
-        "cssclassesfromhtml.language": {
+        "cssclasssfromhtml.language": {
           "type": "string",
           "default": "uk",
-          "enum": [
-            "uk",
-            "en"
-          ],
-          "description": "Language for comments"
+          "enum": ["uk", "en"],
+          "description": "Comment language"
         },
-        "cssclassesfromhtml.includeGlobal": {
+        "cssclasssfromhtml.includeGlobal": {
           "type": "boolean",
           "default": true,
           "description": "Include global styles"
         },
-        "cssclassesfromhtml.includeReset": {
+        "cssclasssfromhtml.includeReset": {
           "type": "boolean",
           "default": true,
           "description": "Include CSS reset"
         },
-        "cssclassesfromhtml.responsive": {
+        "cssclasssfromhtml.responsive": {
           "type": "boolean",
           "default": true,
           "description": "Generate responsive styles"
         },
-        "cssclassesfromhtml.darkMode": {
+        "cssclasssfromhtml.darkMode": {
           "type": "boolean",
           "default": true,
           "description": "Include dark mode support"
-        },
-        "cssclassesfromhtml.figmaEnabled": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enable Figma integration"
         }
       }
     }
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/VuToV-Mykola/css-classes-from-html"
-  },
-  "bugs": {
-    "url": "https://github.com/VuToV-Mykola/css-classes-from-html/issues"
-  },
-  "homepage": "https://github.com/VuToV-Mykola/css-classes-from-html#readme",
-  "license": "MIT",
-  "dependencies": {
-    "axios": "^1.6.0"
-  },
-  "devDependencies": {
-    "@types/vscode": "^1.74.0"
-  },
-  "scripts": {
-    "package": "vsce package"
+    "url": "https://github.com/VuToV-Mykola/css-classes-from-html.git"
   }
 }

@@ -1,71 +1,110 @@
 // Модуль для парсингу HTML та витягування CSS класів
-function extractClasses(html) {
-  const cls = new Set(),
-    parents = {},
-    tags = {},
-    hier = new Map();
-  let m;
-  const clsRx = /class="([^"]*)"/g;
-  while ((m = clsRx.exec(html)))
-    m[1]
-      .split(/\s+/)
-      .filter((c) => c)
-      .forEach((c) => {
-        cls.add(c);
-        if (!parents[c]) parents[c] = new Set();
-        if (!tags[c]) tags[c] = new Set();
-      });
 
-  const tagRx = /<(\w+)[^>]*class="([^"]*)"[^>]*>/g;
-  while ((m = tagRx.exec(html))) {
-    const t = m[1].toLowerCase();
-    m[2]
-      .split(/\s+/)
-      .filter((c) => c)
-      .forEach((c) => tags[c] && tags[c].add(t));
+// Витягує класи з HTML контенту з інформацією про ієрархію
+function extractClasses(htmlContent) {
+  const classRegex = /class="([^"]*)"/g
+  const classes = new Set()
+  const classParents = {}
+  const classTags = {}
+  const classHierarchy = new Map()
+  
+  let match
+  while ((match = classRegex.exec(htmlContent)) !== null) {
+    const classList = match[1].split(/\s+/).filter(c => c.trim() !== "")
+    classList.forEach(cls => {
+      const trimmed = cls.trim()
+      if (trimmed) {
+        classes.add(trimmed)
+        if (!classParents[trimmed]) classParents[trimmed] = new Set()
+        if (!classTags[trimmed]) classTags[trimmed] = new Set()
+      }
+    })
+  }
+
+  // Extract hierarchy and tag information
+  const tagRegex = /<(\w+)[^>]*class="([^"]*)"[^>]*>/g
+  let tagMatch
+  while ((tagMatch = tagRegex.exec(htmlContent)) !== null) {
+    const tagName = tagMatch[1].toLowerCase()
+    const classList = tagMatch[2].split(/\s+/).filter(c => c.trim() !== "")
+    
+    classList.forEach(cls => {
+      const trimmed = cls.trim()
+      if (trimmed && classTags[trimmed]) {
+        classTags[trimmed].add(tagName)
+      }
+    })
   }
 
   return {
-    classes: [...cls],
-    classParents: parents,
-    classTags: tags,
-    classHierarchy: hier,
-  };
+    classes: Array.from(classes),
+    classParents,
+    classTags,
+    classHierarchy
+  }
 }
 
-function extractIds(html) {
-  const ids = new Set();
-  let m;
-  while ((m = /id="([^"]*)"/g.exec(html))) ids.add(m[1].trim());
-  return [...ids];
+function extractIds(htmlContent) {
+  const idRegex = /id="([^"]*)"/g
+  const ids = new Set()
+  let match
+
+  while ((match = idRegex.exec(htmlContent)) !== null) {
+    const trimmed = match[1].trim()
+    if (trimmed) {
+      ids.add(trimmed)
+    }
+  }
+
+  return Array.from(ids)
 }
 
-const COMP_PATTERNS = {
+const COMPONENT_PATTERNS = {
   header: [/header/i, /\.header/],
   hero: [/\.hero/],
   features: [/\.features/],
   team: [/\.team/],
   portfolio: [/\.portfolio/],
-  footer: [/footer/i, /\.footer/],
-};
+  footer: [/footer/i, /\.footer/]
+}
+
 const LAYOUT_PATTERNS = {
   flexbox: [/flex/i, /display:\s*flex/i],
   grid: [/grid/i, /display:\s*grid/i],
-  container: [/\.container/],
-};
-
-function analyzeStructure(html) {
-  const s = {
-    components: {},
-    layout: { usesFlexbox: false, usesGrid: false, hasContainer: false },
-  };
-  Object.entries(COMP_PATTERNS).forEach(
-    ([k, v]) => (s.components[k] = v.some((p) => p.test(html)))
-  );
-  Object.entries(LAYOUT_PATTERNS).forEach(
-    ([k, v]) => (s.layout[k] = v.some((p) => p.test(html)))
-  );
-  return s;
+  container: [/\.container/]
 }
 
-module.exports = { extractClasses, extractIds, analyzeStructure };
+function analyzeStructure(htmlContent) {
+  const structure = {
+    components: {},
+    layout: {
+      usesFlexbox: false,
+      usesGrid: false,
+      hasContainer: false
+    }
+  }
+
+  // Check components
+  Object.entries(COMPONENT_PATTERNS).forEach(([component, patterns]) => {
+    structure.components[component] = patterns.some(pattern => pattern.test(htmlContent))
+  })
+
+  // Check layout
+  Object.entries(LAYOUT_PATTERNS).forEach(([layout, patterns]) => {
+    if (layout === "flexbox") {
+      structure.layout.usesFlexbox = patterns.some(pattern => pattern.test(htmlContent))
+    } else if (layout === "grid") {
+      structure.layout.usesGrid = patterns.some(pattern => pattern.test(htmlContent))
+    } else if (layout === "container") {
+      structure.layout.hasContainer = patterns.some(pattern => pattern.test(htmlContent))
+    }
+  })
+
+  return structure
+}
+
+module.exports = {
+  extractClasses,
+  extractIds,
+  analyzeStructure
+}
