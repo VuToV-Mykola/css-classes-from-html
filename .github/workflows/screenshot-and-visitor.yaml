@@ -505,6 +505,7 @@ jobs:
           fi
 
           git commit -m "$COMMIT_MSG" || exit 0
+          git pull --rebase https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
 
           echo "📄 Triggering updates..."
