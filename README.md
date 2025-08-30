@@ -10,8 +10,8 @@
 [![📦 Size](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/css-classes-from-html/main/assets/db/repo-size.json)](https://github.com/VuToV-Mykola/css-classes-from-html)
 [![📄 License](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/css-classes-from-html/main/assets/db/repo-license.json)](https://github.com/VuToV-Mykola/css-classes-from-html/blob/main/LICENSE)
 [![⬇️ Downloads](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/css-classes-from-html/main/assets/db/downloads-badge.json)](https://github.com/VuToV-Mykola/css-classes-from-html/releases)
-## 📸 Скріншот проекту
-![Project Screenshot](./assets/screenshot.png)
+<!-- ## 📸 Скріншот проекту -->
+<!-- ![Project Screenshot](./assets/screenshot.png) -->
 <!-- END:AUTOGEN -->
 [![Приклад встановлення та використання](https://img.youtube.com/vi/xl46PGWNB3A/0.jpg)](https://youtu.be/xl46PGWNB3A)
 
