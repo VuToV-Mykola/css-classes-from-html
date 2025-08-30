@@ -214,6 +214,7 @@ jobs:
           echo "👥 Total unique engaged users: $TOTAL_UNIQUE_USERS"
 
       - name: 🖥 Setup Node.js and dependencies
+        if: env.SCREENSHOT_SKIP != 'true'
         run: |
           echo "🔧 Setting up Node.js..."
           curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
