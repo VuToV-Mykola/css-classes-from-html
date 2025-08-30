@@ -2,8 +2,10 @@
   "total_unique_users": 1,
   "unique_visitors": 1,
   "stargazers": {
-    "count": 0,
-    "users": []
+    "count": 1,
+    "users": [
+  "VuToV-Mykola"
+]
   },
   "manual_likes": {
     "count": 1,
@@ -14,5 +16,5 @@
   "all_engaged_users": [
   "VuToV-Mykola"
 ],
-  "updated_at": "2025-08-30 01:21:59"
+  "updated_at": "2025-08-30 02:02:57"
 }
