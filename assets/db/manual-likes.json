@@ -1,1 +1,7 @@
-{"count": 0, "users": [], "updated_at": ""}
+{"count": 1, "users": [
+  {
+    "login": "VuToV-Mykola",
+    "liked_at": "2025-08-30 01:21:59",
+    "type": "manual"
+  }
+], "updated_at": ""}
