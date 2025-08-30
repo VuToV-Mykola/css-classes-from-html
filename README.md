@@ -2,10 +2,17 @@
 
 🚀 **Автоматична генерація CSS класів з HTML файлів з інтеграцією Figma**
 
-[![VS Code](https://img.shields.io/badge/VS_Code-007ACC?style=for-the-badge&logo=visual-studio-code&logoColor=white)](https://code.visualstudio.com/)
-[![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML)
-[![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS)
-[![Figma](https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)](https://www.figma.com/)
+<!-- AUTOGEN:STATS -->
+[![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML) [![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS) [![VS Code](https://img.shields.io/badge/VS_Code-007ACC?style=for-the-badge&logo=visual-studio-code&logoColor=white)](https://code.visualstudio.com/) [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/) [![Figma](https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)](https://www.figma.com/) [![Terminal](https://img.shields.io/badge/Terminal-000000?style=for-the-badge&logo=windows-terminal&logoColor=white)](https://support.apple.com/guide/terminal/welcome/mac) 
+
+[![📊 Views](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/goit-markup-hw-04/main/assets/db/visitors-badge.json)](https://github.com/VuToV-Mykola/goit-markup-hw-04/graphs/traffic)
+[![⭐ Stars](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/goit-markup-hw-04/main/assets/db/likes-badge.json)](https://github.com/VuToV-Mykola/goit-markup-hw-04/actions/workflows/screenshot-and-visitor.yaml)
+[![📦 Size](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/goit-markup-hw-04/main/assets/db/repo-size.json)](https://github.com/VuToV-Mykola/goit-markup-hw-04)
+[![📄 License](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/goit-markup-hw-04/main/assets/db/repo-license.json)](https://github.com/VuToV-Mykola/goit-markup-hw-04/blob/main/LICENSE)
+
+## 📸 Latest Screenshot
+![Project Screenshot](assets/screenshot.png)
+<!-- END:AUTOGEN -->
 
 ## ✨ Особливості
 
@@ -45,32 +52,87 @@
 
 Відкрийте Settings (`Ctrl+,`) та шукайте "CSS Classes from HTML":
 
+### 🎨 Основні налаштування
 ```json
 {
   "cssclasssfromhtml.language": "uk",           // Мова коментарів: "uk" або "en"
   "cssclasssfromhtml.includeGlobal": true,      // Включити глобальні стилі
   "cssclasssfromhtml.includeReset": true,       // Включити CSS reset
   "cssclasssfromhtml.responsive": true,         // Генерувати адаптивні стилі
-  "cssclasssfromhtml.darkMode": true            // Підтримка темної теми
+  "cssclasssfromhtml.darkMode": true,           // Підтримка темної теми
+  "cssclasssfromhtml.cssVariables": true,       // Використовувати CSS змінні
+  "cssclasssfromhtml.includeComments": true     // Включити коментарі
+}
+```
+
+### 🔧 Розширені налаштування
+```json
+{
+  "cssclasssfromhtml.autoSave": true,                    // Автозбереження CSS
+  "cssclasssfromhtml.outputPath": "./css/styles.css",   // Шлях для збереження
+  "cssclasssfromhtml.minify": false,                     // Мініфікація CSS
+  "cssclasssfromhtml.indentSize": 2,                     // Розмір відступів
+  "cssclasssfromhtml.colorFormat": "hex",               // Формат кольорів
+  "cssclasssfromhtml.sortProperties": true,              // Сортування властивостей
+  "cssclasssfromhtml.prefixClasses": ""                  // Префікс для класів
+}
+```
+
+### 📱 Налаштування адаптивності
+```json
+{
+  "cssclasssfromhtml.breakpoints": {
+    "mobile": "320px",
+    "tablet": "768px", 
+    "desktop": "1158px"
+  }
 }
 ```
 
 ## 🎨 Figma інтеграція
 
-### Отримання токена доступу
+### 🔑 Налаштування токена доступу
 
-1. Увійдіть в обліковий запис Figma
+**Спосіб 1: Через налаштування VSCode (рекомендовано)**
+1. Відкрийте Settings (`Ctrl+,`)
+2. Шукайте "CSS Classes from HTML"
+3. Знайдіть поле "Figma Token"
+4. Вставте ваш токен доступу
+5. Токен буде збережено та використовуватиметься автоматично
+
+**Спосіб 2: Введення при кожному використанні**
+- Просто залиште поле токена порожнім у налаштуваннях
+- Розширення запитає токен при генерації CSS
+
+### 🎯 Отримання токена доступу
+
+1. Увійдіть в обліковий запис [Figma](https://www.figma.com/)
 2. Перейдіть до **Settings** → **Account** → **Personal access tokens**
-3. Створіть новий токен
-4. Скопіюйте та використовуйте в розширенні
+3. Натисніть **Create new token**
+4. Дайте назву токену (наприклад, "VSCode Extension")
+5. Скопіюйте згенерований токен
+6. Вставте в налаштування VSCode або використовуйте при запиті
 
-### Підготовка макету
+⚠️ **Важливо**: Зберігайте токен у безпеці та не діліться ним з іншими!
+
+### 📋 Налаштування токена через settings.json
+```json
+{
+  "cssclasssfromhtml.figmaToken": "figd_ваш_токен_тут"
+}
+```
+
+### 🎨 Підготовка макету
 
 - Використовуйте консистентні назви для кольорів
-- Створюйте текстові стилі з зрозумілими назвами
+- Створюйте текстові стилі з зрозумілими назвами  
 - Використовуйте компоненти для повторюваних елементів
+- Організовуйте елементи в логічні групи
+- Використовуйте Auto Layout для адаптивних компонентів
 
-## 📝 Приклад використання
+## 📝 Приклади використання
+
+### 🎯 Базовий приклад
 
 **HTML:**
 ```html
@@ -80,7 +142,7 @@
 </div>
 ```
 
-**Згенерований CSS:**
+**Згенерований CSS (стандартні налаштування):**
 ```css
 /* !!! AUTO-GENERATED CSS FROM HTML !!! */
 
@@ -124,6 +186,61 @@
 }
 ```
 
+### ⚙️ З розширеними налаштуваннями
+
+**Налаштування:**
+```json
+{
+  "cssclasssfromhtml.prefixClasses": "app-",
+  "cssclasssfromhtml.colorFormat": "rgb",
+  "cssclasssfromhtml.includeComments": false,
+  "cssclasssfromhtml.minify": true,
+  "cssclasssfromhtml.cssVariables": false
+}
+```
+
+**Результат:**
+```css
+.app-hero{background-color:rgb(46,47,66);color:rgb(255,255,255);text-align:center;padding:120px 0}.app-hero-title{font-size:56px;font-weight:700;margin-bottom:48px}.app-hero-btn{background-color:rgb(77,90,229);border:none;border-radius:4px;color:rgb(255,255,255);cursor:pointer;padding:16px 32px}.app-hero-btn:hover{background-color:rgb(64,75,191)}@media (min-width:768px){.app-hero-title{font-size:clamp(36px,4vw,56px)}}
+```
+
+### 🎨 З Figma інтеграцією
+
+**Налаштування токена:**
+```json
+{
+  "cssclasssfromhtml.figmaToken": "figd_ваш_токен_тут"
+}
+```
+
+**Результат з дизайн-токенами:**
+```css
+:root {
+  /* Colors from Figma */
+  --primary-blue: #4d5ae5;
+  --navy-blue: #2e2f42;
+  --cloud-white: #f4f4fd;
+  --cornflower: #e7e9fc;
+  
+  /* Typography from Figma */
+  --font-roboto: 'Roboto', sans-serif;
+  --font-raleway: 'Raleway', sans-serif;
+  --heading-large: 56px;
+  --heading-medium: 36px;
+}
+
+.hero {
+  background-color: var(--navy-blue);
+  color: var(--cloud-white);
+  font-family: var(--font-roboto);
+}
+
+.hero-title {
+  font-size: var(--heading-large);
+  font-family: var(--font-raleway);
+}
+```
+
 ## 🔧 Команди
 
 | Команда | Опис | Гарячі клавіші |
@@ -132,21 +249,40 @@
 
 ## 🌟 Підтримувані функції
 
+### 🎯 Основні можливості
 - ✅ Витягування CSS класів з HTML
 - ✅ Генерація базових стилів
-- ✅ Псевдо-класи (:hover, :focus)
+- ✅ Псевдо-класи (:hover, :focus, :active)
 - ✅ Медіа-запити для адаптивності
 - ✅ CSS змінні (custom properties)
 - ✅ Коментарі українською та англійською
-- ✅ Інтеграція з Figma API
 - ✅ Контекстне меню для HTML файлів
 - ✅ Гарячі клавіші
+
+### 🎨 Figma інтеграція
+- ✅ Збереження токена доступу в налаштуваннях
+- ✅ Автоматичне витягування дизайн-токенів
+- ✅ Синхронізація кольорів та типографіки
+- ✅ Підтримка компонентів та стилів
+- ✅ Експорт breakpoints з макету
+
+### ⚙️ Розширені налаштування
+- ✅ Автозбереження згенерованого CSS
+- ✅ Налаштування шляху збереження
+- ✅ Мініфікація CSS коду
+- ✅ Сортування CSS властивостей
+- ✅ Різні формати кольорів (hex, rgb, hsl, var)
+- ✅ Налаштування розміру відступів
+- ✅ Префікси для CSS класів
+- ✅ Кастомні breakpoints
 
 ## 🐛 Відомі обмеження
 
 - Потрібен активний редактор з HTML контентом
-- Figma токен потрібен для повної інтеграції
+- Figma токен потрібен для повної інтеграції (можна зберегти в налаштуваннях)
 - Генерує тільки базові стилі (не складну логіку)
+- Токен Figma зберігається локально в налаштуваннях VSCode
+- Для роботи з Figma API потрібне інтернет-з'єднання
 
 ## 📋 Системні вимоги
 

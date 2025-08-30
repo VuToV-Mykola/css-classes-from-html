@@ -75,6 +75,83 @@
           "type": "boolean",
           "default": true,
           "description": "Include dark mode support"
+        },
+        "cssclasssfromhtml.figmaToken": {
+          "type": "string",
+          "default": "",
+          "description": "Figma personal access token for API integration",
+          "markdownDescription": "Your Figma personal access token. Get it from [Figma Settings](https://www.figma.com/settings)"
+        },
+        "cssclasssfromhtml.autoSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically save generated CSS to file"
+        },
+        "cssclasssfromhtml.outputPath": {
+          "type": "string",
+          "default": "./css/styles.css",
+          "description": "Default output path for generated CSS files"
+        },
+        "cssclasssfromhtml.cssVariables": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use CSS custom properties (variables)"
+        },
+        "cssclasssfromhtml.minify": {
+          "type": "boolean",
+          "default": false,
+          "description": "Minify generated CSS"
+        },
+        "cssclasssfromhtml.indentSize": {
+          "type": "number",
+          "default": 2,
+          "minimum": 2,
+          "maximum": 8,
+          "description": "Number of spaces for indentation"
+        },
+        "cssclasssfromhtml.breakpoints": {
+          "type": "object",
+          "default": {
+            "mobile": "320px",
+            "tablet": "768px",
+            "desktop": "1158px"
+          },
+          "description": "Custom breakpoints for responsive design",
+          "properties": {
+            "mobile": {
+              "type": "string",
+              "description": "Mobile breakpoint"
+            },
+            "tablet": {
+              "type": "string",
+              "description": "Tablet breakpoint"
+            },
+            "desktop": {
+              "type": "string",
+              "description": "Desktop breakpoint"
+            }
+          }
+        },
+        "cssclasssfromhtml.colorFormat": {
+          "type": "string",
+          "default": "hex",
+          "enum": ["hex", "rgb", "hsl", "var"],
+          "description": "Preferred color format in generated CSS"
+        },
+        "cssclasssfromhtml.includeComments": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include descriptive comments in generated CSS"
+        },
+        "cssclasssfromhtml.sortProperties": {
+          "type": "boolean",
+          "default": true,
+          "description": "Sort CSS properties alphabetically"
+        },
+        "cssclasssfromhtml.prefixClasses": {
+          "type": "string",
+          "default": "",
+          "description": "Add prefix to all generated CSS classes"
         }
       }
     }
