@@ -43,7 +43,10 @@ function activate(context) {
           {
             responsive: config.responsive,
             darkMode: config.darkMode,
-            designTokens
+            designTokens,
+            breakpoints: config.breakpoints,
+            colorFormat: config.colorFormat,
+            prefixClasses: config.prefixClasses
           },
           classParents,
           classTags
@@ -58,10 +61,24 @@ function activate(context) {
           config.includeGlobal,
           config.includeReset,
           designTokens,
-          isSelection ? selectedTags : null
+          isSelection ? selectedTags : null,
+          {
+            cssVariables: config.cssVariables,
+            minify: config.minify,
+            indentSize: config.indentSize,
+            includeComments: config.includeComments,
+            sortProperties: config.sortProperties,
+            colorFormat: config.colorFormat
+          }
         )
 
         await showGeneratedCSS(cssContent)
+        
+        // Автозбереження файлу
+        if (config.autoSave) {
+          await saveToFile(cssContent, config.outputPath)
+        }
+        
         vscode.window.showInformationMessage("CSS успішно згенеровано!")
 
       } catch (error) {
@@ -74,6 +91,9 @@ function activate(context) {
 }
 
 async function getFigmaInput() {
+  const config = vscode.workspace.getConfiguration("cssclasssfromhtml")
+  const savedToken = config.get("figmaToken", "")
+
   const figmaLink = await vscode.window.showInputBox({
     prompt: "Введіть посилання на макет Figma (опціонально)",
     placeHolder: "https://www.figma.com/file/...",
@@ -87,11 +107,16 @@ async function getFigmaInput() {
       throw new Error("Невірний формат посилання Figma")
     }
 
-    accessToken = await vscode.window.showInputBox({
-      prompt: "Введіть ваш токен доступу Figma",
-      password: true,
-      ignoreFocusOut: true
-    })
+    // Використовуємо збережений токен або запитуємо новий
+    if (savedToken?.trim()) {
+      accessToken = savedToken
+    } else {
+      accessToken = await vscode.window.showInputBox({
+        prompt: "Введіть ваш токен доступу Figma (або збережіть в налаштуваннях)",
+        password: true,
+        ignoreFocusOut: true
+      })
+    }
 
     if (!accessToken) {
       vscode.window.showWarningMessage("Генерація без токена Figma - будуть використані стандартні значення")
@@ -108,7 +133,18 @@ function getConfiguration() {
     includeGlobal: config.get("includeGlobal", true),
     includeReset: config.get("includeReset", true),
     responsive: config.get("responsive", true),
-    darkMode: config.get("darkMode", true)
+    darkMode: config.get("darkMode", true),
+    figmaToken: config.get("figmaToken", ""),
+    autoSave: config.get("autoSave", true),
+    outputPath: config.get("outputPath", "./css/styles.css"),
+    cssVariables: config.get("cssVariables", true),
+    minify: config.get("minify", false),
+    indentSize: config.get("indentSize", 2),
+    breakpoints: config.get("breakpoints", {mobile: "320px", tablet: "768px", desktop: "1158px"}),
+    colorFormat: config.get("colorFormat", "hex"),
+    includeComments: config.get("includeComments", true),
+    sortProperties: config.get("sortProperties", true),
+    prefixClasses: config.get("prefixClasses", "")
   }
 }
 
@@ -145,6 +181,26 @@ async function showGeneratedCSS(cssContent) {
   })
   
   await vscode.window.showTextDocument(doc)
+}
+
+async function saveToFile(cssContent, outputPath) {
+  try {
+    const fs = require('fs').promises
+    const path = require('path')
+    
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath
+    if (!workspaceFolder) return
+    
+    const fullPath = path.resolve(workspaceFolder, outputPath)
+    const dir = path.dirname(fullPath)
+    
+    await fs.mkdir(dir, { recursive: true })
+    await fs.writeFile(fullPath, cssContent, 'utf8')
+    
+    vscode.window.showInformationMessage(`CSS збережено: ${outputPath}`)
+  } catch (error) {
+    vscode.window.showErrorMessage(`Помилка збереження: ${error.message}`)
+  }
 }
 
 function extractTagsFromSelection(htmlContent) {
