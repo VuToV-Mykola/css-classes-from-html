@@ -10,8 +10,8 @@
 [![📦 Size](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/goit-markup-hw-04/main/assets/db/repo-size.json)](https://github.com/VuToV-Mykola/goit-markup-hw-04)
 [![📄 License](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/goit-markup-hw-04/main/assets/db/repo-license.json)](https://github.com/VuToV-Mykola/goit-markup-hw-04/blob/main/LICENSE)
 
-## 📸 Latest Screenshot
-![Project Screenshot](assets/screenshot.png)
+<!-- ## 📸 Latest Screenshot
+![Project Screenshot](assets/screenshot.png) -->
 <!-- END:AUTOGEN -->
 
 ## ✨ Особливості
