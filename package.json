@@ -6,7 +6,8 @@
   "publisher": "vutov-mykola",
   "author": {
     "name": "VuToV-Mykola",
-    "email": "vutov.mykola@gmail.com"
+    "email": "vutov.mykola@gmail.com",
+    "url": "https://github.com/VuToV-Mykola"
   },
   "license": "MIT",
   "icon": "media/icon.png",
