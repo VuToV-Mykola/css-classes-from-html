@@ -39,6 +39,16 @@ jobs:
           persist-credentials: true
           fetch-depth: 0
 
+      - name: 🔍 Check if screenshot is commented in README
+        run: |
+          if grep -q "^[[:space:]]*<!--.*📸 Скріншот проекту" README.md || grep -q "^[[:space:]]*<!--.*📸 Latest Screenshot" README.md; then
+            echo "📸 Screenshot section is commented out - skipping screenshot generation"
+            echo "SCREENSHOT_SKIP=true" >> $GITHUB_ENV
+          else
+            echo "📸 Screenshot section is active - proceeding with generation"
+            echo "SCREENSHOT_SKIP=false" >> $GITHUB_ENV
+          fi
+
       - name: 🚀 Initialize workflow
         run: |
           DATA_DIR="$DATA_DIR"
@@ -231,19 +241,6 @@ jobs:
           else
             echo "❌ Puppeteer could not be installed - screenshot functionality disabled"
             echo "SCREENSHOT_DEPENDENCIES_AVAILABLE=false" >> $GITHUB_ENV
-          fi
-
-      - name: 🔍 Check if screenshot is commented in README
-        run: |
-          # Перевіряємо оригінальний README перед обробкою
-          ORIGINAL_README=$(cat README.md)
-          
-          if echo "$ORIGINAL_README" | grep -q "^[[:space:]]*<!--.*📸 Скріншот проекту" || echo "$ORIGINAL_README" | grep -q "^[[:space:]]*<!--.*📸 Latest Screenshot"; then
-            echo "📸 Screenshot section is commented out - skipping screenshot generation"
-            echo "SCREENSHOT_SKIP=true" >> $GITHUB_ENV
-          else
-            echo "📸 Screenshot section is active - proceeding with generation"
-            echo "SCREENSHOT_SKIP=false" >> $GITHUB_ENV
           fi
 
       - name: 📸 Generate screenshot from GitHub Pages
