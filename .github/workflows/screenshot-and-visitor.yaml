@@ -457,6 +457,9 @@ jobs:
           awk '/<!-- AUTOGEN:STATS -->/{exit} {print}' README.md > README_before.tmp
           awk '/<!-- END:AUTOGEN -->/{found=1; next} found{print}' README.md > README_after.tmp
 
+          # Extract existing commented screenshot section if present
+          COMMENTED_SCREENSHOT=$(awk '/<!-- AUTOGEN:STATS -->/,/<!-- END:AUTOGEN -->/ {if(/<!-- ## 📸/ || /<!-- ![Project Screenshot]/) print}' README.md)
+
           {
             cat README_before.tmp
             echo "<!-- AUTOGEN:STATS -->"
@@ -470,7 +473,11 @@ jobs:
               echo "$DOWNLOADS_BADGE"
             fi
             
-            if [ "$SCREENSHOT_CREATED" = "true" ] && [ -f "$SCREENSHOT_DIR/screenshot.png" ]; then
+            # Handle screenshot section - preserve comments or add active screenshot
+            if [ -n "$COMMENTED_SCREENSHOT" ]; then
+              echo ""
+              echo "$COMMENTED_SCREENSHOT"
+            elif [ "$SCREENSHOT_CREATED" = "true" ] && [ -f "$SCREENSHOT_DIR/screenshot.png" ]; then
               SCREENSHOT_SIZE=$(stat -f%z "$SCREENSHOT_DIR/screenshot.png" 2>/dev/null || stat -c%s "$SCREENSHOT_DIR/screenshot.png" 2>/dev/null || echo "0")
               if [ "$SCREENSHOT_SIZE" -gt 0 ]; then
                 echo ""
