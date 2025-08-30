@@ -140,6 +140,62 @@ function getGlobalRules(includeReset = true, selectedTags = null) {
   return rules
 }
 
+function getCSSReset() {
+  return `/* Сучасний CSS Reset 2025 */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: clamp(1rem, 0.75rem + 1.5vw, 1.25rem);
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  line-height: 1.6;
+}`
+}
+
+function getGlobalStyles(selectedTags = null) {
+  return `/* Глобальні стилі */
+.container {
+  width: min(100% - 2rem, 1200px);
+  margin-inline: auto;
+}
+
+.flex {
+  display: flex;
+  gap: 1rem;
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}`
+}
+
 module.exports = {
-  getGlobalRules
+  getGlobalRules,
+  getCSSReset,
+  getGlobalStyles
 }

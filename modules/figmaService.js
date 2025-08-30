@@ -74,6 +74,7 @@ class FigmaService {
       spacing: {},
       effects: {},
       classStyles: {},
+      document: fileData.document,
       breakpoints: {
         mobile: "320px",
         tablet: "768px", 

@@ -1,8 +1,7 @@
-// Модуль генерації CSS з оптимізацією для Figma
+// Модуль генерації CSS з оптимізацією для HTML
 const commentManager = require("./commentManager")
 const globalRules = require("./globalRules")
 
-// Категорізація властивостей для правильного порядку CSS
 const PROPERTY_CATEGORIES = {
   layout: ["display", "position", "top", "right", "bottom", "left", "z-index", "float", "clear"],
   flexGrid: ["flex", "flex-direction", "flex-wrap", "justify-content", "align-items", "grid", "grid-template", "gap"],
@@ -17,12 +16,10 @@ const INHERITED_PROPERTIES = [
   "line-height", "text-align", "text-transform", "letter-spacing"
 ]
 
-// Global properties that shouldn't be duplicated in classes
 const GLOBAL_PROPERTIES = [
   "box-sizing", "margin", "padding", "font-family", "line-height"
 ]
 
-// Create property lookup for O(1) categorization
 const PROPERTY_LOOKUP = {}
 Object.entries(PROPERTY_CATEGORIES).forEach(([category, props]) => {
   props.forEach(prop => {
@@ -30,116 +27,112 @@ Object.entries(PROPERTY_CATEGORIES).forEach(([category, props]) => {
   })
 })
 
-function generateCSS(classes, classDictionary, includeGlobal = true, includeReset = true, designTokens = null, selectedTags = null) {
-  const cssBlocks = []
-
-  // Add file header
-  cssBlocks.push(commentManager.getFileHeader())
-
-  // Add global rules if enabled
-  if (includeGlobal) {
-    cssBlocks.push(globalRules.getGlobalRules(includeReset, selectedTags))
-  }
-
-  // Generate class CSS first to extract used variables
-  const classCSS = []
-  classes.forEach(className => {
-    const classInfo = classDictionary[className]
-    if (classInfo && hasValidProperties(classInfo)) {
-      classCSS.push(generateClassCSS(className, classInfo))
-    }
-  })
-
-  // Add media queries
-  const mediaCSS = generateMediaQueries(classes, classDictionary, designTokens)
-  
-  // Extract used CSS variables from all generated CSS
-  const allCSS = [...cssBlocks, ...classCSS, mediaCSS].join("\n")
-  const usedTokens = selectedTags ? extractUsedTokens(allCSS) : null
-
-  // Generate CSS variables from design tokens (filtered if selection)
-  if (designTokens) {
-    cssBlocks.push(generateCSSVariables(designTokens, usedTokens))
-  }
-
-  // Add class CSS
-  cssBlocks.push(...classCSS)
-  
-  // Add media queries
-  if (mediaCSS.trim()) {
-    cssBlocks.push(mediaCSS)
-  }
-
-  return cssBlocks.filter(block => block.trim()).join("\n\n")
+function generateCSS(classes, classDictionary, includeGlobal = true, includeReset = true, designTokens = null, selectedTags = null, options = {}) {
+  return generateHTMLBasedCSS(classes, classDictionary, includeGlobal, includeReset, selectedTags, options, designTokens)
 }
 
-function generateCSSVariables(tokens, usedTokens = null) {
-  const sections = []
+function generateHTMLBasedCSS(classes, classDictionary, includeGlobal = true, includeReset = true, selectedTags = null, options = {}, designTokens = null) {
+  const cssBlocks = []
+  const inheritanceMap = new Map()
+  const usedProperties = new Set()
   
-  sections.push("/* Дизайн-токени з макету */", ":root {")
+  cssBlocks.push("/* AUTO-GENERATED CSS FROM HTML */")
   
-  // Generate variables efficiently
-  const tokenSections = [
-    {name: "colors", prefix: "--color"},
-    {name: "typography", prefix: "--font"},
-    {name: "spacing", prefix: "--space"},
-    {name: "effects", prefix: "--shadow"},
-    {name: "breakpoints", prefix: "--bp"}
-  ]
+  if (includeReset) {
+    cssBlocks.push(globalRules.getCSSReset())
+  }
   
-  tokenSections.forEach(({name, prefix}) => {
-    if (tokens[name]) {
-      const sectionNames = {
-        colors: "Кольори",
-        typography: "Типографіка", 
-        spacing: "Відступи",
-        effects: "Ефекти",
-        breakpoints: "Точки перелому"
-      }
-      
-      const filteredTokens = usedTokens ? 
-        Object.fromEntries(Object.entries(tokens[name]).filter(([key]) => 
-          usedTokens.has(`${prefix}-${key}`))) : tokens[name]
-      
-      if (Object.keys(filteredTokens).length > 0) {
-        sections.push(`  /* ${sectionNames[name] || name} */`)
-        Object.entries(filteredTokens).forEach(([key, value]) => {
-          sections.push(`  ${prefix}-${key}: ${value};`)
+  if (includeGlobal) {
+    cssBlocks.push(globalRules.getGlobalStyles(selectedTags))
+  }
+  
+  // Будуємо ієрархію класів з урахуванням Figma стилів
+  const classHierarchy = buildClassHierarchy(classes, classDictionary, designTokens)
+  
+  // Генеруємо CSS в порядку HTML
+  classHierarchy.forEach(({className, classInfo}) => {
+    if (classInfo && hasValidProperties(classInfo)) {
+      const classCSS = generateOptimizedClassCSS(className, classInfo)
+      cssBlocks.push(classCSS)
+    }
+  })
+  
+  return cssBlocks.join("\n")
+}
+
+function buildClassHierarchy(classes, classDictionary, designTokens) {
+  const hierarchy = []
+  
+  // Для AUTO-GENERATED CSS FROM HTML зберігаємо порядок як в HTML
+  classes.forEach((className, index) => {
+    hierarchy.push({
+      className,
+      classInfo: classDictionary[className],
+      level: 0,
+      htmlOrder: index
+    })
+  })
+  
+  return hierarchy
+}
+
+
+
+function getClassInheritedStyles(className, classInfo, inheritanceMap) {
+  const inherited = {}
+  
+  // Наслідування від батьківських класів
+  if (classInfo.parents?.length > 0) {
+    classInfo.parents.forEach(parentClass => {
+      const parentStyles = inheritanceMap.get(parentClass)
+      if (parentStyles) {
+        INHERITED_PROPERTIES.forEach(prop => {
+          if (parentStyles[prop] && !inherited[prop]) {
+            inherited[prop] = parentStyles[prop]
+          }
         })
       }
-    }
-  })
+    })
+  }
   
-  sections.push("}")
-  
-  return sections.join("\n")
+  return inherited
 }
 
-function generateClassCSS(className, classInfo) {
-  const {properties = {}, pseudoClasses = {}} = classInfo
+function filterClassUniqueStyles(properties, inheritedStyles, usedProperties) {
+  const unique = {}
+  
+  Object.entries(properties).forEach(([prop, value]) => {
+    const propKey = `${prop}:${value}`
+    
+    // Не дублюємо глобальні властивості
+    if (GLOBAL_PROPERTIES.includes(prop)) return
+    
+    // Не дублюємо успадковані властивості з тим же значенням
+    if (inheritedStyles[prop] === value) return
+    
+    // Не дублюємо вже використані пари властивість:значення
+    if (usedProperties.has(propKey)) return
+    
+    unique[prop] = value
+    usedProperties.add(propKey)
+  })
+  
+  return unique
+}
+
+function generateOptimizedClassCSS(className, classInfo) {
+  const {properties = {}, pseudoClasses = {}, darkMode = {}} = classInfo
   const blocks = []
   
-  // Main class
   const comment = commentManager.getClassComment(className)
   blocks.push(comment)
   
   const categorizedProps = categorizeProperties(properties)
   const cssRules = []
   
-  // Add properties in proper order
   Object.entries(PROPERTY_CATEGORIES).forEach(([category, _]) => {
     const categoryProps = categorizedProps[category]
     if (categoryProps && Object.keys(categoryProps).length > 0) {
-      const categoryTranslations = {
-        layout: "Властивості макету",
-        flexGrid: "Flexbox та Grid властивості", 
-        boxModel: "Властивості блокової моделі",
-        typography: "Властивості типографіки",
-        visual: "Візуальні властивості",
-        animation: "Властивості анімації",
-        other: "Інші властивості"
-      }
-      cssRules.push(`  /* ${categoryTranslations[category] || category} */`)
       Object.entries(categoryProps).forEach(([prop, value]) => {
         cssRules.push(`  ${prop}: ${value};`)
       })
@@ -149,204 +142,360 @@ function generateClassCSS(className, classInfo) {
   if (cssRules.length > 0) {
     blocks.push(`.${className} {`)
     blocks.push(...cssRules)
-    blocks.push("}")
+    blocks.push('}')
   }
   
   // Pseudo-classes
-  Object.entries(pseudoClasses).forEach(([pseudo, pseudoProps]) => {
-    if (Object.keys(pseudoProps).length > 0) {
-      blocks.push(`\n.${className}${pseudo} {`)
-      Object.entries(pseudoProps).forEach(([prop, value]) => {
-        blocks.push(`  ${prop}: ${value};`)
+  Object.entries(pseudoClasses).forEach(([selector, props]) => {
+    if (Object.keys(props).length > 0) {
+      blocks.push('')
+      blocks.push(`${selector} {`)
+      blocks.push(`.${className} {`)
+      Object.entries(props).forEach(([prop, value]) => {
+        blocks.push(`    ${prop}: ${value};`)
       })
-      blocks.push("}")
+      blocks.push('  }')
+      blocks.push('}')
     }
   })
   
-  return blocks.join("\n")
+  return blocks.join('\n')
 }
 
 function categorizeProperties(properties) {
-  const categorized = {}
+  const categorized = {
+    layout: {},
+    flexGrid: {},
+    boxModel: {},
+    typography: {},
+    visual: {},
+    animation: {},
+    other: {}
+  }
   
   Object.entries(properties).forEach(([prop, value]) => {
-    const category = PROPERTY_LOOKUP[prop] || "other"
-    if (!categorized[category]) categorized[category] = {}
+    const category = PROPERTY_LOOKUP[prop] || 'other'
     categorized[category][prop] = value
   })
   
   return categorized
 }
 
-function generateMediaQueries(classes, classDictionary, designTokens) {
-  const breakpoints = designTokens?.breakpoints || {tablet: "768px", desktop: "1158px"}
-  const mediaBlocks = []
-  
-  // Generate media queries efficiently
-  Object.entries(breakpoints).forEach(([breakpoint, size]) => {
-    if (breakpoint === "mobile") return // Mobile first approach
-    
-    const rules = []
-    classes.forEach(className => {
-      const responsive = classDictionary[className]?.responsive?.[breakpoint]
-      if (responsive && Object.keys(responsive).length > 0) {
-        rules.push(`  .${className} {`)
-        Object.entries(responsive).forEach(([prop, value]) => {
-          rules.push(`    ${prop}: ${value};`)
-        })
-        rules.push("  }")
-      }
-    })
-    
-    if (rules.length > 0) {
-      mediaBlocks.push(`/* ${breakpoint.toUpperCase()}: ${size} and up */`)
-      mediaBlocks.push(`@media (min-width: ${size}) {`)
-      mediaBlocks.push(...rules)
-      mediaBlocks.push("}")
-    }
-  })
-  
-  return mediaBlocks.join("\n")
-}
-
 function createClassDictionary(classes, options = {}, classParents = {}, classTags = {}) {
-  const {responsive = true, darkMode = true, designTokens = null} = options
+  const {
+    responsive = true,
+    darkMode = true,
+    designTokens = null,
+    breakpoints = {mobile: "320px", tablet: "768px", desktop: "1158px"},
+    colorFormat = "hex",
+    prefixClasses = "",
+    enableInspection = true,
+    inspectionPriority = "figma-first",
+    matchThreshold = 0.4
+  } = options
+  
   const dictionary = {}
   
   classes.forEach(className => {
-    const properties = getPropertiesForClass(className, designTokens, classTags, classParents)
-    const filteredProperties = filterInheritedAndGlobalProperties(properties, className, classTags, classParents)
+    const finalClassName = prefixClasses ? `${prefixClasses}${className}` : className
+    const tags = classTags[className] ? Array.from(classTags[className]) : []
+    const parents = classParents[className] ? Array.from(classParents[className]) : []
     
-    dictionary[className] = {
-      properties: filteredProperties,
-      pseudoClasses: getPseudoClassesForClass(className, designTokens),
-      responsive: responsive ? getResponsiveProperties(className, designTokens) : {}
+    // Отримуємо властивості з максимальною відповідністю макету
+    const properties = getEnhancedClassProperties(className, tags, designTokens, options)
+    
+    dictionary[finalClassName] = {
+      properties,
+      pseudoClasses: responsive ? generateResponsiveProperties(className, breakpoints) : {},
+      darkMode: darkMode ? generateDarkModeProperties(className) : {},
+      tags,
+      parents,
+      usedTokens: new Set()
     }
   })
   
   return dictionary
 }
 
-function getPropertiesForClass(className, designTokens = {}, classTags = {}, classParents = {}) {
-  // Priority: Figma styles > General patterns > Defaults
-  let properties = {}
+function getEnhancedClassProperties(className, tags = [], designTokens = null, options = {}) {
+  const properties = {}
   
-  // 1. Figma class styles (highest priority)
-  if (designTokens?.classStyles?.[className]) {
-    properties = {...designTokens.classStyles[className]}
+  // Покращене зіставлення з Figma вузлами
+  if (designTokens?.document?.children) {
+    const matchedNode = findBestMatchingNode(className, tags, designTokens.document.children)
+    if (matchedNode) {
+      Object.assign(properties, extractNodeProperties(matchedNode))
+    }
   }
   
-  // 2. General patterns based on class name
-  const patterns = getClassPatterns(className)
-  Object.assign(properties, patterns)
+  // Figma стилі з inspectedStyles
+  if (designTokens?.inspectedStyles) {
+    const matchedStyle = findMatchingFigmaStyle(className, designTokens.inspectedStyles, options.matchThreshold)
+    if (matchedStyle) {
+      Object.assign(properties, matchedStyle)
+    }
+  }
+  
+  // Базові властивості на основі назви класу
+  Object.assign(properties, getClassPatterns(className))
+  
+  // Властивості на основі тегів
+  tags.forEach(tag => {
+    Object.assign(properties, getTagProperties(tag))
+  })
   
   return properties
 }
 
-const CLASS_PATTERNS = {
-  // Layout components
-  header: {"border-bottom": "1px solid var(--color-border, #e7e9fc)", "box-shadow": "var(--shadow-light, 0 1px 6px rgba(0,0,0,0.08))"},
-  hero: {"background-color": "var(--color-dark, #2e2f42)", color: "var(--color-white, #fff)", "text-align": "center", padding: "120px 0"},
-  footer: {"background-color": "var(--color-dark, #2e2f42)", color: "var(--color-light, #f4f4fd)", padding: "100px 0"},
+function findMatchingFigmaStyle(className, inspectedStyles, matchThreshold = 0.4) {
+  if (inspectedStyles[className]) return inspectedStyles[className]
   
-  // Interactive elements
-  btn: {"background-color": "var(--color-primary, #4d5ae5)", color: "var(--color-white, #fff)", "border-radius": "4px", padding: "16px 32px", border: "none", cursor: "pointer"},
-  button: {"background-color": "var(--color-primary, #4d5ae5)", color: "var(--color-white, #fff)", "border-radius": "4px", padding: "16px 32px", border: "none", cursor: "pointer"},
-  link: {color: "var(--color-primary, #4d5ae5)", "text-decoration": "none", transition: "color 250ms ease"},
+  const classWords = className.split(/[-_]/)
+  let bestMatch = null
+  let bestScore = 0
   
-  // Typography
-  title: {"font-size": "var(--size-h2, 36px)", "font-weight": "var(--weight-bold, 700)", "text-align": "center", "margin-bottom": "72px"},
-  subtitle: {"font-size": "var(--size-h3, 20px)", "font-weight": "var(--weight-medium, 500)", "margin-bottom": "8px"},
+  Object.keys(inspectedStyles).forEach(inspectedClass => {
+    const inspectedWords = inspectedClass.split(/[-_]/)
+    const commonWords = classWords.filter(word => inspectedWords.includes(word))
+    const score = commonWords.length / Math.max(classWords.length, inspectedWords.length)
+    
+    if (score > bestScore && score > matchThreshold) {
+      bestScore = score
+      bestMatch = inspectedStyles[inspectedClass]
+    }
+  })
   
-  // Layout utilities
-  container: {width: "100%", "max-width": "1158px", "margin-left": "auto", "margin-right": "auto", "padding-left": "15px", "padding-right": "15px"},
-  section: {"padding-top": "120px", "padding-bottom": "120px"}
+  return bestMatch
 }
 
 function getClassPatterns(className) {
-  const patterns = {}
+  const patterns = {
+    container: {'max-width': '1200px', 'margin': '0 auto', 'padding': '0 15px'},
+    header: {'border-bottom': '1px solid #e7e9fc'},
+    hero: {'background-color': '#2e2f42', 'color': '#fff', 'text-align': 'center', 'padding': '120px 0'},
+    footer: {'background-color': '#2e2f42', 'color': '#f4f4fd', 'padding': '100px 0'},
+    btn: {'background-color': '#4d5ae5', 'color': '#fff', 'border-radius': '4px', 'padding': '16px 32px', 'border': 'none', 'cursor': 'pointer'},
+    button: {'background-color': '#4d5ae5', 'color': '#fff', 'border-radius': '4px', 'padding': '16px 32px', 'border': 'none', 'cursor': 'pointer'},
+    title: {'font-size': '36px', 'font-weight': '700', 'text-align': 'center', 'margin-bottom': '72px'},
+    section: {'padding-top': '120px', 'padding-bottom': '120px'}
+  }
   
-  Object.entries(CLASS_PATTERNS).forEach(([pattern, props]) => {
+  const result = {}
+  Object.entries(patterns).forEach(([pattern, props]) => {
     if (className.includes(pattern)) {
-      Object.assign(patterns, props)
+      Object.assign(result, props)
     }
   })
   
-  return patterns
+  return result
 }
 
-function filterInheritedAndGlobalProperties(properties, className, classTags = {}, classParents = {}) {
-  const filtered = {...properties}
-  
-  // Remove global properties that are already defined globally
-  GLOBAL_PROPERTIES.forEach(prop => {
-    if (filtered[prop]) {
-      delete filtered[prop]
-    }
-  })
-  
-  // Remove inherited properties for text elements (unless explicitly overridden)
-  const tags = classTags[className] || new Set()
-  const isTextElement = ["p", "span", "a", "h1", "h2", "h3", "h4", "h5", "h6"].some(tag => tags.has(tag))
-  
-  if (isTextElement) {
-    INHERITED_PROPERTIES.forEach(prop => {
-      // Only keep if it's different from parent or explicitly set in Figma
-      const hasExplicitValue = properties[prop] && typeof properties[prop] === 'string' && properties[prop].includes("var(")
-      if (!hasExplicitValue && filtered[prop]) {
-        delete filtered[prop]
-      }
-    })
+function getTagProperties(tag) {
+  const tagProperties = {
+    h1: {'font-weight': 'bold', 'font-size': '2rem', 'margin-bottom': '1rem'},
+    h2: {'font-weight': 'bold', 'font-size': '1.5rem', 'margin-bottom': '1rem'},
+    h3: {'font-weight': 'bold', 'font-size': '1.25rem', 'margin-bottom': '0.5rem'},
+    button: {'padding': '10px 20px', 'border': 'none', 'cursor': 'pointer'},
+    a: {'text-decoration': 'none', 'color': '#4d5ae5'},
+    p: {'margin-bottom': '1rem'},
+    ul: {'list-style': 'none', 'padding': '0'},
+    img: {'max-width': '100%', 'height': 'auto'}
   }
   
-  return filtered
+  return tagProperties[tag] || {}
 }
 
-function getPseudoClassesForClass(className, designTokens = null) {
-  const pseudo = {}
-  
-  // Interactive elements
-  if (className.includes("link") || className.includes("btn") || className.includes("button")) {
-    pseudo[":hover"] = {color: "var(--color-hover, #404bbf)"}
-    pseudo[":focus"] = {color: "var(--color-hover, #404bbf)"}
-  }
-  
-  if (className.includes("btn") || className.includes("button")) {
-    pseudo[":hover"]["background-color"] = "var(--color-hover, #404bbf)"
-    pseudo[":focus"]["background-color"] = "var(--color-hover, #404bbf)"
-  }
-  
-  return pseudo
-}
-
-function getResponsiveProperties(className, designTokens = null) {
+function generateResponsiveProperties(className, breakpoints) {
   const responsive = {}
-  const breakpoints = designTokens?.breakpoints || {tablet: "768px", desktop: "1158px"}
   
-  // Container responsive
-  if (className === "container") {
-    responsive.tablet = {"max-width": "768px"}
-    responsive.desktop = {"max-width": "1158px"}
-  }
-  
-  // Typography responsive
-  if (className.includes("title") || className.includes("hero")) {
-    responsive.tablet = {"font-size": "clamp(36px, 4vw, 56px)"}
+  if (className.includes('mobile')) {
+    responsive[`@media (max-width: ${breakpoints.tablet})`] = {
+      'display': 'block'
+    }
   }
   
   return responsive
 }
 
-function extractUsedTokens(cssText) {
-  const tokenRegex = /var\((--[\w-]+)/g
-  const usedTokens = new Set()
-  let match
+function generateDarkModeProperties(className) {
+  const darkMode = {}
   
-  while ((match = tokenRegex.exec(cssText)) !== null) {
-    usedTokens.add(match[1])
+  if (className.includes('text')) {
+    darkMode['@media (prefers-color-scheme: dark)'] = {
+      'color': '#ffffff'
+    }
   }
   
-  return usedTokens
+  return darkMode
+}
+
+function findBestMatchingNode(className, tags, nodes, hierarchy = []) {
+  let bestMatch = null
+  let bestScore = 0
+  
+  for (const node of nodes) {
+    if (node.name && node.type !== "DOCUMENT") {
+      const currentHierarchy = [...hierarchy, node.name]
+      
+      // Обчислюємо скор відповідності
+      const score = calculateNodeMatchScore(className, tags, node, currentHierarchy)
+      
+      if (score > bestScore) {
+        bestScore = score
+        bestMatch = node
+      }
+      
+      // Рекурсивно перевіряємо дочірні вузли
+      if (node.children) {
+        const childMatch = findBestMatchingNode(className, tags, node.children, currentHierarchy)
+        if (childMatch) {
+          const childScore = calculateNodeMatchScore(className, tags, childMatch, [...currentHierarchy, childMatch.name])
+          if (childScore > bestScore) {
+            bestScore = childScore
+            bestMatch = childMatch
+          }
+        }
+      }
+    }
+  }
+  
+  return bestMatch
+}
+
+function calculateNodeMatchScore(className, tags, node, hierarchy) {
+  let score = 0
+  const nodeName = node.name.toLowerCase()
+  const classWords = className.toLowerCase().split(/[-_]/)
+  const nodeWords = nodeName.split(/[-_\s]/)
+  
+  // Пряме співпадіння назви
+  if (nodeName === className.toLowerCase()) {
+    score += 100
+  }
+  
+  // Співпадіння слів у назві
+  const commonWords = classWords.filter(word => nodeWords.some(nWord => nWord.includes(word) || word.includes(nWord)))
+  score += (commonWords.length / Math.max(classWords.length, nodeWords.length)) * 50
+  
+  // Співпадіння з тегами
+  if (tags.length > 0) {
+    const tagMatches = tags.filter(tag => {
+      const tagPatterns = {
+        'h1': ['title', 'heading', 'header'],
+        'h2': ['subtitle', 'heading', 'title'],
+        'h3': ['subtitle', 'heading'],
+        'button': ['btn', 'button', 'cta'],
+        'a': ['link', 'nav'],
+        'p': ['text', 'description', 'content'],
+        'div': ['container', 'wrapper', 'section'],
+        'section': ['section', 'block'],
+        'header': ['header', 'top'],
+        'footer': ['footer', 'bottom']
+      }
+      
+      const patterns = tagPatterns[tag] || []
+      return patterns.some(pattern => nodeName.includes(pattern))
+    })
+    score += (tagMatches.length / tags.length) * 30
+  }
+  
+  // Бонус за ієрархію (чим глибше, тим більше бонус)
+  score += Math.min(hierarchy.length * 5, 20)
+  
+  // Бонус за наявність стилів
+  if (node.style || node.fills || node.backgroundColor) {
+    score += 10
+  }
+  
+  return score
+}
+
+function extractNodeProperties(node) {
+  const properties = {}
+  
+  // Розміри
+  if (node.absoluteBoundingBox) {
+    const box = node.absoluteBoundingBox
+    if (box.width && box.width > 0) properties['width'] = `${Math.round(box.width)}px`
+    if (box.height && box.height > 0) properties['height'] = `${Math.round(box.height)}px`
+  }
+  
+  // Кольори
+  if (node.backgroundColor) {
+    const bg = node.backgroundColor
+    properties['background-color'] = `rgba(${Math.round(bg.r * 255)}, ${Math.round(bg.g * 255)}, ${Math.round(bg.b * 255)}, ${bg.a || 1})`
+  }
+  
+  if (node.fills?.[0]?.color) {
+    const color = node.fills[0].color
+    properties['color'] = `rgba(${Math.round(color.r * 255)}, ${Math.round(color.g * 255)}, ${Math.round(color.b * 255)}, ${color.a || 1})`
+  }
+  
+  // Типографіка
+  if (node.style) {
+    if (node.style.fontSize) properties['font-size'] = `${node.style.fontSize}px`
+    if (node.style.fontWeight) properties['font-weight'] = node.style.fontWeight
+    if (node.style.fontFamily) properties['font-family'] = `"${node.style.fontFamily}", sans-serif`
+    if (node.style.lineHeightPx) properties['line-height'] = `${node.style.lineHeightPx}px`
+    if (node.style.textAlignHorizontal) {
+      const alignMap = { 'LEFT': 'left', 'CENTER': 'center', 'RIGHT': 'right', 'JUSTIFIED': 'justify' }
+      properties['text-align'] = alignMap[node.style.textAlignHorizontal] || 'left'
+    }
+  }
+  
+  // Відступи та поля
+  if (node.paddingLeft || node.paddingRight || node.paddingTop || node.paddingBottom) {
+    const padding = [
+      node.paddingTop || 0,
+      node.paddingRight || 0,
+      node.paddingBottom || 0,
+      node.paddingLeft || 0
+    ]
+    if (padding.some(p => p > 0)) {
+      properties['padding'] = padding.map(p => `${p}px`).join(' ')
+    }
+  }
+  
+  // Макет
+  if (node.layoutMode) {
+    if (node.layoutMode === 'HORIZONTAL') {
+      properties['display'] = 'flex'
+      properties['flex-direction'] = 'row'
+    } else if (node.layoutMode === 'VERTICAL') {
+      properties['display'] = 'flex'
+      properties['flex-direction'] = 'column'
+    }
+    
+    if (node.itemSpacing) {
+      properties['gap'] = `${node.itemSpacing}px`
+    }
+    
+    if (node.primaryAxisAlignItems) {
+      const justifyMap = { 'MIN': 'flex-start', 'CENTER': 'center', 'MAX': 'flex-end', 'SPACE_BETWEEN': 'space-between' }
+      properties['justify-content'] = justifyMap[node.primaryAxisAlignItems] || 'flex-start'
+    }
+    
+    if (node.counterAxisAlignItems) {
+      const alignMap = { 'MIN': 'flex-start', 'CENTER': 'center', 'MAX': 'flex-end' }
+      properties['align-items'] = alignMap[node.counterAxisAlignItems] || 'flex-start'
+    }
+  }
+  
+  // Обрізка кутів
+  if (node.cornerRadius) {
+    properties['border-radius'] = `${node.cornerRadius}px`
+  }
+  
+  // Обведення
+  if (node.strokes && node.strokes.length > 0) {
+    const stroke = node.strokes[0]
+    if (stroke.color && node.strokeWeight) {
+      const color = stroke.color
+      properties['border'] = `${node.strokeWeight}px solid rgba(${Math.round(color.r * 255)}, ${Math.round(color.g * 255)}, ${Math.round(color.b * 255)}, ${color.a || 1})`
+    }
+  }
+  
+  return properties
 }
 
 function hasValidProperties(classInfo) {
@@ -358,7 +507,6 @@ function hasValidProperties(classInfo) {
 
 module.exports = {
   generateCSS,
-  generateClassCSS,
   createClassDictionary,
   PROPERTY_CATEGORIES,
   INHERITED_PROPERTIES
