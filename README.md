@@ -14,7 +14,8 @@
 ## 📸 Latest Screenshot
 ![Project Screenshot](assets/screenshot.png)
 <!-- END:AUTOGEN -->
-![Приклад встановлення та використання](https://youtu.be/xl46PGWNB3A)
+[![Приклад встановлення та використання](https://img.youtube.com/vi/xl46PGWNB3A/0.jpg)](https://youtu.be/xl46PGWNB3A)
+
 ## ✨ Особливості
 
 - 🎯 **Автоматичне витягування CSS класів** з HTML файлів
