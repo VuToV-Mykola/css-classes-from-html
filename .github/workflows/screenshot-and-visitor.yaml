@@ -235,7 +235,7 @@ jobs:
 
       - name: 🔍 Check if screenshot is commented in README
         run: |
-          if grep -q "^<!--.*📸 Скріншот проекту" README.md || grep -q "^<!--.*📸 Latest Screenshot" README.md; then
+          if grep -q "^[[:space:]]*<!--.*📸 Скріншот проекту" README.md || grep -q "^[[:space:]]*<!--.*📸 Latest Screenshot" README.md; then
             echo "📸 Screenshot section is commented out - skipping screenshot generation"
             echo "SCREENSHOT_SKIP=true" >> $GITHUB_ENV
           else
