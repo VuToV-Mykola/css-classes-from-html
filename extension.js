@@ -20,7 +20,7 @@ function activate(context) {
         }
 
         const {figmaLink, accessToken, selectedCanvases} = await getFigmaInput()
-        const config = getConfiguration()
+        const config = await getConfiguration()
         /* !!! Отримуємо вибраний текст або весь документ !!! */
         const selection = editor.selection
         const htmlContent = selection.isEmpty 
@@ -311,7 +311,7 @@ async function selectCanvas(figmaLink, accessToken) {
   }
 }
 
-function getConfiguration() {
+async function getConfiguration() {
   const config = vscode.workspace.getConfiguration("cssclasssfromhtml")
   const savedConfig = config.get("savedConfiguration", {})
   const saveConfiguration = config.get("saveConfiguration", true)
@@ -374,7 +374,7 @@ function getConfiguration() {
       removeEmptyRules: settings.removeEmptyRules
     }
     
-    await config.update("savedConfiguration", configToSave, vscode.ConfigurationTarget.Global)
+    config.update("savedConfiguration", configToSave, vscode.ConfigurationTarget.Global)
   }
   
   if (settings.rememberSettings) {

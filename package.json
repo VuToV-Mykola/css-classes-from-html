@@ -2,7 +2,7 @@
   "name": "css-classes-from-html",
   "displayName": "CSS Classes from HTML",
   "description": "Generate CSS classes from HTML with Figma integration",
-  "version": "0.4.0",
+  "version": "0.2.2",
   "publisher": "vutov-mykola",
   "author": {
     "name": "VuToV-Mykola",
