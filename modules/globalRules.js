@@ -69,72 +69,87 @@ function getGlobalRules(includeReset = true, selectedTags = null) {
   // Base element styles with modern approaches (filtered for selected tags)
   const elementStyles = {
     body: `body {\n  font-family: var(--font-primary, sans-serif);\n  color: var(--color-text, #333);\n  background-color: var(--color-background, #fff);\n  font-size: 1rem;\n  line-height: 1.6;\n}\n\n`,
-    h: `h1, h2, h3, h4, h5, h6 {\n  font-family: var(--font-secondary, sans-serif);\n  line-height: 1.2;\n  font-weight: 700;\n  margin-bottom: var(--space-md);\n}\n\n`,
-    p: `p {\n  margin-bottom: var(--space-md);\n  max-width: 65ch;\n}\n\n`,
+    h: `h1, h2, h3, h4, h5, h6 {\n  font-family: var(--font-secondary, sans-serif);\n  line-height: 1.2;\n  font-weight: 700;\n  margin-bottom: var(--space-md, 1rem);\n}\n\n`,
+    p: `p {\n  margin-bottom: var(--space-md, 1rem);\n  max-width: 65ch;\n}\n\n`,
     img: `img, picture, video, canvas, svg {\n  display: block;\n  max-width: 100%;\n  height: auto;\n}\n\n`,
     input: `input, button, textarea, select {\n  font: inherit;\n}\n\n`,
-    button: `button {\n  cursor: pointer;\n  border: none;\n  background: none;\n  padding: var(--space-sm) var(--space-md);\n  border-radius: var(--radius-md);\n  transition: background-color var(--transition-base);\n}\n\n`,
-    a: `a {\n  color: var(--color-primary);\n  text-decoration: none;\n  transition: color var(--transition-base);\n}\n\na:hover {\n  color: color-mix(in oklab, var(--color-primary), black 15%);\n}\n\n`,
-    ul: `ul, ol {\n  list-style: none;\n  padding-left: var(--space-lg);\n}\n\n`,
-    li: `li {\n  margin-bottom: var(--space-sm);\n}\n\n`
+    button: `button {\n  cursor: pointer;\n  border: none;\n  background: none;\n  padding: var(--space-sm, 0.5rem) var(--space-md, 1rem);\n  border-radius: var(--radius-md, 4px);\n  transition: background-color var(--transition-base, 0.2s ease);\n}\n\n`,
+    a: `a {\n  color: var(--color-primary, #4d5ae5);\n  text-decoration: none;\n  transition: color var(--transition-base, 0.2s ease);\n}\n\na:hover {\n  color: color-mix(in oklab, var(--color-primary, #4d5ae5), black 15%);\n}\n\n`,
+    ul: `ul, ol {\n  list-style: none;\n  padding-left: var(--space-lg, 2rem);\n}\n\n`,
+    li: `li {\n  margin-bottom: var(--space-sm, 0.5rem);\n}\n\n`
   }
-  
+
   if (selectedTags) {
     rules += `/* !!! Базові стилі для вибраних елементів !!! */\n`
+    const processedTags = new Set()
+
     selectedTags.forEach(tag => {
-      if (elementStyles[tag]) {
+      if (elementStyles[tag] && !processedTags.has(tag)) {
         rules += elementStyles[tag]
-      } else if (['h1','h2','h3','h4','h5','h6'].includes(tag) && elementStyles.h) {
+        processedTags.add(tag)
+      } else if (
+        ["h1", "h2", "h3", "h4", "h5", "h6"].includes(tag) &&
+        elementStyles.h &&
+        !processedTags.has("h")
+      ) {
         rules += elementStyles.h
-        delete elementStyles.h // Add only once
-      } else if (['picture','video','canvas','svg'].includes(tag) && elementStyles.img) {
+        processedTags.add("h")
+      } else if (
+        ["picture", "video", "canvas", "svg"].includes(tag) &&
+        elementStyles.img &&
+        !processedTags.has("img")
+      ) {
         rules += elementStyles.img
-        delete elementStyles.img // Add only once
-      } else if (['textarea','select'].includes(tag) && elementStyles.input) {
+        processedTags.add("img")
+      } else if (
+        ["textarea", "select"].includes(tag) &&
+        elementStyles.input &&
+        !processedTags.has("input")
+      ) {
         rules += elementStyles.input
-        delete elementStyles.input // Add only once
-      } else if (tag === 'ol' && elementStyles.ul) {
+        processedTags.add("input")
+      } else if (tag === "ol" && elementStyles.ul && !processedTags.has("ul")) {
         rules += elementStyles.ul
-        delete elementStyles.ul // Add only once
+        processedTags.add("ul")
       }
     })
   } else {
     rules += `/* !!! Базові стилі елементів !!! */\n`
-    Object.values(elementStyles).forEach(style => rules += style)
+    Object.values(elementStyles).forEach(style => (rules += style))
   }
-
-
 
   // Utility classes for modern development (filtered for selected tags)
   const utilityClasses = {
-    all: `.sr-only {\n  position: absolute;\n  width: 1px;\n  height: 1px;\n  padding: 0;\n  margin: -1px;\n  overflow: hidden;\n  clip: rect(0, 0, 0, 0);\n  white-space: nowrap;\n  border: 0;\n}\n\n`,
+    all: `.sr-only {\n  position: absolute;\n  width: 1px;\n  height: 1px;\n  padding: 0;\n  margin: -1px;\n  overflow: hidden;\n  clip-path: inset(50%);\n  white-space: nowrap;\n  border: 0;\n}\n\n`,
     text: `.text-balance {\n  text-wrap: balance;\n}\n\n`,
-    container: `.grid-auto-fit {\n  display: grid;\n  grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));\n  gap: var(--space-md);\n}\n\n`,
+    container: `.grid-auto-fit {\n  display: grid;\n  grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));\n  gap: var(--space-md, 1rem);\n}\n\n`,
     media: `.aspect-ratio {\n  aspect-ratio: 16/9;\n}\n\n`
   }
-  
+
   if (selectedTags) {
     rules += `/* !!! Утилітні класи !!! */\n`
     // Always include sr-only for accessibility
     rules += utilityClasses.all
-    
+
     // Include text utilities for text elements
-    if (selectedTags.some(tag => ['p', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'a'].includes(tag))) {
+    if (
+      selectedTags.some(tag => ["p", "span", "h1", "h2", "h3", "h4", "h5", "h6", "a"].includes(tag))
+    ) {
       rules += utilityClasses.text
     }
-    
+
     // Include grid utilities for container elements
-    if (selectedTags.some(tag => ['div', 'section', 'article', 'main'].includes(tag))) {
+    if (selectedTags.some(tag => ["div", "section", "article", "main"].includes(tag))) {
       rules += utilityClasses.container
     }
-    
+
     // Include media utilities for media elements
-    if (selectedTags.some(tag => ['img', 'video', 'picture'].includes(tag))) {
+    if (selectedTags.some(tag => ["img", "video", "picture"].includes(tag))) {
       rules += utilityClasses.media
     }
   } else {
     rules += `/* !!! Утилітні класи !!! */\n`
-    Object.values(utilityClasses).forEach(utility => rules += utility)
+    Object.values(utilityClasses).forEach(utility => (rules += utility))
   }
 
   return rules
@@ -188,7 +203,7 @@ function getGlobalStyles(selectedTags = null) {
   padding: 0;
   margin: -1px;
   overflow: hidden;
-  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
   white-space: nowrap;
   border: 0;
 }`
