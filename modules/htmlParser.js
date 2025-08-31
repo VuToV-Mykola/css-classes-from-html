@@ -1,6 +1,6 @@
-// Модуль для парсингу HTML та витягування CSS класів
+/* !!! Модуль для парсингу HTML та витягування CSS класів !!! */
 
-// Витягує класи з HTML контенту з інформацією про ієрархію
+/* !!! Витягує класи з HTML контенту з інформацією про ієрархію !!! */
 function extractClasses(htmlContent) {
   const classRegex = /class="([^"]*)"/g
   const classes = new Set()
@@ -21,7 +21,7 @@ function extractClasses(htmlContent) {
     })
   }
 
-  // Extract hierarchy and tag information
+  /* !!! Витягуємо ієрархію та інформацію про теги !!! */
   const tagRegex = /<(\w+)[^>]*class="([^"]*)"[^>]*>/g
   let tagMatch
   while ((tagMatch = tagRegex.exec(htmlContent)) !== null) {
@@ -84,12 +84,12 @@ function analyzeStructure(htmlContent) {
     }
   }
 
-  // Check components
+  /* !!! Перевіряємо компоненти !!! */
   Object.entries(COMPONENT_PATTERNS).forEach(([component, patterns]) => {
     structure.components[component] = patterns.some(pattern => pattern.test(htmlContent))
   })
 
-  // Check layout
+  /* !!! Перевіряємо макет !!! */
   Object.entries(LAYOUT_PATTERNS).forEach(([layout, patterns]) => {
     if (layout === "flexbox") {
       structure.layout.usesFlexbox = patterns.some(pattern => pattern.test(htmlContent))

@@ -10,20 +10,20 @@ function getGlobalRules(includeReset = true, selectedTags = null) {
 
   if (includeReset) {
     rules += `${commentManager.getTranslation("reset_rules")}\n`
-    rules += `/* Сучасний CSS Reset 2025 з врахуванням доступності */\n`
+    rules += `/* !!! Сучасний CSS Reset 2025 з врахуванням доступності !!! */\n`
     rules += `*, *::before, *::after {\n`
     rules += `  /* Включаємо border-box для зручного розрахунку розмірів */\n`
     rules += `  box-sizing: border-box;\n`
     rules += `}\n\n`
 
     rules += `* {\n`
-    rules += `  /* Обнуляємо margins і paddings */\n`
+    rules += `  /* Обнуляємо зовнішні та внутрішні відступи */\n`
     rules += `  margin: 0;\n`
     rules += `  padding: 0;\n`
     rules += `}\n\n`
 
     rules += `html {\n`
-    rules += `  /* Плавна прокрутка */\n`
+    rules += `  /* Плавна прокрутка сторінки */\n`
     rules += `  scroll-behavior: smooth;\n`
     rules += `  /* Автоматичні відступи для scroll-snap */\n`
     rules += `  scroll-padding-top: 2rem;\n`
@@ -47,21 +47,21 @@ function getGlobalRules(includeReset = true, selectedTags = null) {
   rules += `${commentManager.getTranslation("global_rules")}\n`
 
   // Modern layout system
-  rules += `/* Сучасна система макетування */\n`
+  rules += `/* !!! Сучасна система макетування !!! */\n`
   rules += `.container {\n`
-  rules += `  /* Адаптивний контейнер */\n`
+  rules += `  /* Максимальна ширина контейнера */\n`
   rules += `  width: min(100% - 2rem, 1200px);\n`
   rules += `  margin-inline: auto;\n`
   rules += `}\n\n`
 
   rules += `.grid {\n`
-  rules += `  /* Grid система */\n`
+  rules += `  /* Система сітки Grid */\n`
   rules += `  display: grid;\n`
   rules += `  gap: var(--space-md, 1rem);\n`
   rules += `}\n\n`
 
   rules += `.flex {\n`
-  rules += `  /* Flexbox система */\n`
+  rules += `  /* Гнучка система Flexbox */\n`
   rules += `  display: flex;\n`
   rules += `  gap: var(--space-md, 1rem);\n`
   rules += `}\n\n`
@@ -80,7 +80,7 @@ function getGlobalRules(includeReset = true, selectedTags = null) {
   }
   
   if (selectedTags) {
-    rules += `/* Базові стилі для вибраних елементів */\n`
+    rules += `/* !!! Базові стилі для вибраних елементів !!! */\n`
     selectedTags.forEach(tag => {
       if (elementStyles[tag]) {
         rules += elementStyles[tag]
@@ -99,7 +99,7 @@ function getGlobalRules(includeReset = true, selectedTags = null) {
       }
     })
   } else {
-    rules += `/* Базові стилі елементів */\n`
+    rules += `/* !!! Базові стилі елементів !!! */\n`
     Object.values(elementStyles).forEach(style => rules += style)
   }
 
@@ -114,7 +114,7 @@ function getGlobalRules(includeReset = true, selectedTags = null) {
   }
   
   if (selectedTags) {
-    rules += `/* Утилітні класи */\n`
+    rules += `/* !!! Утилітні класи !!! */\n`
     // Always include sr-only for accessibility
     rules += utilityClasses.all
     
@@ -133,7 +133,7 @@ function getGlobalRules(includeReset = true, selectedTags = null) {
       rules += utilityClasses.media
     }
   } else {
-    rules += `/* Утилітні класи */\n`
+    rules += `/* !!! Утилітні класи !!! */\n`
     Object.values(utilityClasses).forEach(utility => rules += utility)
   }
 
@@ -141,7 +141,7 @@ function getGlobalRules(includeReset = true, selectedTags = null) {
 }
 
 function getCSSReset() {
-  return `/* Сучасний CSS Reset 2025 */
+  return `/* !!! Сучасний CSS Reset 2025 !!! */
 *, *::before, *::after {
   box-sizing: border-box;
 }
@@ -165,7 +165,7 @@ body {
 }
 
 function getGlobalStyles(selectedTags = null) {
-  return `/* Глобальні стилі */
+  return `/* !!! Глобальні стилі !!! */
 .container {
   width: min(100% - 2rem, 1200px);
   margin-inline: auto;

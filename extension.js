@@ -1,4 +1,4 @@
-// Головний файл розширення VS Code для генерації CSS з HTML
+/* !!! Головний файл розширення VS Code для генерації CSS з HTML !!! */
 const vscode = require("vscode")
 const htmlParser = require("./modules/htmlParser")
 const cssGenerator = require("./modules/cssGenerator")
@@ -21,13 +21,14 @@ function activate(context) {
 
         const {figmaLink, accessToken, selectedCanvases} = await getFigmaInput()
         const config = getConfiguration()
-        // Отримуємо вибраний текст або весь документ
+        /* !!! Отримуємо вибраний текст або весь документ !!! */
         const selection = editor.selection
         const htmlContent = selection.isEmpty 
           ? editor.document.getText() 
           : editor.document.getText(selection)
 
         commentManager.setLanguage(config.language)
+        commentManager.setCommentStyle(config.commentStyle)
 
         const {classes, classParents, classTags} = htmlParser.extractClasses(htmlContent)
         
@@ -58,7 +59,7 @@ function activate(context) {
           classTags
         )
 
-        // Якщо вибрано фрагмент - фільтруємо глобальні стилі для відповідних елементів
+        /* !!! Якщо вибрано фрагмент - фільтруємо глобальні стилі для відповідних елементів !!! */
         const isSelection = !selection.isEmpty
         const selectedTags = isSelection ? extractTagsFromSelection(htmlContent) : []
         const cssContent = cssGenerator.generateCSS(
@@ -74,20 +75,25 @@ function activate(context) {
             indentSize: config.indentSize,
             includeComments: config.includeComments,
             sortProperties: config.sortProperties,
-            colorFormat: config.colorFormat
+            colorFormat: config.colorFormat,
+            optimizeCSS: config.optimizeCSS,
+            removeRedundant: config.removeRedundant,
+            optimizeShorthands: config.optimizeShorthands,
+            optimizeInheritance: config.optimizeInheritance,
+            removeEmptyRules: config.removeEmptyRules
           }
         )
 
         await showGeneratedCSS(cssContent)
         
-        // Автозбереження файлу відносно HTML
+        /* !!! Автозбереження файлу відносно HTML !!! */
         if (config.autoSave) {
           const htmlFilePath = editor.document.uri.fsPath
           const relativeOutputPath = getRelativeFigmaPath(htmlFilePath, config.outputPath)
           await saveToFile(cssContent, relativeOutputPath)
         }
         
-        // Генерація універсального CSS з Figma токенів
+        /* !!! Генерація універсального CSS з Figma токенів !!! */
         if (config.saveFigmaStyles && designTokens && selectedCanvases?.length > 0) {
           const htmlFilePath = editor.document.uri.fsPath
           const universalGenerator = new UniversalFigmaGenerator(new FigmaService(accessToken))
@@ -99,7 +105,7 @@ function activate(context) {
           await saveToFile(universalCSS, relativeUniversalPath)
         }
         
-        // Зберігаємо останню дію та додаємо в історію
+        /* !!! Зберігаємо останню дію та додаємо в історію !!! */
         const actionSettings = {
           figmaLink,
           selectedCanvases: selectedCanvases?.map(canvas => canvas.name) || [],
@@ -123,7 +129,7 @@ function activate(context) {
     }
   )
 
-  // Команда для повторення останньої дії
+  /* !!! Команда для повторення останньої дії !!! */
   let repeatDisposable = vscode.commands.registerCommand(
     "cssclasssfromhtml.repeatLastAction",
     async function () {
@@ -134,7 +140,7 @@ function activate(context) {
         const showHistory = config.get("showActionHistory", true)
         
         if (showHistory && actionHistory.length > 0) {
-          // Показуємо історію дій для вибору
+          /* !!! Показуємо історію дій для вибору !!! */
           const historyItems = actionHistory.map((action, index) => ({
             label: `${action.timestamp} - ${action.figmaLink ? 'Figma' : 'HTML only'}`,
             description: action.figmaLink ? `Canvas: ${action.selectedCanvases?.join(', ') || 'All'}` : 'Local generation',
@@ -154,7 +160,7 @@ function activate(context) {
             await config.update("repeatLastAction", false, vscode.ConfigurationTarget.Global)
           }
         } else if (Object.keys(lastActionSettings).length > 0) {
-          // Повторюємо останню дію без вибору
+          /* !!! Повторюємо останню дію без вибору !!! */
           await config.update("repeatLastAction", true, vscode.ConfigurationTarget.Global)
           await vscode.commands.executeCommand("cssclasssfromhtml.generateCSS")
           await config.update("repeatLastAction", false, vscode.ConfigurationTarget.Global)
@@ -178,7 +184,7 @@ async function getFigmaInput() {
   const repeatLastAction = config.get("repeatLastAction", false)
   const lastActionSettings = config.get("lastActionSettings", {})
   
-  // Повторення останньої дії
+  /* !!! Повторення останньої дії !!! */
   if (repeatLastAction && lastActionSettings.figmaLink) {
     return {
       figmaLink: lastActionSettings.figmaLink,
@@ -187,7 +193,7 @@ async function getFigmaInput() {
     }
   }
 
-  // Швидка генерація з збереженими налаштуваннями
+  /* !!! Швидка генерація з збереженими налаштуваннями !!! */
   if (quickGenerate && lastFigmaLink) {
     return {figmaLink: lastFigmaLink, accessToken: savedToken}
   }
@@ -203,12 +209,12 @@ async function getFigmaInput() {
   let selectedCanvases = []
   
   if (figmaLink?.trim()) {
-    // Validate Figma URL
+    /* !!! Перевіряємо валідність URL Figma !!! */
     if (!figmaLink.includes("figma.com/")) {
       throw new Error("Невірний формат посилання Figma")
     }
 
-    // Використовуємо збережений токен або запитуємо новий
+    /* !!! Використовуємо збережений токен або запитуємо новий !!! */
     if (savedToken?.trim()) {
       accessToken = savedToken
     } else {
@@ -222,13 +228,13 @@ async function getFigmaInput() {
     if (!accessToken) {
       vscode.window.showWarningMessage("Генерація без токена Figma - будуть використані стандартні значення")
     } else {
-      // Отримуємо список Canvas для вибору
+      /* !!! Отримуємо список Canvas для вибору !!! */
       const canvasSelector = new CanvasSelector(new FigmaService(accessToken))
       selectedCanvases = await canvasSelector.selectMultipleCanvas(figmaLink, accessToken)
     }
   }
 
-  // Зберігаємо останнє використане посилання
+  /* !!! Зберігаємо останнє використане посилання !!! */
   if (figmaLink?.trim()) {
     await config.update("lastFigmaLink", figmaLink, vscode.ConfigurationTarget.Global)
   }
@@ -307,10 +313,13 @@ async function selectCanvas(figmaLink, accessToken) {
 
 function getConfiguration() {
   const config = vscode.workspace.getConfiguration("cssclasssfromhtml")
+  const savedConfig = config.get("savedConfiguration", {})
+  const saveConfiguration = config.get("saveConfiguration", true)
+  
   const settings = {
     language: config.get("language", "uk"),
-    includeGlobal: config.get("includeGlobal", true),
-    includeReset: config.get("includeReset", true),
+    includeGlobal: saveConfiguration && savedConfig.includeGlobal !== undefined ? savedConfig.includeGlobal : config.get("includeGlobal", true),
+    includeReset: saveConfiguration && savedConfig.includeReset !== undefined ? savedConfig.includeReset : config.get("includeReset", true),
     responsive: config.get("responsive", true),
     darkMode: config.get("darkMode", true),
     figmaToken: config.get("figmaToken", ""),
@@ -327,7 +336,7 @@ function getConfiguration() {
     enableInspection: config.get("enableInspection", true),
     inspectionPriority: config.get("inspectionPriority", "figma-first"),
     matchThreshold: config.get("matchThreshold", 0.4),
-    saveFigmaStyles: config.get("saveFigmaStyles", true),
+    saveFigmaStyles: saveConfiguration && savedConfig.saveFigmaStyles !== undefined ? savedConfig.saveFigmaStyles : config.get("saveFigmaStyles", true),
     figmaOutputPath: config.get("figmaOutputPath", "./css/figma.css"),
     figmaInspectionDepth: config.get("figmaInspectionDepth", "full"),
     figmaHierarchicalOutput: config.get("figmaHierarchicalOutput", true),
@@ -343,10 +352,31 @@ function getConfiguration() {
     lastActionSettings: config.get("lastActionSettings", {}),
     figmaMultiCanvas: config.get("figmaMultiCanvas", true),
     universalGeneration: config.get("universalGeneration", true),
-    matchThreshold: config.get("matchThreshold", 0.3)
+    optimizeCSS: saveConfiguration && savedConfig.optimizeCSS !== undefined ? savedConfig.optimizeCSS : config.get("optimizeCSS", true),
+    removeRedundant: saveConfiguration && savedConfig.removeRedundant !== undefined ? savedConfig.removeRedundant : config.get("removeRedundant", true),
+    optimizeShorthands: saveConfiguration && savedConfig.optimizeShorthands !== undefined ? savedConfig.optimizeShorthands : config.get("optimizeShorthands", true),
+    optimizeInheritance: saveConfiguration && savedConfig.optimizeInheritance !== undefined ? savedConfig.optimizeInheritance : config.get("optimizeInheritance", true),
+    removeEmptyRules: saveConfiguration && savedConfig.removeEmptyRules !== undefined ? savedConfig.removeEmptyRules : config.get("removeEmptyRules", true),
+    commentStyle: config.get("commentStyle", "author"),
+    saveConfiguration
   }
   
   // Зберігаємо налаштування для наступної дії
+  if (settings.saveConfiguration) {
+    const configToSave = {
+      includeGlobal: settings.includeGlobal,
+      includeReset: settings.includeReset,
+      saveFigmaStyles: settings.saveFigmaStyles,
+      optimizeCSS: settings.optimizeCSS,
+      removeRedundant: settings.removeRedundant,
+      optimizeShorthands: settings.optimizeShorthands,
+      optimizeInheritance: settings.optimizeInheritance,
+      removeEmptyRules: settings.removeEmptyRules
+    }
+    
+    await config.update("savedConfiguration", configToSave, vscode.ConfigurationTarget.Global)
+  }
+  
   if (settings.rememberSettings) {
     const settingsToSave = {
       figmaMultiCanvas: settings.figmaMultiCanvas,
@@ -354,7 +384,12 @@ function getConfiguration() {
       matchThreshold: settings.matchThreshold,
       saveFigmaStyles: settings.saveFigmaStyles,
       includeGlobal: settings.includeGlobal,
-      includeReset: settings.includeReset
+      includeReset: settings.includeReset,
+      optimizeCSS: settings.optimizeCSS,
+      removeRedundant: settings.removeRedundant,
+      optimizeShorthands: settings.optimizeShorthands,
+      optimizeInheritance: settings.optimizeInheritance,
+      removeEmptyRules: settings.removeEmptyRules
     }
     
     config.update("lastActionSettings", {

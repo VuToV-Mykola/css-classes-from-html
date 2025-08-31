@@ -2,7 +2,7 @@
   "name": "css-classes-from-html",
   "displayName": "CSS Classes from HTML",
   "description": "Generate CSS classes from HTML with Figma integration",
-  "version": "0.2.0",
+  "version": "0.4.0",
   "publisher": "vutov-mykola",
   "author": {
     "name": "VuToV-Mykola",
@@ -292,6 +292,47 @@
           "type": "boolean",
           "default": true,
           "description": "Show action history in quick pick for repeat actions"
+        },
+        "cssclasssfromhtml.optimizeCSS": {
+          "type": "boolean",
+          "default": true,
+          "description": "Optimize generated CSS according to Code Guide standards"
+        },
+        "cssclasssfromhtml.removeRedundant": {
+          "type": "boolean",
+          "default": true,
+          "description": "Remove redundant CSS declarations"
+        },
+        "cssclasssfromhtml.optimizeShorthands": {
+          "type": "boolean",
+          "default": true,
+          "description": "Convert longhand properties to shorthand where possible"
+        },
+        "cssclasssfromhtml.optimizeInheritance": {
+          "type": "boolean",
+          "default": true,
+          "description": "Remove properties that are inherited from parent elements"
+        },
+        "cssclasssfromhtml.removeEmptyRules": {
+          "type": "boolean",
+          "default": true,
+          "description": "Remove CSS rules with no declarations"
+        },
+        "cssclasssfromhtml.saveConfiguration": {
+          "type": "boolean",
+          "default": true,
+          "description": "Save current configuration for next generation"
+        },
+        "cssclasssfromhtml.savedConfiguration": {
+          "type": "object",
+          "default": {},
+          "description": "Saved configuration from last action (automatically managed)"
+        },
+        "cssclasssfromhtml.commentStyle": {
+          "type": "string",
+          "default": "author",
+          "enum": ["author", "standard"],
+          "description": "Comment style: author (like style.css) or standard"
         }
       }
     }

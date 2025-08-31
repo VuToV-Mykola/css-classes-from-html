@@ -1,6 +1,7 @@
-// Модуль генерації CSS з оптимізацією для HTML
+/* !!! Модуль генерації CSS з оптимізацією для HTML !!! */
 const commentManager = require("./commentManager")
 const globalRules = require("./globalRules")
+const CSSOptimizer = require("./cssOptimizer")
 
 const PROPERTY_CATEGORIES = {
   layout: ["display", "position", "top", "right", "bottom", "left", "z-index", "float", "clear"],
@@ -28,7 +29,21 @@ Object.entries(PROPERTY_CATEGORIES).forEach(([category, props]) => {
 })
 
 function generateCSS(classes, classDictionary, includeGlobal = true, includeReset = true, designTokens = null, selectedTags = null, options = {}) {
-  return generateHTMLBasedCSS(classes, classDictionary, includeGlobal, includeReset, selectedTags, options, designTokens)
+  let css = generateHTMLBasedCSS(classes, classDictionary, includeGlobal, includeReset, selectedTags, options, designTokens)
+  
+  /* !!! Оптимізація CSS !!! */
+  if (options.optimizeCSS) {
+    const optimizer = new CSSOptimizer()
+    css = optimizer.optimizeCSS(css, {
+      removeRedundant: options.removeRedundant,
+      optimizeShorthands: options.optimizeShorthands,
+      sortProperties: options.sortProperties,
+      removeEmptyRules: options.removeEmptyRules,
+      optimizeInheritance: options.optimizeInheritance
+    })
+  }
+  
+  return css
 }
 
 function generateHTMLBasedCSS(classes, classDictionary, includeGlobal = true, includeReset = true, selectedTags = null, options = {}, designTokens = null) {
@@ -36,20 +51,22 @@ function generateHTMLBasedCSS(classes, classDictionary, includeGlobal = true, in
   const inheritanceMap = new Map()
   const usedProperties = new Set()
   
-  cssBlocks.push("/* AUTO-GENERATED CSS FROM HTML */")
+  cssBlocks.push(commentManager.getFileHeader())
   
   if (includeReset) {
+    cssBlocks.push(commentManager.getTranslation('reset_rules'))
     cssBlocks.push(globalRules.getCSSReset())
   }
   
   if (includeGlobal) {
+    cssBlocks.push(commentManager.getTranslation('global_rules'))
     cssBlocks.push(globalRules.getGlobalStyles(selectedTags))
   }
   
-  // Будуємо ієрархію класів з урахуванням Figma стилів
+  /* !!! Будуємо ієрархію класів з урахуванням Figma стилів !!! */
   const classHierarchy = buildClassHierarchy(classes, classDictionary, designTokens)
   
-  // Генеруємо CSS в порядку HTML
+  /* !!! Генеруємо CSS в порядку HTML !!! */
   classHierarchy.forEach(({className, classInfo}) => {
     if (classInfo && hasValidProperties(classInfo)) {
       const classCSS = generateOptimizedClassCSS(className, classInfo)
@@ -63,7 +80,7 @@ function generateHTMLBasedCSS(classes, classDictionary, includeGlobal = true, in
 function buildClassHierarchy(classes, classDictionary, designTokens) {
   const hierarchy = []
   
-  // Для AUTO-GENERATED CSS FROM HTML зберігаємо порядок як в HTML
+  /* !!! Для AUTO-GENERATED CSS FROM HTML зберігаємо порядок як в HTML !!! */
   classes.forEach((className, index) => {
     hierarchy.push({
       className,
@@ -81,7 +98,7 @@ function buildClassHierarchy(classes, classDictionary, designTokens) {
 function getClassInheritedStyles(className, classInfo, inheritanceMap) {
   const inherited = {}
   
-  // Наслідування від батьківських класів
+  /* !!! Наслідування від батьківських класів !!! */
   if (classInfo.parents?.length > 0) {
     classInfo.parents.forEach(parentClass => {
       const parentStyles = inheritanceMap.get(parentClass)
@@ -134,6 +151,7 @@ function generateOptimizedClassCSS(className, classInfo) {
     const categoryProps = categorizedProps[category]
     if (categoryProps && Object.keys(categoryProps).length > 0) {
       Object.entries(categoryProps).forEach(([prop, value]) => {
+        cssRules.push(`  /* ${getPropertyComment(prop)} */`)
         cssRules.push(`  ${prop}: ${value};`)
       })
     }
@@ -145,13 +163,15 @@ function generateOptimizedClassCSS(className, classInfo) {
     blocks.push('}')
   }
   
-  // Pseudo-classes
+  /* !!! Псевдо-класи !!! */
   Object.entries(pseudoClasses).forEach(([selector, props]) => {
     if (Object.keys(props).length > 0) {
       blocks.push('')
+      blocks.push(commentManager.getTranslation('hover_focus_states'))
       blocks.push(`${selector} {`)
       blocks.push(`.${className} {`)
       Object.entries(props).forEach(([prop, value]) => {
+        blocks.push(`    /* ${getPropertyComment(prop)} */`)
         blocks.push(`    ${prop}: ${value};`)
       })
       blocks.push('  }')
@@ -160,6 +180,35 @@ function generateOptimizedClassCSS(className, classInfo) {
   })
   
   return blocks.join('\n')
+}
+
+function getPropertyComment(property) {
+  const propertyComments = {
+    'display': 'Спосіб відображення елемента',
+    'position': 'Спосіб позиціонування елемента',
+    'flex': 'Flexbox властивості',
+    'grid': 'Grid властивості',
+    'width': 'Ширина елемента',
+    'height': 'Висота елемента',
+    'margin': 'Зовнішні відступи',
+    'padding': 'Внутрішні відступи',
+    'border': 'Рамка елемента',
+    'border-radius': 'Заокруглення кутів',
+    'font-family': 'Сімейство шрифтів',
+    'font-size': 'Розмір шрифту',
+    'font-weight': 'Товщина шрифту',
+    'line-height': 'Міжрядковий інтервал',
+    'color': 'Колір тексту',
+    'background': 'Фон елемента',
+    'background-color': 'Колір фону',
+    'opacity': 'Рівень непрозорості',
+    'box-shadow': 'Тінь елемента',
+    'transition': 'Анімація переходу',
+    'transform': 'Трансформація елемента',
+    'cursor': 'Тип курсора при наведенні'
+  }
+  
+  return propertyComments[property] || 'Властивість елемента'
 }
 
 function categorizeProperties(properties) {
