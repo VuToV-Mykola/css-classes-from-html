@@ -215,8 +215,8 @@
         },
         "cssclasssfromhtml.figmaOutputPath": {
           "type": "string",
-          "default": "./css/figma.css",
-          "description": "Output path for Figma styles CSS file"
+          "default": "./css/",
+          "description": "Output folder for Figma styles CSS files (will be named figma-{fileName}-{canvas}.css)"
         },
         "cssclasssfromhtml.figmaInspectionDepth": {
           "type": "string",
@@ -366,6 +366,11 @@
           "type": "array",
           "default": [],
           "description": "Last selected Canvas names for multi-canvas auto-save (automatically managed)"
+        },
+        "cssclasssfromhtml.lastFigmaFileName": {
+          "type": "string",
+          "default": "",
+          "description": "Last Figma file name (automatically saved)"
         },
         "cssclasssfromhtml.configurationPresets": {
           "type": "object",

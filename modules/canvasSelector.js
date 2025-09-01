@@ -37,7 +37,7 @@ class CanvasSelector {
       
       // Множинний вибір Canvas
       const selectedItems = await vscode.window.showQuickPick(canvases, {
-        placeHolder: "Виберіть один або декілька Canvas (використовуйте Ctrl/Cmd для множинного вибору)",
+        placeHolder: `Виберіть Canvas (Знайдено: ${canvases.length}). Використовуйте Ctrl/Cmd для множинного вибору`,
         canPickMany: true,
         ignoreFocusOut: true
       })
@@ -49,9 +49,10 @@ class CanvasSelector {
       
       const selectedCanvases = selectedItems.map(item => item.canvas)
       const canvasNames = selectedCanvases.map(canvas => canvas.name).join(', ')
+      const totalElements = selectedCanvases.reduce((sum, canvas) => sum + (canvas.children?.length || 0), 0)
       
       vscode.window.showInformationMessage(
-        `Вибрано ${selectedCanvases.length} Canvas: ${canvasNames}`
+        `✅ Вибрано ${selectedCanvases.length} Canvas: ${canvasNames} (Загалом елементів: ${totalElements})`
       )
       
       return selectedCanvases

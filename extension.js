@@ -109,10 +109,13 @@ function activate(context) {
           const tokens = universalGenerator.extractTokensFromCanvases(selectedCanvases)
           const universalCSS = universalGenerator.generateUniversalCSS(classes, tokens)
           
-          let universalPath = config.figmaOutputPath
-          if (!universalPath.includes('figma') && !universalPath.includes('styles.css')) {
-            universalPath = universalPath.replace('.css', '-figma.css')
-          }
+          // Генеруємо шлях: css/figma-{назва_макету}-{Canvas}.css
+          const savedFigmaFileName = config.get("lastFigmaFileName", "")
+          const figmaName = figmaFileName || savedFigmaFileName || designTokens.fileName || 'figma'
+          const canvasNames = selectedCanvases.map(c => c.name).join('-')
+          const fileName = `figma-${figmaName}-${canvasNames}.css`.replace(/[^a-zA-Z0-9-_.]/g, '-')
+          const universalPath = `./css/${fileName}`
+          
           const relativeUniversalPath = getRelativeFigmaPath(htmlFilePath, universalPath)
           await saveToFile(universalCSS, relativeUniversalPath)
         }
@@ -139,7 +142,8 @@ function activate(context) {
         await Promise.all([
           configUpdate.update("saveLastAction", "generateCSS", vscode.ConfigurationTarget.Global),
           configUpdate.update("lastActionSettings", actionSettings, vscode.ConfigurationTarget.Global),
-          configUpdate.update("lastSelectedCanvases", selectedCanvases?.map(canvas => canvas.name) || [], vscode.ConfigurationTarget.Global)
+          configUpdate.update("lastSelectedCanvases", selectedCanvases?.map(canvas => canvas.name) || [], vscode.ConfigurationTarget.Global),
+          configUpdate.update("lastFigmaLink", figmaLink, vscode.ConfigurationTarget.Global)
         ])
         
         vscode.window.showInformationMessage("CSS успішно згенеровано!")
@@ -300,7 +304,8 @@ async function getFigmaInput() {
           return {
             figmaLink: lastActionSettings.figmaLink,
             accessToken: savedToken,
-            selectedCanvases
+            selectedCanvases,
+            figmaFileName: fileData.name
           }
         }
       } catch (error) {
@@ -314,8 +319,12 @@ async function getFigmaInput() {
     return {figmaLink: lastFigmaLink, accessToken: savedToken}
   }
 
+  // Отримуємо збережені Canvas для відображення
+  const lastCanvasNames = config.get("lastSelectedCanvases", [])
+  const canvasInfo = lastCanvasNames.length > 0 ? ` (Останні Canvas: ${lastCanvasNames.join(', ')})` : ''
+  
   const figmaLink = await vscode.window.showInputBox({
-    prompt: "Введіть посилання на макет Figma (опціонально)",
+    prompt: `Введіть посилання на макет Figma (опціонально)${canvasInfo}`,
     placeHolder: lastFigmaLink || "https://www.figma.com/file/...",
     value: lastFigmaLink || "",
     ignoreFocusOut: true
@@ -345,13 +354,50 @@ async function getFigmaInput() {
       vscode.window.showWarningMessage("Генерація без токена Figma - будуть використані стандартні значення")
     } else {
       /* !!! Отримуємо список Canvas для вибору !!! */
-      const canvasSelector = new CanvasSelector(new FigmaService(accessToken))
-      selectedCanvases = await canvasSelector.selectMultipleCanvas(figmaLink, accessToken)
+      const figmaService = new FigmaService(accessToken)
+      const fileKey = figmaService.extractFileKeyFromLink(figmaLink)
+      const fileData = await figmaService.getFile(fileKey)
       
-      /* !!! Зберігаємо вибрані Canvas !!! */
+      // Перевіряємо чи змінився макет - якщо так, обнуляємо Canvas
+      const savedLastFigmaLink = config.get("lastFigmaLink", "")
+      const lastSelectedCanvases = savedLastFigmaLink === figmaLink ? config.get("lastSelectedCanvases", []) : []
+      
+      const canvases = fileData.document.children
+        .filter(child => child.type === "CANVAS")
+        .map(canvas => ({
+          label: canvas.name,
+          description: `Canvas • ${canvas.children?.length || 0} елементів`,
+          canvas: canvas,
+          picked: lastSelectedCanvases.includes(canvas.name)
+        }))
+      
+      if (canvases.length === 0) {
+        vscode.window.showWarningMessage("Canvas не знайдено в макеті")
+        selectedCanvases = []
+      } else if (canvases.length === 1) {
+        selectedCanvases = [canvases[0].canvas]
+      } else {
+        // Формуємо плейсхолдер з вибраними Canvas
+        const selectedCount = lastSelectedCanvases.length
+        const placeholder = selectedCount > 0 
+          ? `Вибрані Canvas: ${lastSelectedCanvases.join(', ')} (${selectedCount} Selected)`
+          : `Виберіть Canvas (Знайдено: ${canvases.length}). Використовуйте Ctrl/Cmd для множинного вибору`
+        
+        const selectedItems = await vscode.window.showQuickPick(canvases, {
+          placeHolder: placeholder,
+          canPickMany: true,
+          ignoreFocusOut: true
+        })
+        
+        selectedCanvases = selectedItems ? selectedItems.map(item => item.canvas) : []
+      }
+      
+      /* !!! Зберігаємо вибрані Canvas та назву файлу !!! */
       if (selectedCanvases.length > 0) {
         const canvasNames = selectedCanvases.map(canvas => canvas.name)
         await config.update("lastSelectedCanvases", canvasNames, vscode.ConfigurationTarget.Global)
+        await config.update("lastFigmaFileName", fileData.name, vscode.ConfigurationTarget.Global)
+        await config.update("lastFigmaLink", figmaLink, vscode.ConfigurationTarget.Global)
       }
     }
   }
@@ -361,7 +407,7 @@ async function getFigmaInput() {
     await config.update("lastFigmaLink", figmaLink, vscode.ConfigurationTarget.Global)
   }
 
-  return {figmaLink, accessToken, selectedCanvases}
+  return {figmaLink, accessToken, selectedCanvases, figmaFileName: null}
 }
 
 async function selectCanvas(figmaLink, accessToken) {
@@ -443,13 +489,18 @@ async function getConfiguration(configManager) {
   }
   
   const savedConfig = dialogConfig || config.get("savedConfiguration", {})
+  const lastActionSettings = config.get("lastActionSettings", {})
   const saveConfiguration = config.get("saveConfiguration", true)
   const rememberSettings = config.get("rememberSettings", true)
+  const repeatLastAction = config.get("repeatLastAction", false)
+  
+  // Використовуємо збережені налаштування при повторі дії
+  const baseConfig = (repeatLastAction && Object.keys(lastActionSettings).length > 0) ? lastActionSettings : savedConfig
   
   const settings = {
     language: config.get("language", "uk"),
-    includeGlobal: saveConfiguration && savedConfig.includeGlobal !== undefined ? savedConfig.includeGlobal : config.get("includeGlobal", true),
-    includeReset: saveConfiguration && savedConfig.includeReset !== undefined ? savedConfig.includeReset : config.get("includeReset", true),
+    includeGlobal: saveConfiguration && baseConfig.includeGlobal !== undefined ? baseConfig.includeGlobal : config.get("includeGlobal", true),
+    includeReset: saveConfiguration && baseConfig.includeReset !== undefined ? baseConfig.includeReset : config.get("includeReset", true),
     responsive: config.get("responsive", true),
     darkMode: config.get("darkMode", true),
     figmaToken: config.get("figmaToken", ""),
@@ -466,7 +517,7 @@ async function getConfiguration(configManager) {
     enableInspection: config.get("enableInspection", true),
     inspectionPriority: config.get("inspectionPriority", "figma-first"),
     matchThreshold: config.get("matchThreshold", 0.4),
-    saveFigmaStyles: saveConfiguration && savedConfig.saveFigmaStyles !== undefined ? savedConfig.saveFigmaStyles : config.get("saveFigmaStyles", true),
+    saveFigmaStyles: saveConfiguration && baseConfig.saveFigmaStyles !== undefined ? baseConfig.saveFigmaStyles : config.get("saveFigmaStyles", true),
     figmaOutputPath: config.get("figmaOutputPath", "./css/figma.css"),
     figmaInspectionDepth: config.get("figmaInspectionDepth", "full"),
     figmaHierarchicalOutput: config.get("figmaHierarchicalOutput", true),
@@ -482,11 +533,11 @@ async function getConfiguration(configManager) {
     lastActionSettings: config.get("lastActionSettings", {}),
     figmaMultiCanvas: config.get("figmaMultiCanvas", true),
     universalGeneration: config.get("universalGeneration", true),
-    optimizeCSS: saveConfiguration && savedConfig.optimizeCSS !== undefined ? savedConfig.optimizeCSS : config.get("optimizeCSS", true),
-    removeRedundant: saveConfiguration && savedConfig.removeRedundant !== undefined ? savedConfig.removeRedundant : config.get("removeRedundant", true),
-    optimizeShorthands: saveConfiguration && savedConfig.optimizeShorthands !== undefined ? savedConfig.optimizeShorthands : config.get("optimizeShorthands", true),
-    optimizeInheritance: saveConfiguration && savedConfig.optimizeInheritance !== undefined ? savedConfig.optimizeInheritance : config.get("optimizeInheritance", true),
-    removeEmptyRules: saveConfiguration && savedConfig.removeEmptyRules !== undefined ? savedConfig.removeEmptyRules : config.get("removeEmptyRules", true),
+    optimizeCSS: saveConfiguration && baseConfig.optimizeCSS !== undefined ? baseConfig.optimizeCSS : config.get("optimizeCSS", true),
+    removeRedundant: saveConfiguration && baseConfig.removeRedundant !== undefined ? baseConfig.removeRedundant : config.get("removeRedundant", true),
+    optimizeShorthands: saveConfiguration && baseConfig.optimizeShorthands !== undefined ? baseConfig.optimizeShorthands : config.get("optimizeShorthands", true),
+    optimizeInheritance: saveConfiguration && baseConfig.optimizeInheritance !== undefined ? baseConfig.optimizeInheritance : config.get("optimizeInheritance", true),
+    removeEmptyRules: saveConfiguration && baseConfig.removeEmptyRules !== undefined ? baseConfig.removeEmptyRules : config.get("removeEmptyRules", true),
     commentStyle: config.get("commentStyle", "author"),
     lastSelectedCanvases: config.get("lastSelectedCanvases", []),
     saveConfiguration
