@@ -8,24 +8,49 @@ const FigmaInspector = require("./modules/figmaInspector")
 const UniversalFigmaGenerator = require("./modules/universalFigmaGenerator")
 const CanvasSelector = require("./modules/canvasSelector")
 const ConfigurationManager = require("./modules/configurationManager")
+const FirstTimeSetup = require("./modules/firstTimeSetup")
 const path = require('path')
 const fs = require('fs').promises
 
 function activate(context) {
   const configManager = new ConfigurationManager()
+  const firstTimeSetup = new FirstTimeSetup()
+  
+  // Ініціалізуємо конфігурації та очищаємо застарілі налаштування
+  configManager.initialize().catch(console.error)
   
   let disposable = vscode.commands.registerCommand(
     "cssclasssfromhtml.generateCSS",
     async function () {
       try {
+        // Показуємо діалог конфігурації з новою системою
+        const selectedConfig = await configManager.showConfigurationDialog()
+        
+        if (!selectedConfig) {
+          vscode.window.showWarningMessage("Генерацію скасовано")
+          return
+        }
+        
         const editor = vscode.window.activeTextEditor
         if (!editor) {
           vscode.window.showErrorMessage("Не знайдено активного редактора!")
           return
         }
 
-        const {figmaLink, accessToken, selectedCanvases} = await getFigmaInput()
-        const config = await getConfiguration(configManager)
+        const config = await getConfiguration(selectedConfig)
+        
+        // Перевіряємо режим роботи
+        let figmaLink = null
+        let accessToken = null
+        let selectedCanvases = []
+        
+        // Пропускаємо Figma діалоги для мінімального та стандартного режимів
+        if (!config.skipFigmaInput) {
+          const figmaData = await getFigmaInput()
+          figmaLink = figmaData.figmaLink
+          accessToken = figmaData.accessToken
+          selectedCanvases = figmaData.selectedCanvases
+        }
         /* !!! Отримуємо вибраний текст або весь документ !!! */
         const selection = editor.selection
         const htmlContent = selection.isEmpty 
@@ -43,7 +68,7 @@ function activate(context) {
         }
         let designTokens = null
 
-        if (figmaLink && accessToken) {
+        if (figmaLink && accessToken && !config.skipFigmaInput) {
           designTokens = await getFigmaTokens(figmaLink, accessToken, selectedCanvases)
         }
 
@@ -58,7 +83,8 @@ function activate(context) {
             prefixClasses: config.prefixClasses,
             enableInspection: config.enableInspection,
             inspectionPriority: config.inspectionPriority,
-            matchThreshold: config.matchThreshold
+            matchThreshold: config.matchThreshold,
+            minimal: config.minimal || false
           },
           classParents,
           classTags
@@ -76,7 +102,7 @@ function activate(context) {
           isSelection ? selectedTags : null,
           {
             cssVariables: config.cssVariables,
-            minify: config.minify,
+            minify: config.minify || false,
             indentSize: config.indentSize,
             includeComments: config.includeComments,
             sortProperties: config.sortProperties,
@@ -88,7 +114,8 @@ function activate(context) {
             removeEmptyRules: config.removeEmptyRules,
             commentStyle: config.commentStyle,
             modernSyntax: true,
-            preserveComments: true
+            preserveComments: true,
+            minimal: config.minimal || false
           }
         )
 
@@ -102,7 +129,7 @@ function activate(context) {
         }
         
         /* !!! Генерація універсального CSS з Figma токенів !!! */
-        if (config.saveFigmaStyles && designTokens && selectedCanvases && selectedCanvases.length > 0) {
+        if (config.saveFigmaStyles && designTokens && selectedCanvases && selectedCanvases.length > 0 && !config.skipFigmaInput) {
           const htmlFilePath = editor.document.uri.fsPath
           const figmaService = new FigmaService(accessToken)
           const universalGenerator = new UniversalFigmaGenerator(figmaService)
@@ -137,7 +164,9 @@ function activate(context) {
         }
         
         await saveActionToHistory(actionSettings)
-        await configManager.autoSaveConfiguration(config)
+        
+        // Зберігаємо конфігурацію як останню використану
+        await configManager.configLoader.saveLastSettings(config)
         
         const configUpdate = vscode.workspace.getConfiguration("cssclasssfromhtml")
         await Promise.all([
@@ -215,13 +244,21 @@ function activate(context) {
               ignoreFocusOut: true
             })
             if (name) {
-              const currentConfig = await getConfiguration(configManager)
-              await configManager.savePreset(name, currentConfig)
+              const lastSettings = await configManager.getLastUsedSettings()
+              if (lastSettings) {
+                await configManager.savePreset(name, lastSettings)
+              } else {
+                vscode.window.showWarningMessage("Немає останніх налаштувань для збереження")
+              }
             }
             break
 
           case "delete":
-            const presets = configManager.getAvailablePresets()
+            const presets = await configManager.getAvailablePresets()
+            if (presets.length === 0) {
+              vscode.window.showInformationMessage("Немає користувацьких пресетів для видалення")
+              break
+            }
             const toDelete = await vscode.window.showQuickPick(
               presets.map(p => ({ label: p.label, description: p.description, name: p.label })),
               { placeHolder: "Виберіть пресет для видалення" }
@@ -234,7 +271,7 @@ function activate(context) {
           case "load":
             const config = action.preset
             if (config) {
-              await configManager.autoSaveConfiguration(config)
+              await configManager.configLoader.saveLastSettings(config)
               vscode.window.showInformationMessage(`Пресет "${action.label}" завантажено!`)
             }
             break
@@ -480,21 +517,18 @@ async function selectCanvas(figmaLink, accessToken) {
   }
 }
 
-async function getConfiguration(configManager) {
+async function getConfiguration(selectedConfig) {
   const config = vscode.workspace.getConfiguration("cssclasssfromhtml")
   
-  // Показуємо діалог конфігурації якщо потрібно
-  const dialogConfig = await configManager.showConfigurationDialog()
-  // dialogConfig тепер завжди повертає конфігурацію, ніколи null
-  
-  const savedConfig = dialogConfig ? dialogConfig : config.get("savedConfiguration", {})
   const lastActionSettings = config.get("lastActionSettings", {})
   const saveConfiguration = config.get("saveConfiguration", true)
   const rememberSettings = config.get("rememberSettings", true)
   const repeatLastAction = config.get("repeatLastAction", false)
   
-  // Використовуємо збережені налаштування при повторі дії
-  const baseConfig = (repeatLastAction && Object.keys(lastActionSettings).length > 0) ? lastActionSettings : savedConfig
+  // Використовуємо вибрану конфігурацію
+  const configManager = new ConfigurationManager()
+  const savedConfig = await configManager.getSavedConfiguration()
+  const baseConfig = selectedConfig || savedConfig
   
   const settings = {
     language: config.get("language", "uk"),
@@ -506,7 +540,7 @@ async function getConfiguration(configManager) {
     autoSave: config.get("autoSave", true),
     outputPath: config.get("outputPath", "./css/styles.css"),
     cssVariables: config.get("cssVariables", true),
-    minify: config.get("minify", false),
+    minify: saveConfiguration && baseConfig.minify !== undefined ? baseConfig.minify : config.get("minify", false),
     indentSize: config.get("indentSize", 2),
     breakpoints: config.get("breakpoints", {mobile: "320px", tablet: "768px", desktop: "1158px"}),
     colorFormat: config.get("colorFormat", "hex"),
@@ -539,10 +573,12 @@ async function getConfiguration(configManager) {
     removeEmptyRules: saveConfiguration && baseConfig.removeEmptyRules !== undefined ? baseConfig.removeEmptyRules : config.get("removeEmptyRules", true),
     commentStyle: config.get("commentStyle", "author"),
     lastSelectedCanvases: config.get("lastSelectedCanvases", []),
+    skipFigmaInput: baseConfig.skipFigmaInput || false,
+    minimal: baseConfig.minimal || false,
     saveConfiguration
   }
   
-  // Зберігаємо налаштування для наступної дії
+  // Зберігаємо налаштування через ConfigLoader замість VS Code API
   if (settings.saveConfiguration) {
     const configToSave = {
       includeGlobal: settings.includeGlobal,
@@ -563,7 +599,9 @@ async function getConfiguration(configManager) {
       commentStyle: settings.commentStyle
     }
     
-    await config.update("savedConfiguration", configToSave, vscode.ConfigurationTarget.Global)
+    // Використовуємо ConfigLoader для збереження
+    const configManager = new ConfigurationManager()
+    await configManager.configLoader.saveLastSettings(configToSave)
   }
   
   if (rememberSettings) {

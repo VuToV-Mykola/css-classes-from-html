@@ -1,0 +1,145 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CSS Classes from HTML Configuration",
+  "type": "object",
+  "properties": {
+    "language": {
+      "type": "string",
+      "enum": ["uk", "en"],
+      "description": "Comment language"
+    },
+    "includeGlobal": {
+      "type": "boolean",
+      "description": "Include global styles"
+    },
+    "includeReset": {
+      "type": "boolean",
+      "description": "Include CSS reset"
+    },
+    "responsive": {
+      "type": "boolean",
+      "description": "Generate responsive styles"
+    },
+    "darkMode": {
+      "type": "boolean",
+      "description": "Include dark mode support"
+    },
+    "figmaToken": {
+      "type": "string",
+      "description": "Figma personal access token"
+    },
+    "autoSave": {
+      "type": "boolean",
+      "description": "Automatically save generated CSS to file"
+    },
+    "outputPath": {
+      "type": "string",
+      "description": "Default output path for generated CSS files"
+    },
+    "cssVariables": {
+      "type": "boolean",
+      "description": "Use CSS custom properties (variables)"
+    },
+    "minify": {
+      "type": "boolean",
+      "description": "Minify generated CSS"
+    },
+    "indentSize": {
+      "type": "number",
+      "minimum": 2,
+      "maximum": 8,
+      "description": "Number of spaces for indentation"
+    },
+    "breakpoints": {
+      "type": "object",
+      "properties": {
+        "mobile": {"type": "string"},
+        "tablet": {"type": "string"},
+        "desktop": {"type": "string"}
+      },
+      "description": "Custom breakpoints for responsive design"
+    },
+    "colorFormat": {
+      "type": "string",
+      "enum": ["hex", "rgb", "hsl", "var"],
+      "description": "Preferred color format in generated CSS"
+    },
+    "includeComments": {
+      "type": "boolean",
+      "description": "Include descriptive comments in generated CSS"
+    },
+    "sortProperties": {
+      "type": "boolean",
+      "description": "Sort CSS properties alphabetically"
+    },
+    "prefixClasses": {
+      "type": "string",
+      "description": "Add prefix to all generated CSS classes"
+    },
+    "enableInspection": {
+      "type": "boolean",
+      "description": "Enable deep Figma inspection"
+    },
+    "inspectionPriority": {
+      "type": "string",
+      "enum": ["figma-first", "html-first", "balanced"],
+      "description": "Priority for style matching"
+    },
+    "matchThreshold": {
+      "type": "number",
+      "minimum": 0.1,
+      "maximum": 1.0,
+      "description": "Similarity threshold for matching"
+    },
+    "saveFigmaStyles": {
+      "type": "boolean",
+      "description": "Save Figma node styles to separate CSS file"
+    },
+    "figmaOutputPath": {
+      "type": "string",
+      "description": "Output folder for Figma styles CSS files"
+    },
+    "figmaInspectionDepth": {
+      "type": "string",
+      "enum": ["full", "components-only", "top-level"],
+      "description": "Depth of Figma node inspection"
+    },
+    "optimizeCSS": {
+      "type": "boolean",
+      "description": "Optimize generated CSS"
+    },
+    "removeRedundant": {
+      "type": "boolean",
+      "description": "Remove redundant CSS declarations"
+    },
+    "optimizeShorthands": {
+      "type": "boolean",
+      "description": "Convert longhand properties to shorthand"
+    },
+    "optimizeInheritance": {
+      "type": "boolean",
+      "description": "Remove properties inherited from parent elements"
+    },
+    "removeEmptyRules": {
+      "type": "boolean",
+      "description": "Remove CSS rules with no declarations"
+    },
+    "commentStyle": {
+      "type": "string",
+      "enum": ["author", "standard"],
+      "description": "Comment style format"
+    },
+    "modernSyntax": {
+      "type": "boolean",
+      "description": "Enable modern CSS syntax optimization"
+    },
+    "minimal": {
+      "type": "boolean",
+      "description": "Enable minimal mode - only empty class declarations"
+    },
+    "skipFigmaInput": {
+      "type": "boolean",
+      "description": "Skip Figma input dialogs"
+    }
+  }
+}

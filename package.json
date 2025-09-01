@@ -87,212 +87,26 @@
     "configuration": {
       "title": "CSS Classes from HTML",
       "properties": {
-        "cssclasssfromhtml.language": {
-          "type": "string",
-          "default": "uk",
-          "enum": ["uk", "en"],
-          "description": "Comment language"
-        },
-        "cssclasssfromhtml.includeGlobal": {
-          "type": "boolean",
-          "default": true,
-          "description": "Include global styles"
-        },
-        "cssclasssfromhtml.includeReset": {
-          "type": "boolean",
-          "default": true,
-          "description": "Include CSS reset"
-        },
-        "cssclasssfromhtml.responsive": {
-          "type": "boolean",
-          "default": true,
-          "description": "Generate responsive styles"
-        },
-        "cssclasssfromhtml.darkMode": {
-          "type": "boolean",
-          "default": true,
-          "description": "Include dark mode support"
-        },
         "cssclasssfromhtml.figmaToken": {
           "type": "string",
           "default": "",
           "description": "Figma personal access token for API integration",
           "markdownDescription": "Your Figma personal access token. Get it from [Figma Settings](https://www.figma.com/settings)"
         },
-        "cssclasssfromhtml.autoSave": {
-          "type": "boolean",
-          "default": true,
-          "description": "Automatically save generated CSS to file"
-        },
-        "cssclasssfromhtml.outputPath": {
-          "type": "string",
-          "default": "./css/styles.css",
-          "description": "Default output path for generated CSS files"
-        },
-        "cssclasssfromhtml.cssVariables": {
-          "type": "boolean",
-          "default": true,
-          "description": "Use CSS custom properties (variables)"
-        },
-        "cssclasssfromhtml.minify": {
-          "type": "boolean",
-          "default": false,
-          "description": "Minify generated CSS"
-        },
-        "cssclasssfromhtml.indentSize": {
-          "type": "number",
-          "default": 2,
-          "minimum": 2,
-          "maximum": 8,
-          "description": "Number of spaces for indentation"
-        },
-        "cssclasssfromhtml.breakpoints": {
-          "type": "object",
-          "default": {
-            "mobile": "320px",
-            "tablet": "768px",
-            "desktop": "1158px"
-          },
-          "description": "Custom breakpoints for responsive design",
-          "properties": {
-            "mobile": {
-              "type": "string",
-              "description": "Mobile breakpoint"
-            },
-            "tablet": {
-              "type": "string",
-              "description": "Tablet breakpoint"
-            },
-            "desktop": {
-              "type": "string",
-              "description": "Desktop breakpoint"
-            }
-          }
-        },
-        "cssclasssfromhtml.colorFormat": {
-          "type": "string",
-          "default": "hex",
-          "enum": ["hex", "rgb", "hsl", "var"],
-          "description": "Preferred color format in generated CSS"
-        },
-        "cssclasssfromhtml.includeComments": {
-          "type": "boolean",
-          "default": true,
-          "description": "Include descriptive comments in generated CSS"
-        },
-        "cssclasssfromhtml.sortProperties": {
-          "type": "boolean",
-          "default": true,
-          "description": "Sort CSS properties alphabetically"
-        },
-        "cssclasssfromhtml.prefixClasses": {
-          "type": "string",
-          "default": "",
-          "description": "Add prefix to all generated CSS classes"
-        },
-        "cssclasssfromhtml.enableInspection": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enable deep Figma inspection for maximum style extraction"
-        },
-        "cssclasssfromhtml.inspectionPriority": {
-          "type": "string",
-          "default": "figma-first",
-          "enum": ["figma-first", "html-first", "balanced"],
-          "description": "Priority for style matching: figma-first (Figma styles override), html-first (HTML patterns override), balanced (merge both)"
-        },
-        "cssclasssfromhtml.matchThreshold": {
-          "type": "number",
-          "default": 0.4,
-          "minimum": 0.1,
-          "maximum": 1.0,
-          "description": "Similarity threshold for matching HTML classes with Figma nodes (0.1-1.0)"
-        },
-        "cssclasssfromhtml.saveFigmaStyles": {
-          "type": "boolean",
-          "default": true,
-          "description": "Save Figma node styles to separate CSS file for comparison"
-        },
-        "cssclasssfromhtml.figmaOutputPath": {
-          "type": "string",
-          "default": "./css/",
-          "description": "Output folder for Figma styles CSS files (will be named figma-{fileName}-{canvas}.css)"
-        },
-        "cssclasssfromhtml.figmaInspectionDepth": {
-          "type": "string",
-          "default": "full",
-          "enum": ["full", "components-only", "top-level"],
-          "description": "Depth of Figma node inspection: full (all nodes), components-only (components and instances), top-level (first level only)"
-        },
-        "cssclasssfromhtml.figmaHierarchicalOutput": {
-          "type": "boolean",
-          "default": true,
-          "description": "Generate hierarchical CSS output with parent-child structure comments"
-        },
-        "cssclasssfromhtml.relativePaths": {
-          "type": "boolean",
-          "default": true,
-          "description": "Save CSS files relative to HTML file location instead of workspace root"
-        },
-        "cssclasssfromhtml.createCssFolder": {
-          "type": "boolean",
-          "default": true,
-          "description": "Automatically create /css folder relative to HTML file"
-        },
         "cssclasssfromhtml.lastFigmaLink": {
           "type": "string",
           "default": "",
           "description": "Last used Figma link (automatically saved)"
         },
-        "cssclasssfromhtml.rememberSettings": {
-          "type": "boolean",
-          "default": true,
-          "description": "Remember last used settings for next generation"
+        "cssclasssfromhtml.lastSelectedCanvases": {
+          "type": "array",
+          "default": [],
+          "description": "Last selected Canvas names (automatically managed)"
         },
-        "cssclasssfromhtml.quickGenerate": {
-          "type": "boolean",
-          "default": false,
-          "description": "Skip input dialogs and use saved settings for quick generation"
-        },
-        "cssclasssfromhtml.lastSelectedCanvas": {
+        "cssclasssfromhtml.lastFigmaFileName": {
           "type": "string",
           "default": "",
-          "description": "Last selected Canvas name (automatically saved)"
-        },
-        "cssclasssfromhtml.rememberCanvas": {
-          "type": "boolean",
-          "default": true,
-          "description": "Remember last selected Canvas for next generation"
-        },
-        "cssclasssfromhtml.autoSelectCanvas": {
-          "type": "boolean",
-          "default": false,
-          "description": "Automatically select last used Canvas without prompt"
-        },
-        "cssclasssfromhtml.saveLastAction": {
-          "type": "string",
-          "default": "",
-          "description": "Last performed action (automatically saved)"
-        },
-        "cssclasssfromhtml.repeatLastAction": {
-          "type": "boolean",
-          "default": false,
-          "description": "Repeat last action without prompts"
-        },
-        "cssclasssfromhtml.lastActionSettings": {
-          "type": "object",
-          "default": {},
-          "description": "Settings from last action (automatically saved)"
-        },
-        "cssclasssfromhtml.figmaMultiCanvas": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enable multiple Canvas selection from Figma"
-        },
-        "cssclasssfromhtml.universalGeneration": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enable universal CSS generation from Figma tokens"
+          "description": "Last Figma file name (automatically saved)"
         },
         "cssclasssfromhtml.actionHistory": {
           "type": "array",
@@ -311,86 +125,40 @@
           "default": true,
           "description": "Show action history in quick pick for repeat actions"
         },
-        "cssclasssfromhtml.optimizeCSS": {
+        "cssclasssfromhtml.hasShownFirstTimeSetup": {
           "type": "boolean",
-          "default": true,
-          "description": "Optimize generated CSS according to Code Guide standards"
+          "default": false,
+          "description": "Internal flag to track if first-time setup has been shown"
         },
-        "cssclasssfromhtml.removeRedundant": {
+        "cssclasssfromhtml.forceFirstTimeSetup": {
           "type": "boolean",
-          "default": true,
-          "description": "Remove redundant CSS declarations"
-        },
-        "cssclasssfromhtml.optimizeShorthands": {
-          "type": "boolean",
-          "default": true,
-          "description": "Convert longhand properties to shorthand where possible"
-        },
-        "cssclasssfromhtml.optimizeInheritance": {
-          "type": "boolean",
-          "default": true,
-          "description": "Remove properties that are inherited from parent elements"
-        },
-        "cssclasssfromhtml.removeEmptyRules": {
-          "type": "boolean",
-          "default": true,
-          "description": "Remove CSS rules with no declarations"
-        },
-        "cssclasssfromhtml.saveConfiguration": {
-          "type": "boolean",
-          "default": true,
-          "description": "Save current configuration for next generation"
+          "default": false,
+          "description": "Force show first-time setup dialog for testing"
         },
         "cssclasssfromhtml.savedConfiguration": {
           "type": "object",
           "default": {},
-          "description": "Saved configuration from last action (automatically managed)"
-        },
-        "cssclasssfromhtml.commentStyle": {
-          "type": "string",
-          "default": "author",
-          "enum": ["author", "standard"],
-          "description": "Comment style: author (!!! style) or standard (/* style */)"
-        },
-        "cssclasssfromhtml.modernSyntax": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enable modern CSS syntax optimization for 2025 standards"
-        },
-        "cssclasssfromhtml.preserveComments": {
-          "type": "boolean",
-          "default": true,
-          "description": "Preserve CSS comments during optimization"
-        },
-        "cssclasssfromhtml.lastSelectedCanvases": {
-          "type": "array",
-          "default": [],
-          "description": "Last selected Canvas names for multi-canvas auto-save (automatically managed)"
-        },
-        "cssclasssfromhtml.lastFigmaFileName": {
-          "type": "string",
-          "default": "",
-          "description": "Last Figma file name (automatically saved)"
+          "description": "Saved configuration settings"
         },
         "cssclasssfromhtml.configurationPresets": {
           "type": "object",
           "default": {},
-          "description": "Saved configuration presets for quick access"
+          "description": "User-defined configuration presets"
         },
-        "cssclasssfromhtml.autoSaveConfiguration": {
-          "type": "boolean",
-          "default": true,
-          "description": "Automatically save current configuration after each generation"
+        "cssclasssfromhtml.lastActionSettings": {
+          "type": "object",
+          "default": {},
+          "description": "Settings from the last CSS generation action"
         },
-        "cssclasssfromhtml.showConfigurationDialog": {
+        "cssclasssfromhtml.saveLastAction": {
+          "type": "string",
+          "default": "",
+          "description": "Last executed action type"
+        },
+        "cssclasssfromhtml.minify": {
           "type": "boolean",
           "default": false,
-          "description": "Show configuration dialog before each generation"
-        },
-        "cssclasssfromhtml.defaultPreset": {
-          "type": "string",
-          "default": "default",
-          "description": "Default configuration preset to use"
+          "description": "Minify generated CSS"
         }
       }
     }
@@ -408,8 +176,10 @@
     "package": "vsce package",
     "publish": "vsce publish",
     "lint": "eslint . --ext .js",
-    "test": "echo \"Tests will be added in future versions\" && exit 0",
-    "prepackage": "npm run lint",
+    "test": "node test/run-all-tests.js",
+    "test:config": "node test/standalone-config-test.js",
+    "test:minify": "node test/run-all-tests.js",
+    "prepackage": "npm run lint && npm run test",
     "prepublish": "npm run build"
   },
   "devDependencies": {

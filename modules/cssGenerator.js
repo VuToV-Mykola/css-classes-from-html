@@ -2,6 +2,7 @@
 const commentManager = require("./commentManager")
 const globalRules = require("./globalRules")
 const CSSOptimizer = require("./cssOptimizer")
+const { minifyCSS } = require("./cssMinifier")
 
 const PROPERTY_CATEGORIES = {
   layout: ["display", "position", "top", "right", "bottom", "left", "z-index", "float", "clear"],
@@ -77,6 +78,11 @@ function generateCSS(
     })
   }
 
+  /* !!! Мінімізація CSS !!! */
+  if (options.minify) {
+    css = minifyCSS(css)
+  }
+
   return css
 }
 
@@ -131,8 +137,8 @@ function generateHTMLBasedCSS(
 
   /* !!! Генеруємо CSS в порядку HTML !!! */
   classHierarchy.forEach(({className, classInfo}) => {
-    if (classInfo && hasValidProperties(classInfo)) {
-      const classCSS = generateOptimizedClassCSS(className, classInfo)
+    if (classInfo) {
+      const classCSS = generateOptimizedClassCSS(className, classInfo, options.minimal || false)
       cssBlocks.push(classCSS)
     }
   })
@@ -198,12 +204,18 @@ function filterClassUniqueStyles(properties, inheritedStyles, usedProperties) {
   return unique
 }
 
-function generateOptimizedClassCSS(className, classInfo) {
+function generateOptimizedClassCSS(className, classInfo, isMinimal = false) {
   const {properties = {}, pseudoClasses = {}, darkMode = {}} = classInfo
   const blocks = []
 
   const comment = commentManager.getClassComment(className)
   blocks.push(comment)
+
+  // Якщо немає властивостей (мінімальний режим), генеруємо пустий клас
+  if (Object.keys(properties).length === 0 || isMinimal) {
+    blocks.push(`.${className} {}`)
+    return blocks.join("\n")
+  }
 
   const categorizedProps = categorizeProperties(properties)
   const cssRules = []
@@ -222,6 +234,8 @@ function generateOptimizedClassCSS(className, classInfo) {
     blocks.push(`.${className} {`)
     blocks.push(...cssRules)
     blocks.push("}")
+  } else {
+    blocks.push(`.${className} {}`)
   }
 
   /* !!! Псевдо-класи !!! */
@@ -315,7 +329,8 @@ function createClassDictionary(classes, options = {}, classParents = {}, classTa
     prefixClasses = "",
     enableInspection = true,
     inspectionPriority = "figma-first",
-    matchThreshold = 0.4
+    matchThreshold = 0.4,
+    minimal = false
   } = options
 
   const dictionary = {}
@@ -325,8 +340,8 @@ function createClassDictionary(classes, options = {}, classParents = {}, classTa
     const tags = classTags[className] ? Array.from(classTags[className]) : []
     const parents = classParents[className] ? Array.from(classParents[className]) : []
 
-    // Отримуємо властивості з максимальною відповідністю макету
-    const properties = getEnhancedClassProperties(className, tags, designTokens, options)
+    // Для мінімального режиму повертаємо пусті властивості
+    const properties = minimal ? {} : getEnhancedClassProperties(className, tags, designTokens, options)
 
     dictionary[finalClassName] = {
       properties,
