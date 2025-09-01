@@ -110,8 +110,9 @@ function activate(context) {
           const universalCSS = universalGenerator.generateUniversalCSS(classes, tokens)
           
           // Генеруємо шлях: css/figma-{назва_макету}-{Canvas}.css
-          const savedFigmaFileName = config.get("lastFigmaFileName", "")
-          const figmaName = figmaFileName || savedFigmaFileName || designTokens.fileName || 'figma'
+          const vsConfig = vscode.workspace.getConfiguration("cssclasssfromhtml")
+          const savedFigmaFileName = vsConfig.get("lastFigmaFileName", "")
+          const figmaName = savedFigmaFileName || designTokens.fileName || 'figma'
           const canvasNames = selectedCanvases.map(c => c.name).join('-')
           const fileName = `figma-${figmaName}-${canvasNames}.css`.replace(/[^a-zA-Z0-9-_.]/g, '-')
           const universalPath = `./css/${fileName}`
@@ -484,11 +485,9 @@ async function getConfiguration(configManager) {
   
   // Показуємо діалог конфігурації якщо потрібно
   const dialogConfig = await configManager.showConfigurationDialog()
-  if (dialogConfig === null) {
-    throw new Error("Конфігурацію скасовано користувачем")
-  }
+  // dialogConfig тепер завжди повертає конфігурацію, ніколи null
   
-  const savedConfig = dialogConfig || config.get("savedConfiguration", {})
+  const savedConfig = dialogConfig ? dialogConfig : config.get("savedConfiguration", {})
   const lastActionSettings = config.get("lastActionSettings", {})
   const saveConfiguration = config.get("saveConfiguration", true)
   const rememberSettings = config.get("rememberSettings", true)

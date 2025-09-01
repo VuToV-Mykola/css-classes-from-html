@@ -1,0 +1,98 @@
+[
+  {
+    "configName": "Мінімальна конфігурація",
+    "htmlFile": "simple.html",
+    "success": true,
+    "output": ".container {\n  max-width: 1200px;\n  margin: 0 auto;\n  padding: 0 15px;\n}\n\n.title {\n  font-size: 2rem;\n  font-weight: bold;\n}\n\n.text {\n  line-height: 1.6;\n  margin-bottom: 1rem;\n}\n\n",
+    "errors": [],
+    "performance": {
+      "duration": 0,
+      "classCount": 3,
+      "outputSize": 180
+    }
+  },
+  {
+    "configName": "Мінімальна конфігурація",
+    "htmlFile": "complex.html",
+    "success": true,
+    "output": ".header {\n  background: #f8f9fa;\n  padding: 1rem 0;\n}\n\n.navigation {\n  display: flex;\n  align-items: center;\n}\n\n.nav-list {\n  display: flex;\n  align-items: center;\n}\n\n.nav-item {\n  display: flex;\n  align-items: center;\n}\n\n.nav-link {\n  display: flex;\n  align-items: center;\n}\n\n.main-content {\n  /* Додайте стилі для main-content */\n  display: block;\n}\n\n.hero-section {\n  padding: 2rem 0;\n}\n\n.hero-container {\n  max-width: 1200px;\n  margin: 0 auto;\n  padding: 0 15px;\n}\n\n.hero-title {\n  font-size: 2rem;\n  font-weight: bold;\n}\n\n.hero-button {\n  padding: 10px 20px;\n  border: none;\n  cursor: pointer;\n}\n\n",
+    "errors": [],
+    "performance": {
+      "duration": 1,
+      "classCount": 10,
+      "outputSize": 602
+    }
+  },
+  {
+    "configName": "Максимальна конфігурація",
+    "htmlFile": "simple.html",
+    "success": true,
+    "output": "*, *::before, *::after {box-sizing: border-box} * {margin: 0} body {line-height: 1.5;-webkit-font-smoothing: antialiased} :root {--primary-color: #007bff;--secondary-color: #6c757d;--font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif} .container {max-width: 1200px;margin: 0 auto;padding: 0 15px} .title {font-size: 2rem;font-weight: bold} .text {line-height: 1.6;margin-bottom: 1rem} @media (min-width: 320px) {.container {padding: 0 10px} .title {font-size: 1.5rem}} @media (min-width: 768px) {.container {padding: 0 20px} .title {font-size: 1.8rem}} @media (min-width: 1158px) {.container {max-width: 1200px} .title {font-size: 2.5rem}} @media (prefers-color-scheme: dark) {:root {--bg-color: #1a1a1a;--text-color: #ffffff;--border-color: #333333;--accent-color: #4a9eff} .container {background: var(--bg-color)} .title {color: var(--text-color)} .text {color: var(--text-color)}}",
+    "errors": [],
+    "performance": {
+      "duration": 0,
+      "classCount": 3,
+      "outputSize": 911
+    }
+  },
+  {
+    "configName": "Максимальна конфігурація",
+    "htmlFile": "complex.html",
+    "success": true,
+    "output": "*, *::before, *::after {box-sizing: border-box} * {margin: 0} body {line-height: 1.5;-webkit-font-smoothing: antialiased} :root {--primary-color: #007bff;--secondary-color: #6c757d;--font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif} .header {background: #f8f9fa;padding: 1rem 0} .navigation {display: flex;align-items: center} .nav-list {display: flex;align-items: center} .nav-item {display: flex;align-items: center} .nav-link {display: flex;align-items: center} .main-content {display: block} .hero-section {padding: 2rem 0} .hero-container {max-width: 1200px;margin: 0 auto;padding: 0 15px} .hero-title {font-size: 2rem;font-weight: bold} .hero-button {padding: 10px 20px;border: none;cursor: pointer} @media (min-width: 320px) {.hero-container {padding: 0 10px} .hero-title {font-size: 1.5rem}} @media (min-width: 768px) {.hero-container {padding: 0 20px} .hero-title {font-size: 1.8rem}} @media (min-width: 1158px) {.hero-container {max-width: 1200px} .hero-title {font-size: 2.5rem}} @media (prefers-color-scheme: dark) {:root {--bg-color: #1a1a1a;--text-color: #ffffff;--border-color: #333333;--accent-color: #4a9eff} .header {background: var(--bg-color);color: var(--text-color)} .hero-section {background: var(--bg-color)} .hero-container {background: var(--bg-color)} .hero-title {color: var(--text-color)} .hero-button {background: var(--accent-color);color: var(--text-color)}}",
+    "errors": [],
+    "performance": {
+      "duration": 0,
+      "classCount": 10,
+      "outputSize": 1420
+    }
+  },
+  {
+    "configName": "Figma інтеграція",
+    "htmlFile": "simple.html",
+    "success": true,
+    "output": ".container {\n  max-width: 1200px;\n  margin: 0 auto;\n  padding: 0 15px;\n}\n\n.title {\n  font-size: 2rem;\n  font-weight: bold;\n}\n\n.text {\n  line-height: 1.6;\n  margin-bottom: 1rem;\n}\n\n",
+    "errors": [],
+    "performance": {
+      "duration": 0,
+      "classCount": 3,
+      "outputSize": 180
+    }
+  },
+  {
+    "configName": "Figma інтеграція",
+    "htmlFile": "complex.html",
+    "success": true,
+    "output": ".header {\n  background: #f8f9fa;\n  padding: 1rem 0;\n}\n\n.navigation {\n  display: flex;\n  align-items: center;\n}\n\n.nav-list {\n  display: flex;\n  align-items: center;\n}\n\n.nav-item {\n  display: flex;\n  align-items: center;\n}\n\n.nav-link {\n  display: flex;\n  align-items: center;\n}\n\n.main-content {\n  /* Додайте стилі для main-content */\n  display: block;\n}\n\n.hero-section {\n  padding: 2rem 0;\n}\n\n.hero-container {\n  max-width: 1200px;\n  margin: 0 auto;\n  padding: 0 15px;\n}\n\n.hero-title {\n  font-size: 2rem;\n  font-weight: bold;\n}\n\n.hero-button {\n  padding: 10px 20px;\n  border: none;\n  cursor: pointer;\n}\n\n",
+    "errors": [],
+    "performance": {
+      "duration": 0,
+      "classCount": 10,
+      "outputSize": 602
+    }
+  },
+  {
+    "configName": "Швидка генерація",
+    "htmlFile": "simple.html",
+    "success": true,
+    "output": ".container {\n  max-width: 1200px;\n  margin: 0 auto;\n  padding: 0 15px;\n}\n\n.title {\n  font-size: 2rem;\n  font-weight: bold;\n}\n\n.text {\n  line-height: 1.6;\n  margin-bottom: 1rem;\n}\n\n",
+    "errors": [],
+    "performance": {
+      "duration": 0,
+      "classCount": 3,
+      "outputSize": 180
+    }
+  },
+  {
+    "configName": "Швидка генерація",
+    "htmlFile": "complex.html",
+    "success": true,
+    "output": ".header {\n  background: #f8f9fa;\n  padding: 1rem 0;\n}\n\n.navigation {\n  display: flex;\n  align-items: center;\n}\n\n.nav-list {\n  display: flex;\n  align-items: center;\n}\n\n.nav-item {\n  display: flex;\n  align-items: center;\n}\n\n.nav-link {\n  display: flex;\n  align-items: center;\n}\n\n.main-content {\n  /* Додайте стилі для main-content */\n  display: block;\n}\n\n.hero-section {\n  padding: 2rem 0;\n}\n\n.hero-container {\n  max-width: 1200px;\n  margin: 0 auto;\n  padding: 0 15px;\n}\n\n.hero-title {\n  font-size: 2rem;\n  font-weight: bold;\n}\n\n.hero-button {\n  padding: 10px 20px;\n  border: none;\n  cursor: pointer;\n}\n\n",
+    "errors": [],
+    "performance": {
+      "duration": 0,
+      "classCount": 10,
+      "outputSize": 602
+    }
+  }
+]

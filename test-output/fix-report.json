@@ -1,0 +1,36 @@
+{
+  "timestamp": "2025-09-01T13:01:45.749Z",
+  "totalFixes": 5,
+  "fixes": [
+    {
+      "issue": "Порожні CSS правила при мініфікації",
+      "description": "Додано видалення порожніх CSS правил {}",
+      "method": "minifyCSS",
+      "file": "test-configurations.js"
+    },
+    {
+      "issue": "Неправильний парсинг змішаних лапок",
+      "description": "Покращено regex для обробки різних типів лапок",
+      "method": "extractClasses",
+      "file": "test-configurations.js"
+    },
+    {
+      "issue": "Генерація порожніх CSS правил",
+      "description": "Додано перевірку наявності властивостей та базові стилі",
+      "method": "generateClassCSS",
+      "file": "test-configurations.js"
+    },
+    {
+      "issue": "Порожні responsive правила",
+      "description": "Додано реальні responsive стилі",
+      "method": "generateResponsiveCSS",
+      "file": "test-configurations.js"
+    },
+    {
+      "issue": "Порожні dark mode правила",
+      "description": "Додано реальні dark mode стилі з CSS змінними",
+      "method": "generateDarkModeCSS",
+      "file": "test-configurations.js"
+    }
+  ]
+}

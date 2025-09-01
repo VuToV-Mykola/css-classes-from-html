@@ -64,7 +64,7 @@ class ConfigurationManager {
     
     if (presetNames.length === 0) {
       vscode.window.showInformationMessage("Немає збережених пресетів")
-      return null
+      return { action: "cancel" }
     }
 
     const options = [
@@ -83,7 +83,7 @@ class ConfigurationManager {
       ignoreFocusOut: true
     })
 
-    return selected
+    return selected || { action: "cancel" }
   }
 
   /* !!! Автоматичне збереження конфігурації !!! */
@@ -200,7 +200,10 @@ class ConfigurationManager {
       ignoreFocusOut: true
     })
 
-    if (!selected) return null
+    if (!selected) {
+      // Якщо діалог скасовано, повертаємо збережену конфігурацію
+      return this.getSavedConfiguration()
+    }
 
     switch (selected.action) {
       case "saved":
@@ -211,7 +214,8 @@ class ConfigurationManager {
         if (presetAction && presetAction.action === "load") {
           return presetAction.preset
         }
-        return null
+        // Для всіх інших випадків (скасування, create, delete) повертаємо збережену конфігурацію
+        return this.getSavedConfiguration()
       
       case "reset":
         return await this.resetToDefaults()
