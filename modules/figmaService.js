@@ -146,7 +146,7 @@ class FigmaService {
       // Extract colors from any node with fills
       if (node.fills?.[0]?.color) {
         const color = node.fills[0].color
-        const colorValue = `rgba(${Math.round(color.r * 255)}, ${Math.round(color.g * 255)}, ${Math.round(color.b * 255)}, ${color.a || 1})`
+        const colorValue = this._convertToRgba(color)
         
         if (node.name) {
           const colorName = node.name.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "")
@@ -214,7 +214,11 @@ class FigmaService {
     if (node.style) {
       if (node.style.fontSize) styles["font-size"] = `${node.style.fontSize}px`
       if (node.style.fontWeight) styles["font-weight"] = node.style.fontWeight
-      if (node.style.lineHeightPx) styles["line-height"] = `${node.style.lineHeightPx}px`
+      if (node.style.lineHeightPx) {
+        const lineHeight = typeof node.style.lineHeightPx === 'object' ? 
+          node.style.lineHeightPx.value || node.style.lineHeightPx : node.style.lineHeightPx
+        styles["line-height"] = `${lineHeight}px`
+      }
       if (node.style.fontFamily) styles["font-family"] = `"${node.style.fontFamily}", sans-serif`
       if (node.style.textAlignHorizontal) {
         const align = node.style.textAlignHorizontal.toLowerCase()
@@ -225,12 +229,12 @@ class FigmaService {
     // Colors
     if (node.fills?.[0]?.color) {
       const color = node.fills[0].color
-      styles.color = `rgba(${Math.round(color.r * 255)}, ${Math.round(color.g * 255)}, ${Math.round(color.b * 255)}, ${color.a || 1})`
+      styles.color = this._convertToRgba(color)
     }
     
     if (node.backgroundColor) {
       const bg = node.backgroundColor
-      styles["background-color"] = `rgba(${Math.round(bg.r * 255)}, ${Math.round(bg.g * 255)}, ${Math.round(bg.b * 255)}, ${bg.a || 1})`
+      styles["background-color"] = this._convertToRgba(bg)
     }
     
     // Layout
@@ -246,6 +250,14 @@ class FigmaService {
     }
     
     return styles
+  }
+
+  _convertToRgba(color) {
+    const r = Math.round(color.r * 255)
+    const g = Math.round(color.g * 255)
+    const b = Math.round(color.b * 255)
+    const a = color.a || 1
+    return `rgba(${r}, ${g}, ${b}, ${a})`
   }
 
   _extractTextStyles(styles, typographyMap) {

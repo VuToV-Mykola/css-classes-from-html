@@ -15,8 +15,14 @@ try {
 }
 
 // Читаємо package.json для отримання версії
-const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-const version = packageJson.version;
+let packageJson, version;
+try {
+  packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+  version = packageJson.version;
+} catch (error) {
+  console.error('Помилка читання package.json:', encodeURIComponent(error.message));
+  process.exit(1);
+}
 
 console.log(`📋 Створюємо VSIX для версії ${version}...`);
 
@@ -44,6 +50,6 @@ try {
     process.exit(1);
   }
 } catch (error) {
-  console.error('❌ Помилка створення VSIX:', error.message);
+  console.error('❌ Помилка створення VSIX:', encodeURIComponent(error.message));
   process.exit(1);
 }

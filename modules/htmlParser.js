@@ -6,8 +6,6 @@ function extractClasses(htmlContent) {
   const classes = new Set()
   const classParents = {}
   const classTags = {}
-  const classHierarchy = new Map()
-  
   let match
   while ((match = classRegex.exec(htmlContent)) !== null) {
     const classList = match[1].split(/\s+/).filter(c => c.trim() !== "")
@@ -39,8 +37,7 @@ function extractClasses(htmlContent) {
   return {
     classes: Array.from(classes),
     classParents,
-    classTags,
-    classHierarchy
+    classTags
   }
 }
 

@@ -61,18 +61,19 @@ function generateCSS(
     designTokens
   )
 
-  /* !!! Оптимізація CSS !!! */
+  /* !!! Оптимізація CSS з новими стандартами 2025 !!! */
   if (options.optimizeCSS) {
-    const optimizer = new CSSOptimizer()
+    const optimizer = new CSSOptimizer({
+      commentStyle: options.commentStyle || 'author'
+    })
     css = optimizer.optimizeCSS(css, {
       removeRedundant: options.removeRedundant,
       optimizeShorthands: options.optimizeShorthands,
       sortProperties: options.sortProperties,
       removeEmptyRules: options.removeEmptyRules,
       optimizeInheritance: options.optimizeInheritance,
-      removeDeprecated: options.removeDeprecated !== false,
-      fixPrecision: options.fixPrecision !== false,
-      addReset: includeReset
+      modernSyntax: options.modernSyntax !== false,
+      preserveComments: options.preserveComments !== false
     })
   }
 
@@ -332,8 +333,7 @@ function createClassDictionary(classes, options = {}, classParents = {}, classTa
       pseudoClasses: responsive ? generateResponsiveProperties(className, breakpoints) : {},
       darkMode: darkMode ? generateDarkModeProperties(className) : {},
       tags,
-      parents,
-      usedTokens: new Set()
+      parents
     }
   })
 
@@ -384,7 +384,8 @@ function findMatchingFigmaStyle(className, inspectedStyles, matchThreshold = 0.4
   Object.keys(inspectedStyles).forEach(inspectedClass => {
     const inspectedWords = inspectedClass.split(/[-_]/)
     const commonWords = classWords.filter(word => inspectedWords.includes(word))
-    const score = commonWords.length / Math.max(classWords.length, inspectedWords.length)
+    const maxLength = Math.max(classWords.length, inspectedWords.length)
+    const score = maxLength > 0 ? commonWords.length / maxLength : 0
 
     if (score > bestScore && score > matchThreshold) {
       bestScore = score
@@ -414,14 +415,6 @@ function getClassPatterns(className) {
       border: "none",
       cursor: "pointer"
     },
-    button: {
-      "background-color": "var(--accent-color, #4d5ae5)",
-      color: "#fff",
-      "border-radius": "4px",
-      padding: "16px 32px",
-      border: "none",
-      cursor: "pointer"
-    },
     title: {
       "font-size": "36px",
       "font-weight": "700",
@@ -433,7 +426,7 @@ function getClassPatterns(className) {
 
   const result = {}
   Object.entries(patterns).forEach(([pattern, props]) => {
-    if (className.includes(pattern)) {
+    if (className.includes(pattern) || (pattern === 'btn' && className.includes('button'))) {
       Object.assign(result, props)
     }
   })
@@ -531,7 +524,8 @@ function calculateNodeMatchScore(className, tags, node, hierarchy) {
   const commonWords = classWords.filter(word =>
     nodeWords.some(nWord => nWord.includes(word) || word.includes(nWord))
   )
-  score += (commonWords.length / Math.max(classWords.length, nodeWords.length)) * 50
+  const maxWordsLength = Math.max(classWords.length, nodeWords.length)
+  score += maxWordsLength > 0 ? (commonWords.length / maxWordsLength) * 50 : 0
 
   // Співпадіння з тегами
   if (tags.length > 0) {
@@ -573,11 +567,11 @@ function extractNodeProperties(node) {
   if (node.absoluteBoundingBox) {
     const box = node.absoluteBoundingBox
     if (box.width && box.width > 0) {
-      const width = parseFloat(parseFloat(box.width).toFixed(4))
+      const width = parseFloat(box.width.toFixed(4))
       properties["width"] = `${width}px`
     }
     if (box.height && box.height > 0) {
-      const height = parseFloat(parseFloat(box.height).toFixed(4))
+      const height = parseFloat(box.height.toFixed(4))
       properties["height"] = `${height}px`
     }
   }

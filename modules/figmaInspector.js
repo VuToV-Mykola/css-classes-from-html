@@ -182,7 +182,7 @@ class FigmaInspector {
     const b = Math.round(color.b * 255)
     const a = opacity !== undefined ? opacity : (color.a || 1)
     
-    return a === 1 ? `rgb(${r}, ${g}, ${b})` : `rgba(${r}, ${g}, ${b}, ${a.toFixed(2)})`
+    return a === 1 ? `rgb(${r}, ${g}, ${b})` : `rgba(${r}, ${g}, ${b}, ${parseFloat(a.toFixed(2))})`
   }
 
   _generateHierarchicalCSS(styles, hierarchy) {
@@ -240,22 +240,27 @@ class FigmaInspector {
     let bestScore = 0
     let bestMatch = null
 
-    figmaClasses.forEach(figmaClass => {
+    for (const figmaClass of figmaClasses) {
       const figmaWords = figmaClass.split(/[-_]/)
       const score = this._calculateSimilarity(htmlWords, figmaWords)
+      
+      if (score === 1.0) {
+        return figmaClass
+      }
       
       if (score > bestScore && score > 0.3) {
         bestScore = score
         bestMatch = figmaClass
       }
-    })
+    }
 
     return bestMatch
   }
 
   _calculateSimilarity(words1, words2) {
     const commonWords = words1.filter(word => words2.includes(word))
-    return commonWords.length / Math.max(words1.length, words2.length)
+    const maxLength = Math.max(words1.length, words2.length)
+    return maxLength > 0 ? commonWords.length / maxLength : 0
   }
 }
 

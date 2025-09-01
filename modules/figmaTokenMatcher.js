@@ -103,7 +103,6 @@ class FigmaTokenMatcher {
       
       // Interactive
       btn: { 'padding': '10px 20px', 'border': 'none', 'cursor': 'pointer', 'border-radius': '4px' },
-      button: { 'padding': '10px 20px', 'border': 'none', 'cursor': 'pointer', 'border-radius': '4px' },
       link: { 'text-decoration': 'none', 'cursor': 'pointer' },
       
       // Layout components
@@ -120,7 +119,7 @@ class FigmaTokenMatcher {
     
     const result = {}
     Object.entries(patterns).forEach(([pattern, styles]) => {
-      if (className.includes(pattern)) {
+      if (className.includes(pattern) || (pattern === 'btn' && className.includes('button'))) {
         Object.assign(result, styles)
       }
     })
@@ -211,7 +210,8 @@ class FigmaTokenMatcher {
     const shadowKeys = Object.keys(effects).filter(key => 
       key.includes('shadow') || key.includes('drop')
     )
-    if (shadowKeys.length > 0 && (className.includes('card') || className.includes('btn'))) {
+    const shadowPatterns = ['card', 'btn', 'button']
+    if (shadowKeys.length > 0 && shadowPatterns.some(pattern => className.includes(pattern))) {
       effectStyles['box-shadow'] = effects[shadowKeys[0]]
     }
     

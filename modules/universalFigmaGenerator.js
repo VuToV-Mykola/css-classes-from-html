@@ -24,11 +24,12 @@ class UniversalFigmaGenerator {
       return fileData.document.children.filter(child => child.type === "CANVAS")
     }
     
-    fileData.document.children.forEach(canvas => {
+    for (const canvas of fileData.document.children) {
       if (canvas.type === "CANVAS" && canvasNames.includes(canvas.name)) {
         selectedCanvases.push(canvas)
+        if (selectedCanvases.length === canvasNames.length) break
       }
-    })
+    }
     
     return selectedCanvases
   }
@@ -124,7 +125,10 @@ class UniversalFigmaGenerator {
       }
       
       if (node.style.letterSpacing) {
-        this.designTokens.typography.set(`${typeName}-letter-spacing`, `${node.style.letterSpacing}px`)
+        const spacing = typeof node.style.letterSpacing === 'string' && 
+          /[a-z%]$/i.test(node.style.letterSpacing) ? 
+          node.style.letterSpacing : `${node.style.letterSpacing}px`
+        this.designTokens.typography.set(`${typeName}-letter-spacing`, spacing)
       }
     }
   }
@@ -228,8 +232,9 @@ class UniversalFigmaGenerator {
     
     // Розміри
     if (node.absoluteBoundingBox) {
-      if (node.absoluteBoundingBox.width) styles.width = `${node.absoluteBoundingBox.width}px`
-      if (node.absoluteBoundingBox.height) styles.height = `${node.absoluteBoundingBox.height}px`
+      const bbox = node.absoluteBoundingBox
+      if (bbox.width) styles.width = `${bbox.width}px`
+      if (bbox.height) styles.height = `${bbox.height}px`
     }
     
     // Кольори
@@ -363,7 +368,7 @@ class UniversalFigmaGenerator {
     let hoverCSS = `\n\n.${className}:hover,\n.${className}:focus {\n`
     
     if (styles['background-color']) {
-      hoverCSS += `  opacity: 0.8;\n`
+      hoverCSS += `  filter: brightness(0.9);\n`
     }
     
     hoverCSS += `  transition: all 250ms ease;\n`
@@ -403,7 +408,7 @@ class UniversalFigmaGenerator {
     const r = Math.round(color.r * 255)
     const g = Math.round(color.g * 255)
     const b = Math.round(color.b * 255)
-    const a = opacity !== undefined ? opacity : (color.a || 1)
+    const a = opacity ?? color.a ?? 1
     
     return a === 1 ? `rgb(${r}, ${g}, ${b})` : `rgba(${r}, ${g}, ${b}, ${a.toFixed(2)})`
   }

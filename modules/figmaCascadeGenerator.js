@@ -121,9 +121,12 @@ function filterUniqueStyles(allStyles, inheritedStyles, usedProperties) {
   const uniqueStyles = []
   
   allStyles.forEach(styleStr => {
-    const [prop, value] = styleStr.split(': ')
+    const parts = styleStr.split(': ')
+    if (parts.length < 2) return
+    
+    const [prop, value] = parts
     const cleanProp = prop.trim()
-    const cleanValue = value?.replace(';', '').trim()
+    const cleanValue = value?.replace(';', '')?.trim() || ''
     const propKey = `${cleanProp}:${cleanValue}`
     
     if (!usedProperties.has(propKey) && !inheritedStyles.has(cleanProp)) {

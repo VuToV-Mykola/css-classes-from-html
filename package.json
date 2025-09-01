@@ -16,7 +16,10 @@
   },
   "categories": ["Other", "Snippets", "Formatters"],
   "keywords": ["css", "html", "figma", "generator", "classes", "styles"],
-  "activationEvents": [],
+  "activationEvents": [
+    "onCommand:cssclasssfromhtml.generateCSS",
+    "onLanguage:html"
+  ],
   "main": "./extension.js",
   "contributes": {
     "commands": [
@@ -28,6 +31,21 @@
       {
         "command": "cssclasssfromhtml.repeatLastAction",
         "title": "Repeat Last CSS Generation",
+        "category": "CSS Generator"
+      },
+      {
+        "command": "cssclasssfromhtml.managePresets",
+        "title": "Manage Configuration Presets",
+        "category": "CSS Generator"
+      },
+      {
+        "command": "cssclasssfromhtml.exportConfiguration",
+        "title": "Export Configuration",
+        "category": "CSS Generator"
+      },
+      {
+        "command": "cssclasssfromhtml.importConfiguration",
+        "title": "Import Configuration",
         "category": "CSS Generator"
       }
     ],
@@ -332,7 +350,42 @@
           "type": "string",
           "default": "author",
           "enum": ["author", "standard"],
-          "description": "Comment style: author (like style.css) or standard"
+          "description": "Comment style: author (!!! style) or standard (/* style */)"
+        },
+        "cssclasssfromhtml.modernSyntax": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable modern CSS syntax optimization for 2025 standards"
+        },
+        "cssclasssfromhtml.preserveComments": {
+          "type": "boolean",
+          "default": true,
+          "description": "Preserve CSS comments during optimization"
+        },
+        "cssclasssfromhtml.lastSelectedCanvases": {
+          "type": "array",
+          "default": [],
+          "description": "Last selected Canvas names for multi-canvas auto-save (automatically managed)"
+        },
+        "cssclasssfromhtml.configurationPresets": {
+          "type": "object",
+          "default": {},
+          "description": "Saved configuration presets for quick access"
+        },
+        "cssclasssfromhtml.autoSaveConfiguration": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically save current configuration after each generation"
+        },
+        "cssclasssfromhtml.showConfigurationDialog": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show configuration dialog before each generation"
+        },
+        "cssclasssfromhtml.defaultPreset": {
+          "type": "string",
+          "default": "default",
+          "description": "Default configuration preset to use"
         }
       }
     }
@@ -340,5 +393,22 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/VuToV-Mykola/css-classes-from-html.git"
+  },
+  "bugs": {
+    "url": "https://github.com/VuToV-Mykola/css-classes-from-html/issues"
+  },
+  "homepage": "https://github.com/VuToV-Mykola/css-classes-from-html#readme",
+  "scripts": {
+    "build": "node build-vsix.js",
+    "package": "vsce package",
+    "publish": "vsce publish",
+    "lint": "eslint . --ext .js",
+    "test": "echo \"Tests will be added in future versions\" && exit 0",
+    "prepackage": "npm run lint",
+    "prepublish": "npm run build"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "@vscode/vsce": "^2.22.0"
   }
 }

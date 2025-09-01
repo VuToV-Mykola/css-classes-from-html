@@ -132,34 +132,13 @@ class CanvasSelector {
     }
     
     // Фільтруємо токени, які містять назви вибраних Canvas
-    Object.entries(tokens.colors || {}).forEach(([key, value]) => {
-      if (this._isTokenFromSelectedCanvas(key, selectedCanvasNames)) {
-        filteredTokens.colors[key] = value
-      }
-    })
-    
-    Object.entries(tokens.typography || {}).forEach(([key, value]) => {
-      if (this._isTokenFromSelectedCanvas(key, selectedCanvasNames)) {
-        filteredTokens.typography[key] = value
-      }
-    })
-    
-    Object.entries(tokens.spacing || {}).forEach(([key, value]) => {
-      if (this._isTokenFromSelectedCanvas(key, selectedCanvasNames)) {
-        filteredTokens.spacing[key] = value
-      }
-    })
-    
-    Object.entries(tokens.effects || {}).forEach(([key, value]) => {
-      if (this._isTokenFromSelectedCanvas(key, selectedCanvasNames)) {
-        filteredTokens.effects[key] = value
-      }
-    })
-    
-    Object.entries(tokens.components || {}).forEach(([key, value]) => {
-      if (this._isTokenFromSelectedCanvas(key, selectedCanvasNames)) {
-        filteredTokens.components[key] = value
-      }
+    const tokenTypes = ['colors', 'typography', 'spacing', 'effects', 'components']
+    tokenTypes.forEach(type => {
+      Object.entries(tokens[type] || {}).forEach(([key, value]) => {
+        if (this._isTokenFromSelectedCanvas(key, selectedCanvasNames)) {
+          filteredTokens[type][key] = value
+        }
+      })
     })
     
     return filteredTokens

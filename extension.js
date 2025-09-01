@@ -7,8 +7,13 @@ const FigmaService = require("./modules/figmaService")
 const FigmaInspector = require("./modules/figmaInspector")
 const UniversalFigmaGenerator = require("./modules/universalFigmaGenerator")
 const CanvasSelector = require("./modules/canvasSelector")
+const ConfigurationManager = require("./modules/configurationManager")
+const path = require('path')
+const fs = require('fs').promises
 
 function activate(context) {
+  const configManager = new ConfigurationManager()
+  
   let disposable = vscode.commands.registerCommand(
     "cssclasssfromhtml.generateCSS",
     async function () {
@@ -20,7 +25,7 @@ function activate(context) {
         }
 
         const {figmaLink, accessToken, selectedCanvases} = await getFigmaInput()
-        const config = await getConfiguration()
+        const config = await getConfiguration(configManager)
         /* !!! Отримуємо вибраний текст або весь документ !!! */
         const selection = editor.selection
         const htmlContent = selection.isEmpty 
@@ -80,7 +85,10 @@ function activate(context) {
             removeRedundant: config.removeRedundant,
             optimizeShorthands: config.optimizeShorthands,
             optimizeInheritance: config.optimizeInheritance,
-            removeEmptyRules: config.removeEmptyRules
+            removeEmptyRules: config.removeEmptyRules,
+            commentStyle: config.commentStyle,
+            modernSyntax: true,
+            preserveComments: true
           }
         )
 
@@ -94,13 +102,17 @@ function activate(context) {
         }
         
         /* !!! Генерація універсального CSS з Figma токенів !!! */
-        if (config.saveFigmaStyles && designTokens && selectedCanvases?.length > 0) {
+        if (config.saveFigmaStyles && designTokens && selectedCanvases && selectedCanvases.length > 0) {
           const htmlFilePath = editor.document.uri.fsPath
-          const universalGenerator = new UniversalFigmaGenerator(new FigmaService(accessToken))
+          const figmaService = new FigmaService(accessToken)
+          const universalGenerator = new UniversalFigmaGenerator(figmaService)
           const tokens = universalGenerator.extractTokensFromCanvases(selectedCanvases)
           const universalCSS = universalGenerator.generateUniversalCSS(classes, tokens)
           
-          const universalPath = config.figmaOutputPath.replace('.css', '-figma.css')
+          let universalPath = config.figmaOutputPath
+          if (!universalPath.includes('figma') && !universalPath.includes('styles.css')) {
+            universalPath = universalPath.replace('.css', '-figma.css')
+          }
           const relativeUniversalPath = getRelativeFigmaPath(htmlFilePath, universalPath)
           await saveToFile(universalCSS, relativeUniversalPath)
         }
@@ -112,14 +124,23 @@ function activate(context) {
           includeGlobal: config.includeGlobal,
           includeReset: config.includeReset,
           saveFigmaStyles: config.saveFigmaStyles,
+          optimizeCSS: config.optimizeCSS,
+          removeRedundant: config.removeRedundant,
+          optimizeShorthands: config.optimizeShorthands,
+          optimizeInheritance: config.optimizeInheritance,
+          removeEmptyRules: config.removeEmptyRules,
           timestamp: new Date().toLocaleString()
         }
         
         await saveActionToHistory(actionSettings)
-        await vscode.workspace.getConfiguration("cssclasssfromhtml")
-          .update("saveLastAction", "generateCSS", vscode.ConfigurationTarget.Global)
-        await vscode.workspace.getConfiguration("cssclasssfromhtml")
-          .update("lastActionSettings", actionSettings, vscode.ConfigurationTarget.Global)
+        await configManager.autoSaveConfiguration(config)
+        
+        const configUpdate = vscode.workspace.getConfiguration("cssclasssfromhtml")
+        await Promise.all([
+          configUpdate.update("saveLastAction", "generateCSS", vscode.ConfigurationTarget.Global),
+          configUpdate.update("lastActionSettings", actionSettings, vscode.ConfigurationTarget.Global),
+          configUpdate.update("lastSelectedCanvases", selectedCanvases?.map(canvas => canvas.name) || [], vscode.ConfigurationTarget.Global)
+        ])
         
         vscode.window.showInformationMessage("CSS успішно згенеровано!")
 
@@ -173,7 +194,84 @@ function activate(context) {
     }
   )
 
-  context.subscriptions.push(disposable, repeatDisposable)
+  /* !!! Команда для управління пресетами !!! */
+  let presetsDisposable = vscode.commands.registerCommand(
+    "cssclasssfromhtml.managePresets",
+    async function () {
+      try {
+        const action = await configManager.showPresetSelector()
+        if (!action) return
+
+        switch (action.action) {
+          case "create":
+            const name = await vscode.window.showInputBox({
+              prompt: "Введіть назву пресету",
+              placeHolder: "Моя конфігурація",
+              ignoreFocusOut: true
+            })
+            if (name) {
+              const currentConfig = await getConfiguration(configManager)
+              await configManager.savePreset(name, currentConfig)
+            }
+            break
+
+          case "delete":
+            const presets = configManager.getAvailablePresets()
+            const toDelete = await vscode.window.showQuickPick(
+              presets.map(p => ({ label: p.label, description: p.description, name: p.label })),
+              { placeHolder: "Виберіть пресет для видалення" }
+            )
+            if (toDelete) {
+              await configManager.deletePreset(toDelete.name)
+            }
+            break
+
+          case "load":
+            const config = action.preset
+            if (config) {
+              await configManager.autoSaveConfiguration(config)
+              vscode.window.showInformationMessage(`Пресет "${action.label}" завантажено!`)
+            }
+            break
+        }
+      } catch (error) {
+        vscode.window.showErrorMessage(`Помилка управління пресетами: ${error.message}`)
+      }
+    }
+  )
+
+  /* !!! Команда для експорту конфігурації !!! */
+  let exportDisposable = vscode.commands.registerCommand(
+    "cssclasssfromhtml.exportConfiguration",
+    async function () {
+      try {
+        await configManager.exportConfiguration()
+      } catch (error) {
+        vscode.window.showErrorMessage(`Помилка експорту: ${error.message}`)
+      }
+    }
+  )
+
+  /* !!! Команда для імпорту конфігурації !!! */
+  let importDisposable = vscode.commands.registerCommand(
+    "cssclasssfromhtml.importConfiguration",
+    async function () {
+      try {
+        const editor = vscode.window.activeTextEditor
+        if (!editor) {
+          vscode.window.showErrorMessage("Відкрийте JSON файл з конфігурацією")
+          return
+        }
+
+        const jsonContent = editor.document.getText()
+        await configManager.importConfiguration(jsonContent)
+      } catch (error) {
+        vscode.window.showErrorMessage(`Помилка імпорту: ${error.message}`)
+      }
+    }
+  )
+
+  context.subscriptions.push(disposable, repeatDisposable, presetsDisposable, exportDisposable, importDisposable)
 }
 
 async function getFigmaInput() {
@@ -186,10 +284,28 @@ async function getFigmaInput() {
   
   /* !!! Повторення останньої дії !!! */
   if (repeatLastAction && lastActionSettings.figmaLink) {
-    return {
-      figmaLink: lastActionSettings.figmaLink,
-      accessToken: savedToken,
-      selectedCanvases: lastActionSettings.selectedCanvases || []
+    const lastCanvasNames = config.get("lastSelectedCanvases", [])
+    
+    if (lastCanvasNames.length > 0) {
+      const figmaService = new FigmaService(savedToken)
+      const fileKey = figmaService.extractFileKeyFromLink(lastActionSettings.figmaLink)
+      
+      try {
+        const fileData = await figmaService.getFile(fileKey)
+        const selectedCanvases = fileData.document.children
+          .filter(child => child.type === "CANVAS" && lastCanvasNames.includes(child.name))
+        
+        if (selectedCanvases.length > 0) {
+          vscode.window.showInformationMessage(`Відновлено вибір Canvas: ${lastCanvasNames.join(', ')}`)
+          return {
+            figmaLink: lastActionSettings.figmaLink,
+            accessToken: savedToken,
+            selectedCanvases
+          }
+        }
+      } catch (error) {
+        vscode.window.showWarningMessage(`Помилка відновлення Canvas: ${error.message}`)
+      }
     }
   }
 
@@ -201,7 +317,7 @@ async function getFigmaInput() {
   const figmaLink = await vscode.window.showInputBox({
     prompt: "Введіть посилання на макет Figma (опціонально)",
     placeHolder: lastFigmaLink || "https://www.figma.com/file/...",
-    value: lastFigmaLink,
+    value: lastFigmaLink || "",
     ignoreFocusOut: true
   })
 
@@ -231,6 +347,12 @@ async function getFigmaInput() {
       /* !!! Отримуємо список Canvas для вибору !!! */
       const canvasSelector = new CanvasSelector(new FigmaService(accessToken))
       selectedCanvases = await canvasSelector.selectMultipleCanvas(figmaLink, accessToken)
+      
+      /* !!! Зберігаємо вибрані Canvas !!! */
+      if (selectedCanvases.length > 0) {
+        const canvasNames = selectedCanvases.map(canvas => canvas.name)
+        await config.update("lastSelectedCanvases", canvasNames, vscode.ConfigurationTarget.Global)
+      }
     }
   }
 
@@ -311,10 +433,18 @@ async function selectCanvas(figmaLink, accessToken) {
   }
 }
 
-async function getConfiguration() {
+async function getConfiguration(configManager) {
   const config = vscode.workspace.getConfiguration("cssclasssfromhtml")
-  const savedConfig = config.get("savedConfiguration", {})
+  
+  // Показуємо діалог конфігурації якщо потрібно
+  const dialogConfig = await configManager.showConfigurationDialog()
+  if (dialogConfig === null) {
+    throw new Error("Конфігурацію скасовано користувачем")
+  }
+  
+  const savedConfig = dialogConfig || config.get("savedConfiguration", {})
   const saveConfiguration = config.get("saveConfiguration", true)
+  const rememberSettings = config.get("rememberSettings", true)
   
   const settings = {
     language: config.get("language", "uk"),
@@ -358,6 +488,7 @@ async function getConfiguration() {
     optimizeInheritance: saveConfiguration && savedConfig.optimizeInheritance !== undefined ? savedConfig.optimizeInheritance : config.get("optimizeInheritance", true),
     removeEmptyRules: saveConfiguration && savedConfig.removeEmptyRules !== undefined ? savedConfig.removeEmptyRules : config.get("removeEmptyRules", true),
     commentStyle: config.get("commentStyle", "author"),
+    lastSelectedCanvases: config.get("lastSelectedCanvases", []),
     saveConfiguration
   }
   
@@ -371,13 +502,21 @@ async function getConfiguration() {
       removeRedundant: settings.removeRedundant,
       optimizeShorthands: settings.optimizeShorthands,
       optimizeInheritance: settings.optimizeInheritance,
-      removeEmptyRules: settings.removeEmptyRules
+      removeEmptyRules: settings.removeEmptyRules,
+      lastSelectedCanvases: settings.lastSelectedCanvases,
+      colorFormat: settings.colorFormat,
+      responsive: settings.responsive,
+      darkMode: settings.darkMode,
+      cssVariables: settings.cssVariables,
+      includeComments: settings.includeComments,
+      sortProperties: settings.sortProperties,
+      commentStyle: settings.commentStyle
     }
     
-    config.update("savedConfiguration", configToSave, vscode.ConfigurationTarget.Global)
+    await config.update("savedConfiguration", configToSave, vscode.ConfigurationTarget.Global)
   }
   
-  if (settings.rememberSettings) {
+  if (rememberSettings) {
     const settingsToSave = {
       figmaMultiCanvas: settings.figmaMultiCanvas,
       universalGeneration: settings.universalGeneration,
@@ -389,10 +528,17 @@ async function getConfiguration() {
       removeRedundant: settings.removeRedundant,
       optimizeShorthands: settings.optimizeShorthands,
       optimizeInheritance: settings.optimizeInheritance,
-      removeEmptyRules: settings.removeEmptyRules
+      removeEmptyRules: settings.removeEmptyRules,
+      colorFormat: settings.colorFormat,
+      responsive: settings.responsive,
+      darkMode: settings.darkMode,
+      cssVariables: settings.cssVariables,
+      includeComments: settings.includeComments,
+      sortProperties: settings.sortProperties,
+      commentStyle: settings.commentStyle
     }
     
-    config.update("lastActionSettings", {
+    await config.update("lastActionSettings", {
       ...config.get("lastActionSettings", {}),
       ...settingsToSave
     }, vscode.ConfigurationTarget.Global)
@@ -453,7 +599,6 @@ async function showGeneratedCSS(cssContent) {
 }
 
 function getRelativeFigmaPath(htmlFilePath, outputPath) {
-  const path = require('path')
   const config = vscode.workspace.getConfiguration("cssclasssfromhtml")
   
   if (config.get("relativePaths", true)) {
@@ -467,16 +612,46 @@ function getRelativeFigmaPath(htmlFilePath, outputPath) {
 
 async function saveToFile(cssContent, outputPath) {
   try {
-    const fs = require('fs').promises
-    const path = require('path')
+    // Безпечна валідація шляху
+    const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath
     
-    const fullPath = path.resolve(outputPath)
+    if (!workspaceRoot) {
+      throw new Error('Workspace не знайдено')
+    }
+    
+    // Санітизація вхідного шляху
+    const sanitizedPath = outputPath.replace(/\.\./g, '').replace(/[<>:"|?*]/g, '')
+    
+    // Використовуємо outputPath як є, якщо він абсолютний
+    let fullPath = path.isAbsolute(sanitizedPath) ? sanitizedPath : path.join(workspaceRoot, sanitizedPath)
+    
+    // Нормалізуємо шлях після об'єднання
+    fullPath = path.normalize(fullPath)
+    
+    // Перевіряємо що шлях знаходиться в межах workspace
+    if (!fullPath.startsWith(workspaceRoot)) {
+      throw new Error('Небезпечний шлях файлу')
+    }
+    
+    // Перевіряємо чи це директорія
+    try {
+      const stat = await fs.stat(fullPath)
+      if (stat.isDirectory()) {
+        fullPath = path.join(fullPath, 'styles.css')
+      }
+    } catch (e) {
+      // Перевіряємо тип помилки
+      if (e.code !== 'ENOENT') {
+        throw new Error(`Помилка доступу до файлу: ${e.message}`)
+      }
+      // Файл не існує - це нормально
+    }
+    
     const dir = path.dirname(fullPath)
-    
     await fs.mkdir(dir, { recursive: true })
     await fs.writeFile(fullPath, cssContent, 'utf8')
     
-    const relativePath = path.relative(process.cwd(), fullPath)
+    const relativePath = path.relative(workspaceRoot, fullPath)
     vscode.window.showInformationMessage(`CSS збережено: ${relativePath}`)
   } catch (error) {
     vscode.window.showErrorMessage(`Помилка збереження: ${error.message}`)
@@ -484,11 +659,10 @@ async function saveToFile(cssContent, outputPath) {
 }
 
 function extractTagsFromSelection(htmlContent) {
-  const tagRegex = /<(\w+)[^>]*>/g
   const tags = new Set()
-  let match
   
-  while ((match = tagRegex.exec(htmlContent)) !== null) {
+  // Використовуємо matchAll для безпечного парсингу
+  for (const match of htmlContent.matchAll(/<(\w+)[^>]*>/g)) {
     tags.add(match[1].toLowerCase())
   }
   
@@ -500,11 +674,9 @@ async function saveActionToHistory(actionSettings) {
   const actionHistory = config.get("actionHistory", [])
   const maxHistorySize = config.get("maxHistorySize", 5)
   
-  // Додаємо нову дію на початок
-  const updatedHistory = [actionSettings, ...actionHistory]
-  
-  // Обмежуємо розмір історії
-  const trimmedHistory = updatedHistory.slice(0, maxHistorySize)
+  // Оптимізований спосіб додавання на початок
+  actionHistory.unshift(actionSettings)
+  const trimmedHistory = actionHistory.slice(0, maxHistorySize)
   
   await config.update("actionHistory", trimmedHistory, vscode.ConfigurationTarget.Global)
 }
