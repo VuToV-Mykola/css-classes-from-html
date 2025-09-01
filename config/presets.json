@@ -27,7 +27,7 @@
       "includeReset": true,
       "includeComments": true,
       "commentStyle": "author",
-      "optimizeCSS": true,
+      "optimizeCSS": false,
       "saveFigmaStyles": false,
       "responsive": true,
       "darkMode": true,

@@ -205,7 +205,7 @@ function filterClassUniqueStyles(properties, inheritedStyles, usedProperties) {
 }
 
 function generateOptimizedClassCSS(className, classInfo, isMinimal = false) {
-  const {properties = {}, pseudoClasses = {}, darkMode = {}} = classInfo
+  const {properties = {}} = classInfo
   const blocks = []
 
   const comment = commentManager.getClassComment(className)
@@ -224,7 +224,6 @@ function generateOptimizedClassCSS(className, classInfo, isMinimal = false) {
     const categoryProps = categorizedProps[category]
     if (categoryProps && Object.keys(categoryProps).length > 0) {
       Object.entries(categoryProps).forEach(([prop, value]) => {
-        cssRules.push(`  /* ${getPropertyComment(prop)} */`)
         cssRules.push(`  ${prop}: ${value};`)
       })
     }
@@ -237,36 +236,6 @@ function generateOptimizedClassCSS(className, classInfo, isMinimal = false) {
   } else {
     blocks.push(`.${className} {}`)
   }
-
-  /* !!! Псевдо-класи !!! */
-  Object.entries(pseudoClasses).forEach(([selector, props]) => {
-    if (Object.keys(props).length > 0) {
-      blocks.push("")
-      blocks.push(commentManager.getTranslation("hover_focus_states"))
-      blocks.push(`.${className}${selector} {`)
-      Object.entries(props).forEach(([prop, value]) => {
-        blocks.push(`  /* ${getPropertyComment(prop)} */`)
-        blocks.push(`  ${prop}: ${value};`)
-      })
-      blocks.push("}")
-    }
-  })
-
-  /* !!! Dark mode стилі !!! */
-  Object.entries(darkMode).forEach(([mediaQuery, props]) => {
-    if (Object.keys(props).length > 0) {
-      blocks.push("")
-      blocks.push("/* !!! Dark mode стилі !!! */")
-      blocks.push(`${mediaQuery} {`)
-      blocks.push(`  .${className} {`)
-      Object.entries(props).forEach(([prop, value]) => {
-        blocks.push(`    /* ${getPropertyComment(prop)} */`)
-        blocks.push(`    ${prop}: ${value};`)
-      })
-      blocks.push("  }")
-      blocks.push("}")
-    }
-  })
 
   return blocks.join("\n")
 }

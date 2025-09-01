@@ -13,7 +13,9 @@
         "ignore": ["comments"]
       }
     ],
-    "block-no-empty": true,
+    "block-no-empty": null,
+    "no-empty-source": null,
+    "rule-empty-line-before": null,
 
     "selector-class-pattern": "^[a-z]([a-z0-9-]+)?(__[a-z0-9]+)?(--[a-z0-9]+)?$",
     "selector-id-pattern": "^[a-z]([a-z0-9-]+)?$",
