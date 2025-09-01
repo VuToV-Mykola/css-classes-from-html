@@ -225,6 +225,7 @@ MIT License - дивіться [LICENSE.md](https://github.com/VuToV-Mykola/css-
 
 - VS Code Team за чудову платформу
 - Figma за відкритий API
+- [GoIT](https://goit.global/ua/) за знання та навички, отримані на курсах
 - Спільноті розробників за фідбек та підтримку
 
 ---
