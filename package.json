@@ -184,6 +184,6 @@
   },
   "devDependencies": {
     "eslint": "^8.0.0",
-    "@vscode/vsce": "^2.22.0"
+    "@vscode/vsce": "^3.6.0"
   }
 }
