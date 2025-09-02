@@ -27,8 +27,8 @@
 
 ## 💖 Підтримати автора
 
-[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/paypalme/vutov_nikola@icloud.com)
-[![Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-orange.svg)](https://www.paypal.com/paypalme/vutov_nikola@icloud.com)
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate/?hosted_button_id=D5U6TQ3Q9CVLS)
+[![Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-orange.svg)](https://www.paypal.com/donate/?hosted_button_id=D5U6TQ3Q9CVLS)
 
 > Якщо це розширення допомогло вам у роботі, підтримайте автора кавою! ☕
 
@@ -245,8 +245,8 @@ MIT License - дивіться [LICENSE.md](https://github.com/VuToV-Mykola/css-
 
 **Створено з ❤️ для розробників у 2025 році**
 
-[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/paypalme/vutov_nikola@icloud.com)
-[![Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-orange.svg)](https://www.paypal.com/paypalme/vutov_nikola@icloud.com)
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate/?hosted_button_id=D5U6TQ3Q9CVLS)
+[![Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-orange.svg)](https://www.paypal.com/donate/?hosted_button_id=D5U6TQ3Q9CVLS)
 
 *Якщо проект допоміг вам - підтримайте автора! ☕*
 
