@@ -21,7 +21,7 @@
   "prefixClasses": "",
   "enableInspection": true,
   "inspectionPriority": "figma-first",
-  "matchThreshold": 0.4,
+  "matchThreshold": 0.1,
   "saveFigmaStyles": true,
   "figmaOutputPath": "./css/",
   "figmaInspectionDepth": "full",

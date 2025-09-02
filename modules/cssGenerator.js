@@ -2,7 +2,7 @@
 const commentManager = require("./commentManager")
 const globalRules = require("./globalRules")
 const CSSOptimizer = require("./cssOptimizer")
-const { minifyCSS } = require("./cssMinifier")
+const {minifyCSS} = require("./cssMinifier")
 
 const PROPERTY_CATEGORIES = {
   layout: ["display", "position", "top", "right", "bottom", "left", "z-index", "float", "clear"],
@@ -65,7 +65,7 @@ function generateCSS(
   /* !!! Оптимізація CSS з новими стандартами 2025 !!! */
   if (options.optimizeCSS) {
     const optimizer = new CSSOptimizer({
-      commentStyle: options.commentStyle || 'author'
+      commentStyle: options.commentStyle || "author"
     })
     css = optimizer.optimizeCSS(css, {
       removeRedundant: options.removeRedundant,
@@ -205,13 +205,12 @@ function filterClassUniqueStyles(properties, inheritedStyles, usedProperties) {
 }
 
 function generateOptimizedClassCSS(className, classInfo, isMinimal = false) {
-  const {properties = {}} = classInfo
+  const {properties = {}, pseudoClasses = {}, darkMode = {}} = classInfo
   const blocks = []
 
   const comment = commentManager.getClassComment(className)
   blocks.push(comment)
 
-  // Якщо немає властивостей (мінімальний режим), генеруємо пустий клас
   if (Object.keys(properties).length === 0 || isMinimal) {
     blocks.push(`.${className} {}`)
     return blocks.join("\n")
@@ -224,6 +223,7 @@ function generateOptimizedClassCSS(className, classInfo, isMinimal = false) {
     const categoryProps = categorizedProps[category]
     if (categoryProps && Object.keys(categoryProps).length > 0) {
       Object.entries(categoryProps).forEach(([prop, value]) => {
+        cssRules.push(`  /* ${getPropertyComment(prop)} */`)
         cssRules.push(`  ${prop}: ${value};`)
       })
     }
@@ -235,6 +235,38 @@ function generateOptimizedClassCSS(className, classInfo, isMinimal = false) {
     blocks.push("}")
   } else {
     blocks.push(`.${className} {}`)
+  }
+
+  if (pseudoClasses && typeof pseudoClasses === "object") {
+    Object.entries(pseudoClasses).forEach(([selector, props]) => {
+      if (props && typeof props === "object" && Object.keys(props).length > 0) {
+        blocks.push("")
+        blocks.push(commentManager.getTranslation("hover_focus_states"))
+        blocks.push(`.${className}${selector} {`)
+        Object.entries(props).forEach(([prop, value]) => {
+          blocks.push(`  /* ${getPropertyComment(prop)} */`)
+          blocks.push(`  ${prop}: ${value};`)
+        })
+        blocks.push("}")
+      }
+    })
+  }
+
+  if (darkMode && typeof darkMode === "object") {
+    Object.entries(darkMode).forEach(([mediaQuery, props]) => {
+      if (props && typeof props === "object" && Object.keys(props).length > 0) {
+        blocks.push("")
+        blocks.push("/* !!! Dark mode стилі !!! */")
+        blocks.push(`${mediaQuery} {`)
+        blocks.push(`  .${className} {`)
+        Object.entries(props).forEach(([prop, value]) => {
+          blocks.push(`    /* ${getPropertyComment(prop)} */`)
+          blocks.push(`    ${prop}: ${value};`)
+        })
+        blocks.push("  }")
+        blocks.push("}")
+      }
+    })
   }
 
   return blocks.join("\n")
@@ -310,7 +342,9 @@ function createClassDictionary(classes, options = {}, classParents = {}, classTa
     const parents = classParents[className] ? Array.from(classParents[className]) : []
 
     // Для мінімального режиму повертаємо пусті властивості
-    const properties = minimal ? {} : getEnhancedClassProperties(className, tags, designTokens, options)
+    const properties = minimal
+      ? {}
+      : getEnhancedClassProperties(className, tags, designTokens, options)
 
     dictionary[finalClassName] = {
       properties,
@@ -410,7 +444,7 @@ function getClassPatterns(className) {
 
   const result = {}
   Object.entries(patterns).forEach(([pattern, props]) => {
-    if (className.includes(pattern) || (pattern === 'btn' && className.includes('button'))) {
+    if (className.includes(pattern) || (pattern === "btn" && className.includes("button"))) {
       Object.assign(result, props)
     }
   })
