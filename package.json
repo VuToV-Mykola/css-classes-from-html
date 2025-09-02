@@ -183,7 +183,7 @@
     "prepublish": "npm run build"
   },
   "devDependencies": {
-    "eslint": "^8.0.0",
+    "eslint": "^9.34.0",
     "@vscode/vsce": "^2.22.0"
   }
 }
