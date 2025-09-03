@@ -1,0 +1,84 @@
+[
+  {
+    "sha": "032631be3f081e5bafa0ef3e4a013e55493c5253",
+    "node_id": "C_kwDOPmrUWNoAKDAzMjYzMWJlM2YwODFlNWJhZmEwZWYzZTRhMDEzZTU1NDkzYzUyNTM",
+    "commit": {
+      "author": {
+        "name": "VuToV-Mykola",
+        "email": "vutov_nikola@icloud.com",
+        "date": "2025-09-03T20:29:26Z"
+      },
+      "committer": {
+        "name": "VuToV-Mykola",
+        "email": "vutov_nikola@icloud.com",
+        "date": "2025-09-03T20:29:26Z"
+      },
+      "message": "🔧 Refactor workflow: remove manual likes, enhance GitHub stats",
+      "tree": {
+        "sha": "4882d373b560ed451f86b26964f9be6e07522e8f",
+        "url": "https://api.github.com/repos/VuToV-Mykola/css-classes-from-html/git/trees/4882d373b560ed451f86b26964f9be6e07522e8f"
+      },
+      "url": "https://api.github.com/repos/VuToV-Mykola/css-classes-from-html/git/commits/032631be3f081e5bafa0ef3e4a013e55493c5253",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/VuToV-Mykola/css-classes-from-html/commits/032631be3f081e5bafa0ef3e4a013e55493c5253",
+    "html_url": "https://github.com/VuToV-Mykola/css-classes-from-html/commit/032631be3f081e5bafa0ef3e4a013e55493c5253",
+    "comments_url": "https://api.github.com/repos/VuToV-Mykola/css-classes-from-html/commits/032631be3f081e5bafa0ef3e4a013e55493c5253/comments",
+    "author": {
+      "login": "VuToV-Mykola",
+      "id": 61313070,
+      "node_id": "MDQ6VXNlcjYxMzEzMDcw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/61313070?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/VuToV-Mykola",
+      "html_url": "https://github.com/VuToV-Mykola",
+      "followers_url": "https://api.github.com/users/VuToV-Mykola/followers",
+      "following_url": "https://api.github.com/users/VuToV-Mykola/following{/other_user}",
+      "gists_url": "https://api.github.com/users/VuToV-Mykola/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/VuToV-Mykola/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/VuToV-Mykola/subscriptions",
+      "organizations_url": "https://api.github.com/users/VuToV-Mykola/orgs",
+      "repos_url": "https://api.github.com/users/VuToV-Mykola/repos",
+      "events_url": "https://api.github.com/users/VuToV-Mykola/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/VuToV-Mykola/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "VuToV-Mykola",
+      "id": 61313070,
+      "node_id": "MDQ6VXNlcjYxMzEzMDcw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/61313070?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/VuToV-Mykola",
+      "html_url": "https://github.com/VuToV-Mykola",
+      "followers_url": "https://api.github.com/users/VuToV-Mykola/followers",
+      "following_url": "https://api.github.com/users/VuToV-Mykola/following{/other_user}",
+      "gists_url": "https://api.github.com/users/VuToV-Mykola/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/VuToV-Mykola/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/VuToV-Mykola/subscriptions",
+      "organizations_url": "https://api.github.com/users/VuToV-Mykola/orgs",
+      "repos_url": "https://api.github.com/users/VuToV-Mykola/repos",
+      "events_url": "https://api.github.com/users/VuToV-Mykola/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/VuToV-Mykola/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "e413bb6dae6086cbb9c66a8631648e3e78675af5",
+        "url": "https://api.github.com/repos/VuToV-Mykola/css-classes-from-html/commits/e413bb6dae6086cbb9c66a8631648e3e78675af5",
+        "html_url": "https://github.com/VuToV-Mykola/css-classes-from-html/commit/e413bb6dae6086cbb9c66a8631648e3e78675af5"
+      }
+    ]
+  }
+]
