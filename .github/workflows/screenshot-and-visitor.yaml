@@ -6,12 +6,6 @@ on:
   schedule:
     - cron: '0 */2 * * *'
   workflow_dispatch:
-    inputs:
-      add_like:
-        description: 'Add your like (only one per user allowed)'
-        required: false
-        default: true
-        type: boolean
 
 permissions:
   contents: write
@@ -21,7 +15,6 @@ permissions:
 env:
   BADGE_STYLE: 'for-the-badge'
   BADGE_COLOR: 'brightgreen'
-  LIKES_COLOR: 'gold'
   DATA_DIR: 'assets/db'
   SCREENSHOT_DIR: 'assets'
 
@@ -85,8 +78,26 @@ jobs:
 
       - name: 📊 Collect all statistics
         run: |
-          # [Існуючий код збору статистики залишається без змін]
-          # Додайте тут весь ваш поточний код збору статистики
+          # Створюємо badges для статистики (без лайків)
+          REPO_NAME="${{ github.repository }}"
+          REPO_OWNER=$(echo "$REPO_NAME" | cut -d'/' -f1)
+          REPO_REPO=$(echo "$REPO_NAME" | cut -d'/' -f2)
+          
+          # Статистика переглядів
+          echo '{"schemaVersion":1,"label":"📊 Views","message":"","color":"brightgreen","style":"for-the-badge"}' > $DATA_DIR/visitors-badge.json
+          
+          # Розмір репозиторію
+          echo '{"schemaVersion":1,"label":"📦 Size","message":"","color":"brightgreen","style":"for-the-badge"}' > $DATA_DIR/repo-size.json
+          
+          # Ліцензія
+          echo '{"schemaVersion":1,"label":"📄 License","message":"MIT","color":"brightgreen","style":"for-the-badge"}' > $DATA_DIR/repo-license.json
+          
+          # Downloads badge (якщо є релізи)
+          if [ -f "$DATA_DIR/downloads-badge.json" ]; then
+            echo "Downloads badge already exists"
+          else
+            echo '{"schemaVersion":1,"label":"⬇️ Downloads","message":"0","color":"brightgreen","style":"for-the-badge"}' > $DATA_DIR/downloads-badge.json
+          fi
 
       - name: 🖥 Setup Node.js and dependencies
         run: |
@@ -94,7 +105,14 @@ jobs:
             echo "⏭️ Skipping Node.js setup - screenshot generation disabled"
             exit 0
           fi
-          # [Існуючий код налаштування Node.js залишається без змін]
+          
+          # Встановлюємо Node.js
+          curl -fsSL https://deb.nodesource.com/setup_$NODE_VERSION | sudo -E bash -
+          sudo apt-get install -y nodejs
+          
+          # Перевіряємо версію
+          node --version
+          npm --version
 
       - name: 📸 Generate screenshot from GitHub Pages
         run: |
@@ -103,18 +121,56 @@ jobs:
             echo "SCREENSHOT_CREATED=false" >> $GITHUB_ENV
             exit 0
           fi
-          # [Існуючий код генерації скріншоту залишається без змін]
+          
+          # Спробуємо зробити скріншот GitHub Pages
+          GITHUB_PAGES_URL="https://$REPO_OWNER.github.io/$REPO_REPO"
+          
+          # Перевіряємо чи сторінка існує
+          if curl --output /dev/null --silent --head --fail "$GITHUB_PAGES_URL"; then
+            echo "📸 GitHub Pages found, generating screenshot..."
+            
+            # Встановлюємо Puppeteer для скріншотів
+            npm install puppeteer-core chromium --no-save
+            
+            # Створюємо скрипт для скріншоту
+            cat > screenshot.js << 'EOF'
+            const puppeteer = require('puppeteer-core');
+            const chromium = require('chromium');
+            
+            (async () => {
+              const browser = await puppeteer.launch({
+                executablePath: chromium.path,
+                args: ['--no-sandbox', '--disable-setuid-sandbox']
+              });
+              
+              const page = await browser.newPage();
+              await page.setViewport({ width: 1280, height: 720 });
+              
+              try {
+                await page.goto('$GITHUB_PAGES_URL', { waitUntil: 'networkidle2', timeout: 30000 });
+                await page.screenshot({ path: '$SCREENSHOT_DIR/screenshot.png', fullPage: false });
+                console.log('✅ Screenshot created successfully');
+              } catch (error) {
+                console.log('❌ Screenshot failed:', error.message);
+                process.exit(1);
+              } finally {
+                await browser.close();
+              }
+            })();
+            EOF
+            
+            # Запускаємо скрипт
+            node screenshot.js
+            echo "SCREENSHOT_CREATED=true" >> $GITHUB_ENV
+          else
+            echo "🌐 GitHub Pages not available, skipping screenshot"
+            echo "SCREENSHOT_CREATED=false" >> $GITHUB_ENV
+          fi
 
       - name: 📝 Update README with all content
         run: |
           REPO_URL="https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}"
-          TECH_BADGES=$(cat $DATA_DIR/tech-badges.txt 2>/dev/null || echo "")
-
-          DOWNLOADS_BADGE=""
-          if [ -f "$DATA_DIR/downloads-badge.json" ]; then
-            DOWNLOADS_BADGE="[![⬇️ Downloads](https://img.shields.io/endpoint?url=$REPO_URL/$DATA_DIR/downloads-badge.json)](https://github.com/${{ github.repository }}/releases)"
-          fi
-
+          
           # Відновлюємо оригінальний README
           mv README_backup.md README.md
 
@@ -128,17 +184,14 @@ jobs:
             
             # Додаємо технологічні бейджі тільки якщо секція не закоментована
             if [ "$STATS_SKIP" = "false" ]; then
-              echo "$TECH_BADGES"
               echo ""
               echo "## 📊 Статистика GitHub :"
               echo ""
               echo "[![📊 Views](https://img.shields.io/endpoint?url=$REPO_URL/$DATA_DIR/visitors-badge.json)](https://github.com/${{ github.repository }}/graphs/traffic)"
-              echo "[![⭐ Stars](https://img.shields.io/endpoint?url=$REPO_URL/$DATA_DIR/likes-badge.json)](https://github.com/${{ github.repository }}/actions/workflows/screenshot-and-visitor.yaml)"
+              echo "[![⭐ Stars](https://img.shields.io/github/stars/${{ github.repository }}?style=for-the-badge)](https://github.com/${{ github.repository }}/stargazers)"
               echo "[![📦 Size](https://img.shields.io/endpoint?url=$REPO_URL/$DATA_DIR/repo-size.json)](https://github.com/${{ github.repository }})"
               echo "[![📄 License](https://img.shields.io/endpoint?url=$REPO_URL/$DATA_DIR/repo-license.json)](https://github.com/${{ github.repository }}/blob/main/LICENSE)"
-              if [ -n "$DOWNLOADS_BADGE" ]; then
-                echo "$DOWNLOADS_BADGE"
-              fi
+              echo "[![⬇️ Downloads](https://img.shields.io/endpoint?url=$REPO_URL/$DATA_DIR/downloads-badge.json)](https://github.com/${{ github.repository }}/releases)"
             else
               echo "<!-- 📊 Статистика GitHub закоментована -->"
             fi
@@ -168,9 +221,9 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .
 
-          COMMIT_MSG="📊 Auto-update: visitors, likes"
+          COMMIT_MSG="📊 Auto-update: visitors"
           if [ "$SCREENSHOT_CREATED" = "true" ]; then
-            COMMIT_MSG="$COMMIT_MSG, and screenshot"
+            COMMIT_MSG="$COMMIT_MSG and screenshot"
           fi
 
           git commit -m "$COMMIT_MSG" || exit 0
