@@ -1,0 +1,7 @@
+{
+  "readme_dirs": [".", "docs", "guides"],
+  "languages": ["ua", "en", "de"],
+  "badge_style": "for-the-badge",
+  "auto_translate": false,
+  "update_schedule": "daily"
+}
