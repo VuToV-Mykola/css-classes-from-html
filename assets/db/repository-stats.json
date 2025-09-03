@@ -1,0 +1,45 @@
+{
+  "repository": {
+    "name": "css-classes-from-html",
+    "owner": "VuToV-Mykola",
+    "size_mb": 4.4,
+    "main_language": "JavaScript",
+    "license": "MIT License",
+    "default_branch": "main",
+    "created_at": "2025-08-29T22:25:04Z",
+    "updated_at": "2025-09-03T21:36:07Z",
+    "pushed_at": "2025-09-03T21:36:04Z",
+    "forks_count": 0,
+    "open_issues": 0,
+    "watchers": 3,
+    "archived": false,
+    "disabled": false
+  },
+  "languages": [
+  {
+    "language": "JavaScript",
+    "bytes": 209428
+  },
+  {
+    "language": "Shell",
+    "bytes": 36738
+  },
+  {
+    "language": "HTML",
+    "bytes": 2792
+  }
+],
+  "topics": [
+  "ai-assisted-development",
+  "automation",
+  "code-generation",
+  "css",
+  "figma",
+  "frontend",
+  "goit",
+  "html",
+  "vscode-extension",
+  "web-development"
+],
+  "updated_at": ""2025-09-03T22:08:26Z""
+}

@@ -1,8 +1,20 @@
-{"count": 1, "users": [
+{"count": 3, "users": [
   {
     "login": "VuToV-Mykola",
     "avatar_url": "https://avatars.githubusercontent.com/u/61313070?v=4",
     "html_url": "https://github.com/VuToV-Mykola",
-    "starred_at": "2025-09-02 17:44:57"
+    "starred_at": "2025-09-03T22:08:21Z"
+  },
+  {
+    "login": "juliavutova-oss",
+    "avatar_url": "https://avatars.githubusercontent.com/u/225342617?v=4",
+    "html_url": "https://github.com/juliavutova-oss",
+    "starred_at": "2025-09-03T22:08:21Z"
+  },
+  {
+    "login": "frankman74",
+    "avatar_url": "https://avatars.githubusercontent.com/u/225348495?v=4",
+    "html_url": "https://github.com/frankman74",
+    "starred_at": "2025-09-03T22:08:21Z"
   }
-], "updated_at": ""}
+], "updated_at": ""2025-09-03T22:08:26Z""}

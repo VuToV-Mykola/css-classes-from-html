@@ -1,18 +1,33 @@
 {
-  "total_unique_users": 1,
-  "unique_visitors": 7,
+  "total_unique_users": 3,
+  "unique_visitors": 10,
   "stargazers": {
-    "count": 1,
+    "count": 3,
     "users": [
-  "VuToV-Mykola"
+  "VuToV-Mykola",
+  "juliavutova-oss",
+  "frankman74"
 ]
   },
   "manual_likes": {
     "count": 0,
     "users": []
   },
+  "contributors": 2,
+  "total_commits": 97,
   "all_engaged_users": [
-  "VuToV-Mykola"
+  "VuToV-Mykola",
+  "frankman74",
+  "juliavutova-oss"
 ],
-  "updated_at": "2025-09-02 17:44:58"
+  "releases": {
+    "total_downloads": 2,
+    "latest": {
+  "tag_name": "v0.0.6",
+  "name": "css-classes-from-html v0.0.6",
+  "published_at": "2025-09-02T13:02:12Z",
+  "html_url": "https://github.com/VuToV-Mykola/css-classes-from-html/releases/tag/v0.0.6"
+}
+  },
+  "updated_at": ""2025-09-03T22:08:26Z""
 }
