@@ -1,4 +1,8 @@
 # CSS Classes from HTML
+
+### 🌐 Виберіть мову/Choose language/Wählen Sprache:
+
+[🇺🇦 Ukrainian](README.md) | [🇬🇧 English](README.en.md) | [🇩🇪 Deutsch](README.de.md)
 <!-- AUTOGEN:STATS -->
 
 
@@ -11,10 +15,6 @@
 [![⬇️ Downloads](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/css-classes-from-html/main/assets/db/downloads-badge.json)](https://github.com/VuToV-Mykola/css-classes-from-html/releases)
 <!-- 📸 Project screenshot commented -->
 <!-- END:AUTOGEN -->
-
-### 🌐 Виберіть мову/Choose language/Wählen Sprache:
-
-[🇺🇦 Ukrainian](README.md) | [🇬🇧 English](README.en.md) | [🇩🇪 Deutsch](README.de.md)
 
 🎨 **Powerful VS Code extension for automatic CSS generation from HTML classes and integration with Figma designs**
 

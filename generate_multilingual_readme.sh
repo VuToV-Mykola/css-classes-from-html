@@ -20,6 +20,9 @@ log "Початок генерації мультимовної документ
 # Створюємо українську версію README.md
 cat > README.md << 'EOF'
 # CSS Classes from HTML
+### 🌐 Виберіть мову/Choose language/Wählen Sprache:
+
+[🇺🇦 Українська](README.md) | [🇬🇧 English](README.en.md) | [🇩🇪 Deutsch](README.de.md)
 <!-- AUTOGEN:STATS -->
 
 
@@ -32,10 +35,6 @@ cat > README.md << 'EOF'
 [![⬇️ Downloads](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/css-classes-from-html/main/assets/db/downloads-badge.json)](https://github.com/VuToV-Mykola/css-classes-from-html/releases)
 <!-- 📸 Скріншот проекту закоментований -->
 <!-- END:AUTOGEN -->
-
-### 🌐 Виберіть мову/Choose language/Wählen Sprache:
-
-[🇺🇦 Українська](README.md) | [🇬🇧 English](README.en.md) | [🇩🇪 Deutsch](README.de.md)
 
 🎨 **Потужне розширення VS Code для автоматичної генерації CSS з HTML класів та інтеграції з Figma макетами**
 
@@ -283,6 +282,10 @@ log "README.md (українська) створено успішно"
 # Створюємо англійську версію README.en.md
 cat > README.en.md << 'EOF'
 # CSS Classes from HTML
+
+### 🌐 Виберіть мову/Choose language/Wählen Sprache:
+
+[🇺🇦 Ukrainian](README.md) | [🇬🇧 English](README.en.md) | [🇩🇪 Deutsch](README.de.md)
 <!-- AUTOGEN:STATS -->
 
 
@@ -295,10 +298,6 @@ cat > README.en.md << 'EOF'
 [![⬇️ Downloads](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/css-classes-from-html/main/assets/db/downloads-badge.json)](https://github.com/VuToV-Mykola/css-classes-from-html/releases)
 <!-- 📸 Project screenshot commented -->
 <!-- END:AUTOGEN -->
-
-### 🌐 Виберіть мову/Choose language/Wählen Sprache:
-
-[🇺🇦 Ukrainian](README.md) | [🇬🇧 English](README.en.md) | [🇩🇪 Deutsch](README.de.md)
 
 🎨 **Powerful VS Code extension for automatic CSS generation from HTML classes and integration with Figma designs**
 
@@ -546,6 +545,10 @@ log "README.en.md (англійська) створено успішно"
 # Створюємо німецьку версію README.de.md
 cat > README.de.md << 'EOF'
 # CSS Classes from HTML
+
+### 🌐 Виберіть мову/Choose language/Wählen Sprache:
+
+[🇺🇦 Ukrainisch](README.md) | [🇬🇧 Englisch](README.en.md) | [🇩🇪 Deutsch](README.de.md)
 <!-- AUTOGEN:STATS -->
 
 
@@ -558,10 +561,6 @@ cat > README.de.md << 'EOF'
 [![⬇️ Downloads](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/css-classes-from-html/main/assets/db/downloads-badge.json)](https://github.com/VuToV-Mykola/css-classes-from-html/releases)
 <!-- 📸 Projekt-Screenshot kommentiert -->
 <!-- END:AUTOGEN -->
-
-### 🌐 Виберіть мову/Choose language/Wählen Sprache:
-
-[🇺🇦 Ukrainisch](README.md) | [🇬🇧 Englisch](README.en.md) | [🇩🇪 Deutsch](README.de.md)
 
 🎨 **Leistungsstarke VS Code-Erweiterung zur automatischen CSS-Generierung aus HTML-Klassen und Integration mit Figma-Designs**
 
