@@ -2,7 +2,7 @@
   "name": "css-classes-from-html",
   "displayName": "CSS Classes from HTML",
   "description": "Generate CSS classes from HTML with Figma integration",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "publisher": "vutov-mykola",
   "author": {
     "name": "VuToV-Mykola",
@@ -14,8 +14,19 @@
   "engines": {
     "vscode": "^1.74.0"
   },
-  "categories": ["Other", "Snippets", "Formatters"],
-  "keywords": ["css", "html", "figma", "generator", "classes", "styles"],
+  "categories": [
+    "Other",
+    "Snippets",
+    "Formatters"
+  ],
+  "keywords": [
+    "css",
+    "html",
+    "figma",
+    "generator",
+    "classes",
+    "styles"
+  ],
   "activationEvents": [
     "onCommand:cssclasssfromhtml.generateCSS",
     "onLanguage:html"
@@ -159,6 +170,26 @@
           "type": "boolean",
           "default": false,
           "description": "Minify generated CSS"
+        },
+        "cssclasssfromhtml.mode": {
+          "type": "string",
+          "enum": [
+            "minimal",
+            "maximum",
+            "production"
+          ],
+          "default": "maximum",
+          "description": "Режим роботи розширення"
+        },
+        "cssclasssfromhtml.selectedCanvas": {
+          "type": "array",
+          "default": [],
+          "description": "Вибрані Canvas для обробки"
+        },
+        "cssclasssfromhtml.selectedLayers": {
+          "type": "array",
+          "default": [],
+          "description": "Вибрані Layers для обробки"
         }
       }
     }
@@ -180,7 +211,9 @@
     "test:config": "node test/standalone-config-test.js",
     "test:minify": "node test/run-all-tests.js",
     "prepackage": "npm run lint && npm run test",
-    "prepublish": "npm run build"
+    "prepublish": "npm run build",
+    "test:integration": "node test/integration-test.js",
+    "analyze": "node scripts/analyze-structure.js"
   },
   "devDependencies": {
     "eslint": "^8.0.0",

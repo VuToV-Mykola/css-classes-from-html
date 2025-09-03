@@ -1,3 +1,7 @@
+const HierarchyAnalyzer = require("./modules/hierarchyAnalyzer");
+const AdvancedStyleMatcher = require("./modules/advancedStyleMatcher");
+const HierarchyAnalyzer = require("./modules/hierarchyAnalyzer");
+const AdvancedStyleMatcher = require("./modules/advancedStyleMatcher");
 /* !!! Головний файл розширення VS Code для генерації CSS з HTML !!! */
 const vscode = require("vscode")
 const htmlParser = require("./modules/htmlParser")
