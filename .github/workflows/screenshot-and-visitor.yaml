@@ -1,0 +1,510 @@
+name: screenshot-and-visitor
+
+on:
+  push:
+    branches: [main, master]
+  schedule:
+    - cron: '0 */2 * * *'
+  workflow_dispatch:
+    inputs:
+      add_like:
+        description: 'Add your like (only one per user allowed)'
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+  pages: read
+  actions: read
+
+env:
+  BADGE_STYLE: 'for-the-badge'
+  BADGE_COLOR: 'brightgreen'
+  LIKES_COLOR: 'gold'
+  DATA_DIR: 'assets/db'
+  SCREENSHOT_DIR: 'assets'
+
+jobs:
+  update-readme-and-visitor:
+    runs-on: ubuntu-latest
+    env:
+      NODE_VERSION: '20.x'
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'false'
+
+    steps:
+      - name: 🔥 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 0
+
+      - name: 🔍 Check if screenshot is commented in README
+        run: |
+          if grep -q "^[[:space:]]*<!--.*📸 Скріншот проекту" README.md || grep -q "^[[:space:]]*<!--.*📸 Latest Screenshot" README.md; then
+            echo "📸 Screenshot section is commented out - skipping screenshot generation"
+            echo "SCREENSHOT_SKIP=true" >> $GITHUB_ENV
+          else
+            echo "📸 Screenshot section is active - proceeding with generation"
+            echo "SCREENSHOT_SKIP=false" >> $GITHUB_ENV
+          fi
+
+      - name: 🚀 Initialize workflow
+        run: |
+          DATA_DIR="$DATA_DIR"
+          SCREENSHOT_DIR="$SCREENSHOT_DIR"
+          mkdir -p "$DATA_DIR" "$SCREENSHOT_DIR"
+
+          awk '/<!-- AUTOGEN:STATS -->/{exit} {print}' README.md > README_before.tmp
+          awk '/<!-- END:AUTOGEN -->/{found=1; next} found{print}' README.md > README_after.tmp
+
+          {
+            cat README_before.tmp
+            echo "<!-- AUTOGEN:STATS -->"
+            echo "📄 Updating statistics and screenshot..."
+            echo "<!-- END:AUTOGEN -->"
+            cat README_after.tmp
+          } > README.md
+
+          rm -f README_before.tmp README_after.tmp
+          echo "🚀 Workflow initialized, README cleared"
+
+      - name: 📊 Collect all statistics
+        run: |
+          DATA_DIR="$DATA_DIR"
+          STATS_FILE="$DATA_DIR/stats-data.json"
+          USERS_FILE="$DATA_DIR/unique-users.json"
+          STARGAZERS_FILE="$DATA_DIR/stargazers.json"
+          MANUAL_LIKES_FILE="$DATA_DIR/manual-likes.json"
+          OWNER=$(echo "${{ github.repository }}" | cut -d'/' -f1)
+          REPO=$(echo "${{ github.repository }}" | cut -d'/' -f2)
+
+          echo "📊 Collecting all repository statistics..."
+
+          # VISITORS
+          echo "👀 Fetching visitors..."
+          VIEWS=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+            "https://api.github.com/repos/$OWNER/$REPO/traffic/views" \
+            | jq '.uniques // 0')
+          echo "👀 Unique visitors: $VIEWS"
+
+          # STARS & LIKES
+          echo "⭐ Processing stars and likes..."
+          STARS_RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+            "https://api.github.com/repos/$OWNER/$REPO/stargazers")
+
+          if echo "$STARS_RESPONSE" | jq -e . >/dev/null 2>&1; then
+            STARS_USERS=$(echo "$STARS_RESPONSE" | jq -r '.[].login' | jq -R -s 'split("\n") | map(select(length > 0))')
+            STARS_COUNT=$(echo "$STARS_USERS" | jq 'length')
+            STARGAZERS_DETAILED=$(echo "$STARS_RESPONSE" | jq '[.[] | {login: .login, avatar_url: .avatar_url, html_url: .html_url, starred_at: now | strftime("%Y-%m-%d %H:%M:%S")}]')
+          else
+            STARS_USERS='[]'
+            STARS_COUNT=0
+            STARGAZERS_DETAILED='[]'
+          fi
+
+          [ ! -f "$STATS_FILE" ] && echo '{"manual_likes": {"users": []}}' > "$STATS_FILE"
+
+          # Manual likes processing
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.add_like }}" = "true" ]; then
+            USER="${{ github.actor }}"
+            IS_STARGAZER=$(echo "$STARS_USERS" | jq --arg user "$USER" 'index($user) != null')
+            
+            if [ "$IS_STARGAZER" = "false" ]; then
+              ALREADY_LIKED=$(jq --arg user "$USER" '.manual_likes.users | index($user) != null' "$STATS_FILE")
+              if [ "$ALREADY_LIKED" = "false" ]; then
+                CURRENT_TIME=$(date -u +"%Y-%m-%d %H:%M:%S")
+                jq --arg user "$USER" --arg time "$CURRENT_TIME" \
+                  '.manual_likes.users += [$user] | .manual_likes.details += [{login: $user, liked_at: $time, type: "manual"}]' \
+                  "$STATS_FILE" > tmp.json && mv tmp.json "$STATS_FILE"
+                echo "💖 New manual like from $USER!"
+              fi
+            fi
+          fi
+
+          MANUAL_LIKES_COUNT=$(jq -r '.manual_likes.users | length' "$STATS_FILE")
+          TOTAL_LIKES=$((STARS_COUNT + MANUAL_LIKES_COUNT))
+
+          # Create badges
+          echo '{"schemaVersion": 1, "label": "📊 views", "message": "'$VIEWS'", "color": "'$BADGE_COLOR'", "style": "'$BADGE_STYLE'"}' > "$DATA_DIR/visitors-badge.json"
+          echo '{"schemaVersion": 1, "label": "⭐ stars", "message": "'$TOTAL_LIKES'", "color": "'$LIKES_COLOR'", "style": "'$BADGE_STYLE'"}' > "$DATA_DIR/likes-badge.json"
+
+          # REPOSITORY INFO
+          echo "📦 Fetching repository information..."
+          REPO_INFO=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+            "https://api.github.com/repos/$OWNER/$REPO")
+
+          REPO_SIZE=$(echo "$REPO_INFO" | jq -r '.size // 0')
+          REPO_SIZE_MB=$(echo "scale=1; $REPO_SIZE / 1024" | bc -l 2>/dev/null || echo "0")
+          MAIN_LANGUAGE=$(echo "$REPO_INFO" | jq -r '.language // "Unknown"')
+          LICENSE=$(echo "$REPO_INFO" | jq -r '.license.name // "No License"')
+
+          echo '{"schemaVersion": 1, "label": "📦 size", "message": "'${REPO_SIZE_MB}'MB", "color": "blue", "style": "'$BADGE_STYLE'"}' > "$DATA_DIR/repo-size.json"
+
+          echo '{"schemaVersion": 1, "label": "📄 license", "message": "'$LICENSE'", "color": "blue", "style": "'$BADGE_STYLE'"}' > "$DATA_DIR/repo-license.json"
+
+          # RELEASES
+          echo "📦 Fetching releases information..."
+          RELEASES_RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+            "https://api.github.com/repos/$OWNER/$REPO/releases")
+
+          TOTAL_DOWNLOADS=0
+          if echo "$RELEASES_RESPONSE" | jq -e '. | length > 0' >/dev/null 2>&1; then
+            TOTAL_DOWNLOADS=$(echo "$RELEASES_RESPONSE" | jq '[.[].assets[].download_count] | add // 0')
+            echo '{"schemaVersion": 1, "label": "⬇️ downloads", "message": "'$TOTAL_DOWNLOADS'", "color": "orange", "style": "'$BADGE_STYLE'"}' > "$DATA_DIR/downloads-badge.json"
+          fi
+
+          # === ТЕХНОЛОГІЧНІ БЕЙДЖІ ===
+          echo "🔧 Generating technology badges..."
+          TECH_BADGES=""
+
+          # Отримуємо мови програмування з GitHub API
+          LANGUAGES_RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+            "https://api.github.com/repos/$OWNER/$REPO/languages")
+
+          if echo "$LANGUAGES_RESPONSE" | jq -e . >/dev/null 2>&1; then
+            TOP_LANGUAGES=$(echo "$LANGUAGES_RESPONSE" | jq -r 'to_entries | sort_by(.value) | reverse | .[0:3] | .[].key')
+            
+            for lang in $TOP_LANGUAGES; do
+              case $lang in
+                "HTML") TECH_BADGES="$TECH_BADGES[![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML) " ;;
+                "CSS") TECH_BADGES="$TECH_BADGES[![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS) " ;;
+                "JavaScript") TECH_BADGES="$TECH_BADGES[![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript) " ;;
+                "TypeScript") TECH_BADGES="$TECH_BADGES[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/) " ;;
+                "Python") TECH_BADGES="$TECH_BADGES[![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/) " ;;
+                "Java") TECH_BADGES="$TECH_BADGES[![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=java&logoColor=white)](https://www.java.com/) " ;;
+              esac
+            done
+          fi
+
+          # Додаємо інструменти
+          TECH_BADGES="$TECH_BADGES[![Terminal](https://img.shields.io/badge/mac%20terminal-000000?style=for-the-badge&logo=apple&logoColor=white&labelColor=000000)](https://support.apple.com/guide/terminal/welcome/mac) "
+          TECH_BADGES="$TECH_BADGES[![VS Code](https://img.shields.io/badge/VS_Code-007ACC?style=for-the-badge&logo=visual-studio-code&logoColor=white)](https://code.visualstudio.com/) "
+          TECH_BADGES="$TECH_BADGES[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/) "
+          TECH_BADGES="$TECH_BADGES[![Figma](https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)](https://www.figma.com/) "
+
+          echo "$TECH_BADGES" > "$DATA_DIR/tech-badges.txt"
+
+          # Save user information
+          echo "💾 Saving detailed user information..."
+          echo "{\"count\": $STARS_COUNT, \"users\": $STARGAZERS_DETAILED, \"updated_at\": \"$(date -u +\"%Y-%m-%d %H:%M:%S\")\"}" > "$STARGAZERS_FILE"
+
+          MANUAL_LIKES_DETAILED=$(jq -r '.manual_likes.details // []' "$STATS_FILE")
+          echo "{\"count\": $MANUAL_LIKES_COUNT, \"users\": $MANUAL_LIKES_DETAILED, \"updated_at\": \"$(date -u +\"%Y-%m-%d %H:%M:%S\")\"}" > "$MANUAL_LIKES_FILE"
+
+          ALL_UNIQUE_USERS=$(echo "$STARS_USERS" | jq --argjson manual "$(jq -r '.manual_likes.users // []' "$STATS_FILE")" '. + $manual | unique')
+          TOTAL_UNIQUE_USERS=$(echo "$ALL_UNIQUE_USERS" | jq 'length')
+
+          echo "{
+            \"total_unique_users\": $TOTAL_UNIQUE_USERS,
+            \"unique_visitors\": $VIEWS,
+            \"stargazers\": {
+              \"count\": $STARS_COUNT,
+              \"users\": $STARS_USERS
+            },
+            \"manual_likes\": {
+              \"count\": $MANUAL_LIKES_COUNT,
+              \"users\": $(jq -r '.manual_likes.users // []' "$STATS_FILE")
+            },
+            \"all_engaged_users\": $ALL_UNIQUE_USERS,
+            \"updated_at\": \"$(date -u +"%Y-%m-%d %H:%M:%S")\"
+          }" > "$USERS_FILE"
+
+          echo "✅ All statistics collected: Views=$VIEWS, Stars=$STARS_COUNT, Manual=$MANUAL_LIKES_COUNT, Total=$TOTAL_LIKES"
+          echo "👥 Total unique engaged users: $TOTAL_UNIQUE_USERS"
+
+      - name: 🖥 Setup Node.js and dependencies
+        run: |
+          if [ "$SCREENSHOT_SKIP" = "true" ]; then
+            echo "⏭️ Skipping Node.js setup - screenshot generation disabled"
+            exit 0
+          fi
+          echo "🔧 Setting up Node.js..."
+          curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+          sudo apt-get install -y nodejs
+
+          echo "Node.js version: $(node --version)"
+          echo "npm version: $(npm --version)"
+
+          echo "🌐 Setting up Chrome..."
+          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/google-chrome-keyring.gpg
+          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable jq libgbm-dev
+
+          echo "Chrome version: $(google-chrome-stable --version || echo 'Chrome not available')"
+
+          echo "📦 Installing Puppeteer..."
+          npm config set registry https://registry.npmjs.org/
+          npm install --no-package-lock --no-save puppeteer@latest --timeout=120000
+
+          if [ -d "node_modules/puppeteer" ]; then
+            PUPPETEER_VERSION=$(node -e "console.log(require('./node_modules/puppeteer/package.json').version)")
+            echo "✅ Puppeteer is available: $PUPPETEER_VERSION"
+            echo "SCREENSHOT_DEPENDENCIES_AVAILABLE=true" >> $GITHUB_ENV
+          else
+            echo "❌ Puppeteer could not be installed - screenshot functionality disabled"
+            echo "SCREENSHOT_DEPENDENCIES_AVAILABLE=false" >> $GITHUB_ENV
+          fi
+
+      - name: 📸 Generate screenshot from GitHub Pages
+        run: |
+          if [ "$SCREENSHOT_DEPENDENCIES_AVAILABLE" = "false" ]; then
+            echo "❌ Screenshot dependencies not available - skipping screenshot"
+            echo "SCREENSHOT_CREATED=false" >> $GITHUB_ENV
+            exit 0
+          fi
+
+          if [ "$SCREENSHOT_SKIP" = "true" ]; then
+            echo "⏭️ Screenshot generation skipped - section is commented out"
+            echo "SCREENSHOT_CREATED=false" >> $GITHUB_ENV
+            exit 0
+          fi
+
+          node -e "
+          const puppeteer = require('puppeteer');
+          const fs = require('fs');
+          const path = require('path');
+          const { execSync } = require('child_process');
+
+          async function takeScreenshot() {
+            let browser;
+            try {
+              const screenshotDir = process.env.SCREENSHOT_DIR || 'assets';
+              const screenshotPath = path.resolve(screenshotDir, 'screenshot.png');
+              
+              if (!fs.existsSync(screenshotDir)) fs.mkdirSync(screenshotDir, { recursive: true });
+              if (fs.existsSync(screenshotPath)) fs.unlinkSync(screenshotPath);
+              
+              let chromeExecutable = '/usr/bin/google-chrome';
+              if (!fs.existsSync(chromeExecutable)) {
+                try {
+                  const chromePath = execSync('which google-chrome-stable || which google-chrome', { encoding: 'utf8' }).trim();
+                  if (chromePath) chromeExecutable = chromePath;
+                } catch (e) {
+                  console.log('❌ Chrome not found:', e.message);
+                  console.log('SCREENSHOT_SUCCESS=false');
+                  return;
+                }
+              }
+
+              console.log('Using Chrome executable:', chromeExecutable);
+              
+              const browserArgs = [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-web-security',
+                '--disable-features=VizDisplayCompositor',
+                '--headless',
+                '--disable-gpu',
+                '--disable-software-rasterizer',
+                '--remote-debugging-port=0',
+                '--no-zygote',
+                '--no-first-run',
+                '--disable-extensions',
+                '--disable-background-timer-throttling',
+                '--disable-backgrounding-occluded-windows',
+                '--disable-renderer-backgrounding'
+              ];
+
+              browser = await puppeteer.launch({
+                args: browserArgs,
+                executablePath: chromeExecutable,
+                timeout: 30000,
+                dumpio: false
+              });
+              
+              const page = await browser.newPage();
+              await page.setViewport({ width: 1280, height: 800 });
+              
+              const githubPages = 'https://' + '${{ github.repository_owner }}' + '.github.io/' + '${{ github.event.repository.name }}' + '/';
+              
+              console.log('🌐 Checking GitHub Pages availability...');
+              console.log('🔗 Target URL:', githubPages);
+              
+              try {
+                const response = await page.goto(githubPages, { 
+                  waitUntil: 'networkidle0', 
+                  timeout: 30000 
+                });
+                
+                if (!response || response.status() !== 200) {
+                  console.log('❌ GitHub Pages returned status:', response?.status() || 'unknown');
+                  console.log('SCREENSHOT_SUCCESS=false');
+                  return;
+                }
+                
+                const pageTitle = await page.title();
+                const pageContent = await page.content();
+                
+                const hasMeaningfulContent = pageContent.length > 500 && 
+                                           !pageTitle.includes('404') &&
+                                           !pageContent.includes('There isn\\'t a GitHub Pages site here');
+                
+                if (!hasMeaningfulContent) {
+                  console.log('❌ GitHub Pages has insufficient content');
+                  console.log('SCREENSHOT_SUCCESS=false');
+                  return;
+                }
+                
+                console.log('✅ GitHub Pages is accessible with meaningful content');
+                console.log('📸 Taking screenshot...');
+                
+                // Оптимізоване очікування без перезагрузок
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                
+                // Швидке прогортування без анімацій
+                await page.evaluate(() => {
+                  return new Promise(resolve => {
+                    let totalHeight = 0;
+                    const distance = 200;
+                    const timer = setInterval(() => {
+                      const scrollHeight = document.body.scrollHeight;
+                      window.scrollBy(0, distance);
+                      totalHeight += distance;
+                      
+                      if (totalHeight >= scrollHeight) {
+                        clearInterval(timer);
+                        resolve();
+                      }
+                    }, 50);
+                  });
+                });
+                
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                await page.evaluate(() => window.scrollTo(0, 0));
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                // Виправлена конфігурація скріншота - прибрано quality для PNG
+                await page.screenshot({ 
+                  path: screenshotPath, 
+                  fullPage: true,
+                  type: 'png'
+                });
+                
+                if (fs.existsSync(screenshotPath)) {
+                  const stats = fs.statSync(screenshotPath);
+                  const fileSizeKB = Math.round(stats.size / 1024);
+                  
+                  if (stats.size > 1000) {
+                    console.log('✅ Screenshot created successfully:', fileSizeKB + 'KB');
+                    console.log('SCREENSHOT_SUCCESS=true');
+                  } else {
+                    console.log('❌ Screenshot file is too small:', fileSizeKB + 'KB');
+                    fs.unlinkSync(screenshotPath);
+                    console.log('SCREENSHOT_SUCCESS=false');
+                  }
+                } else {
+                  console.log('❌ Screenshot file was not created');
+                  console.log('SCREENSHOT_SUCCESS=false');
+                }
+                
+              } catch (screenshotError) {
+                console.log('❌ Screenshot process failed:', screenshotError.message);
+                console.log('SCREENSHOT_SUCCESS=false');
+              }
+              
+            } catch (error) {
+              console.log('❌ Browser setup failed:', error.message);
+              console.log('SCREENSHOT_SUCCESS=false');
+            } finally {
+              if (browser) {
+                try {
+                  await browser.close();
+                } catch (closeError) {
+                  console.log('⚠️ Browser close error:', closeError.message);
+                }
+              }
+            }
+          }
+
+          takeScreenshot().catch(error => {
+            console.log('❌ Unhandled error in screenshot process:', error.message);
+            console.log('SCREENSHOT_SUCCESS=false');
+          });
+          " | tee screenshot_output.log
+
+          if grep -q "SCREENSHOT_SUCCESS=true" screenshot_output.log; then
+            echo "SCREENSHOT_CREATED=true" >> $GITHUB_ENV
+            echo "🎯 Screenshot created successfully"
+          else
+            echo "SCREENSHOT_CREATED=false" >> $GITHUB_ENV
+            echo "⏭️ Screenshot creation failed"
+          fi
+
+          if [ -f "$SCREENSHOT_DIR/screenshot.png" ]; then
+            FILE_SIZE=$(stat -f%z "$SCREENSHOT_DIR/screenshot.png" 2>/dev/null || stat -c%s "$SCREENSHOT_DIR/screenshot.png" 2>/dev/null || echo 0)
+            if [ "$FILE_SIZE" -lt 1000 ]; then
+              echo "⚠️ Screenshot file exists but is too small ($FILE_SIZE bytes), removing..."
+              rm -f "$SCREENSHOT_DIR/screenshot.png"
+              echo "SCREENSHOT_CREATED=false" >> $GITHUB_ENV
+            fi
+          fi
+
+          rm -f screenshot_output.log
+
+      - name: 📝 Update README with all content
+        run: |
+          REPO_URL="https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}"
+          TECH_BADGES=$(cat $DATA_DIR/tech-badges.txt 2>/dev/null || echo "")
+
+          DOWNLOADS_BADGE=""
+          if [ -f "$DATA_DIR/downloads-badge.json" ]; then
+            DOWNLOADS_BADGE="[![⬇️ Downloads](https://img.shields.io/endpoint?url=$REPO_URL/$DATA_DIR/downloads-badge.json)](https://github.com/${{ github.repository }}/releases)"
+          fi
+
+          awk '/<!-- AUTOGEN:STATS -->/{exit} {print}' README.md > README_before.tmp
+          awk '/<!-- END:AUTOGEN -->/{found=1; next} found{print}' README.md > README_after.tmp
+
+          {
+            cat README_before.tmp
+            echo "<!-- AUTOGEN:STATS -->"
+            echo "$TECH_BADGES"
+            echo ""
+            echo "[![📊 Views](https://img.shields.io/endpoint?url=$REPO_URL/$DATA_DIR/visitors-badge.json)](https://github.com/${{ github.repository }}/graphs/traffic)"
+            echo "[![⭐ Stars](https://img.shields.io/endpoint?url=$REPO_URL/$DATA_DIR/likes-badge.json)](https://github.com/${{ github.repository }}/actions/workflows/screenshot-and-visitor.yaml)"
+            echo "[![📦 Size](https://img.shields.io/endpoint?url=$REPO_URL/$DATA_DIR/repo-size.json)](https://github.com/${{ github.repository }})"
+            echo "[![📄 License](https://img.shields.io/endpoint?url=$REPO_URL/$DATA_DIR/repo-license.json)](https://github.com/${{ github.repository }}/blob/main/LICENSE)"
+            if [ -n "$DOWNLOADS_BADGE" ]; then
+              echo "$DOWNLOADS_BADGE"
+            fi
+            
+            if [ "$SCREENSHOT_CREATED" = "true" ] && [ -f "$SCREENSHOT_DIR/screenshot.png" ]; then
+              SCREENSHOT_SIZE=$(stat -f%z "$SCREENSHOT_DIR/screenshot.png" 2>/dev/null || stat -c%s "$SCREENSHOT_DIR/screenshot.png" 2>/dev/null || echo "0")
+              if [ "$SCREENSHOT_SIZE" -gt 0 ]; then
+                echo ""
+                echo "## 📸 Скріншот проекту"
+                echo "![Project Screenshot](./$SCREENSHOT_DIR/screenshot.png)"
+              fi
+            fi
+            
+            echo "<!-- END:AUTOGEN -->"
+            cat README_after.tmp
+          } > README.md
+
+          rm -f README_before.tmp README_after.tmp
+          echo "✅ README updated with all content"
+
+      - name: 📤 Commit and deploy
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+
+          COMMIT_MSG="📊 Auto-update: visitors, likes"
+          if [ "$SCREENSHOT_CREATED" = "true" ]; then
+            COMMIT_MSG="$COMMIT_MSG, and screenshot"
+          fi
+
+          git commit -m "$COMMIT_MSG" || exit 0
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+
+          echo "📄 Triggering updates..."
+          if curl -s -f -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/pages" >/dev/null 2>&1; then
+            curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              "https://api.github.com/repos/${{ github.repository }}/pages/builds" >/dev/null || true
+          fi
+
+          echo "✅ All updates completed successfully"

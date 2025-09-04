@@ -1,0 +1,23 @@
+{
+  "includeGlobal": false,
+  "includeReset": false,
+  "includeComments": false,
+  "commentStyle": "standard",
+  "optimizeCSS": false,
+  "saveFigmaStyles": false,
+  "responsive": false,
+  "darkMode": false,
+  "cssVariables": false,
+  "minify": false,
+  "skipFigmaInput": true,
+  "minimal": true,
+  "enableInspection": false,
+  "enableHierarchyAnalysis": false,
+  "enableMLMatching": false,
+  "selectedCanvas": [],
+  "selectedLayers": [],
+  "mode": null,
+  "timestamp": "2025-09-04T18:18:26.347Z",
+  "savedAt": "2025-09-04T18:18:26.350Z",
+  "version": "2.1.0"
+}

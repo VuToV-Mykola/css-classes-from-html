@@ -1,0 +1,13 @@
+.vscode/**
+.vscode-test/**
+test/**
+.gitignore
+.eslintrc.json
+**/*.map
+**/*.ts
+node_modules/**
+!node_modules/vscode-nls/**
+!node_modules/vscode-nls-dev/**
+log/**
+*.vsix
+.github/**
