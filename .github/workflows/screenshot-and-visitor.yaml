@@ -463,13 +463,14 @@ jobs:
             echo "optimization_success=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: 🛠️ Update README with badges
+      - name: 🛠️ Update README with AUTOGEN stats
         run: |
-          echo "🛠️ Updating README files with badges..." >> "$LOG_FILE"
+          echo "🛠️ Updating README files with AUTOGEN stats..." >> "$LOG_FILE"
 
-          # Генеруємо секцію бейджів локально в цьому кроці (щоб уникнути cross-step env issues)
-          BADGES_SECTION=$(
+          # Підготувати AUTOGEN секцію з BADGES-SECTION всередині
+          AUTOGEN_SECTION=$(
           {
+            echo "<!-- AUTOGEN:STATS -->"
             echo "<!-- BADGES-SECTION:START -->"
             echo "![Views](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/${{ github.repository }}/main/${{ env.DATA_DIR }}/visitors-badge.json)"
             echo "![Stars](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/${{ github.repository }}/main/${{ env.DATA_DIR }}/likes-badge.json)"
@@ -477,14 +478,15 @@ jobs:
             echo "![License](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/${{ github.repository }}/main/${{ env.DATA_DIR }}/repo-license.json)"
             echo "![Commits](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/${{ github.repository }}/main/${{ env.DATA_DIR }}/commits-badge.json)"
             echo "![Contributors](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/${{ github.repository }}/main/${{ env.DATA_DIR }}/contributors-badge.json)"
+            # Downloads може бути відсутнім на деяких репо
+            if [[ -f "${{ env.DATA_DIR }}/downloads-badge.json" ]]; then
+              echo "![Downloads](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/${{ github.repository }}/main/${{ env.DATA_DIR }}/downloads-badge.json)"
+            fi
+            echo "<!-- BADGES-SECTION:END -->"
+            echo ""
+            echo "<!-- END:AUTOGEN -->"
           }
           )
-
-          if [[ -f "${{ env.DATA_DIR }}/downloads-badge.json" ]]; then
-            BADGES_SECTION="$BADGES_SECTION"$'\n'"![Downloads](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/${{ github.repository }}/main/${{ env.DATA_DIR }}/downloads-badge.json)"
-          fi
-
-          BADGES_SECTION="$BADGES_SECTION"$'\n'"<!-- BADGES-SECTION:END -->"
 
           for FILE in $TARGET_READMES; do
             echo "🔄 Processing $FILE" >> "$LOG_FILE"
@@ -494,28 +496,45 @@ jobs:
               continue
             fi
 
-            if grep -q "<!-- BADGES-SECTION:START -->" "$FILE" && grep -q "<!-- BADGES-SECTION:END -->" "$FILE"; then
+            HAS_AUTOGEN_START=$(grep -c "<!-- AUTOGEN:STATS -->" "$FILE" || true)
+            HAS_AUTOGEN_END=$(grep -c "<!-- END:AUTOGEN -->" "$FILE" || true)
+
+            if [[ $HAS_AUTOGEN_START -gt 0 && $HAS_AUTOGEN_END -gt 0 ]]; then
+              # Оновлюємо існуючий AUTOGEN блoк
               TEMP_FILE=$(mktemp)
-              awk -v new_section="$BADGES_SECTION" '
-                /<!-- BADGES-SECTION:START -->/ {print; in_section=1; next}
-                /<!-- BADGES-SECTION:END -->/ {print new_section; in_section=0; next}
+              awk -v new_section="$AUTOGEN_SECTION" '
+                /<!-- AUTOGEN:STATS -->/ {print; in_section=1; next}
+                /<!-- END:AUTOGEN -->/ {print new_section; in_section=0; next}
                 !in_section {print}
               ' "$FILE" > "$TEMP_FILE"
               mv "$TEMP_FILE" "$FILE"
-              echo "✅ Updated badges section in $FILE" >> "$LOG_FILE"
+              echo "✅ Replaced AUTOGEN section in $FILE" >> "$LOG_FILE"
             else
-              # Якщо знайдено будь-яку згадку BADGES-SECTION (можливо закоментовану) — лог і пропуск
-              if grep -q "BADGES-SECTION" "$FILE"; then
-                echo "⚠️ Found existing BADGES-SECTION reference in $FILE, skipping automatic insertion" >> "$LOG_FILE"
+              # Якщо знайдено часткові згадки — лог і пропуск
+              if [[ $HAS_AUTOGEN_START -gt 0 || $HAS_AUTOGEN_END -gt 0 ]]; then
+                echo "⚠️ Found partial AUTOGEN markers in $FILE (start:$HAS_AUTOGEN_START end:$HAS_AUTOGEN_END). Skipping automatic insertion." >> "$LOG_FILE"
                 continue
               fi
 
-              # Вставляємо секцію на початок файлу
-              TEMP_FILE=$(mktemp)
-              printf "%s\n\n" "$BADGES_SECTION" > "$TEMP_FILE"
-              cat "$FILE" >> "$TEMP_FILE"
-              mv "$TEMP_FILE" "$FILE"
-              echo "✅ Prepended badges section to $FILE" >> "$LOG_FILE"
+              # Якщо AUTOGEN взагалі відсутній — вставляємо починаючи з третього рядка
+              # Отримуємо кількість рядків у файлі
+              TOTAL_LINES=$(wc -l < "$FILE" || echo 0)
+              if [[ $TOTAL_LINES -lt 2 ]]; then
+                # Менше 2 рядків — просто prepend
+                TEMP_FILE=$(mktemp)
+                printf "%s\n\n" "$AUTOGEN_SECTION" > "$TEMP_FILE"
+                cat "$FILE" >> "$TEMP_FILE"
+                mv "$TEMP_FILE" "$FILE"
+                echo "✅ Prepended AUTOGEN section to $FILE (file had <2 lines)" >> "$LOG_FILE"
+              else
+                # Створюємо тимчасовий файл: перші 2 рядки, потім AUTOGEN, потім решта (з третього рядка)
+                TEMP_FILE=$(mktemp)
+                head -n 2 "$FILE" > "$TEMP_FILE"
+                printf "%s\n\n" "$AUTOGEN_SECTION" >> "$TEMP_FILE"
+                tail -n +3 "$FILE" >> "$TEMP_FILE"
+                mv "$TEMP_FILE" "$FILE"
+                echo "✅ Inserted AUTOGEN section at line 3 in $FILE" >> "$LOG_FILE"
+              fi
             fi
           done
 
@@ -531,7 +550,7 @@ jobs:
             echo "⏭️ No changes to commit" >> "$LOG_FILE"
           else
             COMMIT_DATE=$(date -u '+%Y-%m-%d %H:%M')
-            git commit -m "🔄 Update stats, badges, screenshot ($COMMIT_DATE) [skip ci]"
+            git commit -m "🔄 Update stats, autogen badges, screenshot ($COMMIT_DATE) [skip ci]"
             git push
             echo "✅ Changes committed and pushed" >> "$LOG_FILE"
           fi
