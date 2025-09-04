@@ -1,9 +1,9 @@
 {
   "views": {
     "unique": 12,
-    "total": 295,
+    "total": 308,
     "data": {
-  "count": 295,
+  "count": 308,
   "uniques": 12,
   "views": [
     {
@@ -38,17 +38,17 @@
     },
     {
       "timestamp": "2025-09-04T00:00:00Z",
-      "count": 4,
-      "uniques": 1
+      "count": 17,
+      "uniques": 2
     }
   ]
 }
   },
   "clones": {
     "unique": 149,
-    "total": 545,
+    "total": 555,
     "data": {
-  "count": 545,
+  "count": 555,
   "uniques": 149,
   "clones": [
     {
@@ -83,8 +83,8 @@
     },
     {
       "timestamp": "2025-09-04T00:00:00Z",
-      "count": 7,
-      "uniques": 3
+      "count": 17,
+      "uniques": 7
     }
   ]
 }
@@ -95,5 +95,5 @@
   "popular_referrers": [
 
 ],
-  "updated_at": ""2025-09-04T05:57:39Z""
+  "updated_at": ""2025-09-04T08:12:58Z""
 }

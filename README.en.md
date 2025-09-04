@@ -13,9 +13,6 @@
 [![📝 Commits](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/css-classes-from-html/main/assets/db/commits-badge.json)](https://github.com/VuToV-Mykola/css-classes-from-html/commits)
 [![👥 Contributors](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/css-classes-from-html/main/assets/db/contributors-badge.json)](https://github.com/VuToV-Mykola/css-classes-from-html/graphs/contributors)
 [![⬇️ Downloads](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/css-classes-from-html/main/assets/db/downloads-badge.json)](https://github.com/VuToV-Mykola/css-classes-from-html/releases)
-
-<!-- ## 📸 Latest Screenshot -->
-<!-- ![Project Screenshot](./assets/screenshot.png) -->
 <!-- END:AUTOGEN -->
 
 🎨 **Powerful VS Code extension for automatic CSS generation from HTML classes and integration with Figma designs**
