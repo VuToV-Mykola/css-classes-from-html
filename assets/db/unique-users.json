@@ -1,6 +1,6 @@
 {
   "total_unique_users": 3,
-  "unique_visitors": 10,
+  "unique_visitors": 12,
   "stargazers": {
     "count": 3,
     "users": [
@@ -14,7 +14,7 @@
     "users": []
   },
   "contributors": 2,
-  "total_commits": 97,
+  "total_commits": 98,
   "all_engaged_users": [
   "VuToV-Mykola",
   "frankman74",
@@ -29,5 +29,5 @@
   "html_url": "https://github.com/VuToV-Mykola/css-classes-from-html/releases/tag/v0.0.6"
 }
   },
-  "updated_at": ""2025-09-03T22:08:26Z""
+  "updated_at": ""2025-09-04T02:48:43Z""
 }
