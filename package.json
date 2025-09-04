@@ -1,199 +1,43 @@
 {
   "name": "css-classes-from-html",
-  "displayName": "CSS Classes from HTML",
-  "description": "Generate CSS classes from HTML with Figma integration",
+  "displayName": "CSS Classes from HTML - Figma Integration",
+  "description": "Автоматична генерація CSS з HTML та інтеграція з Figma",
   "version": "0.0.7",
-  "publisher": "vutov-mykola",
-  "author": {
-    "name": "VuToV-Mykola",
-    "email": "vutov.mykola@gmail.com",
-    "url": "https://github.com/VuToV-Mykola"
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js",
+    "dev": "node frontend/server.js",
+    "test": "node test/run-tests.js",
+    "build": "node build.js",
+    "validate": "node utils/ValidationUtils.js",
+    "optimize": "node utils/OptimizationUtils.js",
+    "config": "node frontend/config-ui.js"
   },
-  "license": "MIT",
-  "icon": "media/icon.png",
-  "engines": {
-    "vscode": "^1.74.0"
-  },
-  "categories": [
-    "Other",
-    "Snippets",
-    "Formatters"
-  ],
   "keywords": [
     "css",
     "html",
     "figma",
-    "generator",
-    "classes",
-    "styles"
+    "vscode",
+    "style-generation",
+    "automation",
+    "design-to-code"
   ],
   "activationEvents": [
     "onCommand:cssclasssfromhtml.generateCSS",
     "onLanguage:html"
   ],
-  "main": "./extension.js",
-  "contributes": {
-    "commands": [
-      {
-        "command": "cssclasssfromhtml.generateCSS",
-        "title": "Generate CSS from HTML",
-        "category": "CSS Generator"
-      },
-      {
-        "command": "cssclasssfromhtml.repeatLastAction",
-        "title": "Repeat Last CSS Generation",
-        "category": "CSS Generator"
-      },
-      {
-        "command": "cssclasssfromhtml.managePresets",
-        "title": "Manage Configuration Presets",
-        "category": "CSS Generator"
-      },
-      {
-        "command": "cssclasssfromhtml.exportConfiguration",
-        "title": "Export Configuration",
-        "category": "CSS Generator"
-      },
-      {
-        "command": "cssclasssfromhtml.importConfiguration",
-        "title": "Import Configuration",
-        "category": "CSS Generator"
-      }
-    ],
-    "keybindings": [
-      {
-        "key": "ctrl+shift+h",
-        "command": "cssclasssfromhtml.generateCSS",
-        "when": "editorTextFocus"
-      },
-      {
-        "key": "ctrl+shift+r",
-        "command": "cssclasssfromhtml.repeatLastAction",
-        "when": "editorTextFocus"
-      }
-    ],
-    "menus": {
-      "editor/context": [
-        {
-          "command": "cssclasssfromhtml.generateCSS",
-          "when": "resourceExtname == .html",
-          "group": "1_modification"
-        },
-        {
-          "command": "cssclasssfromhtml.repeatLastAction",
-          "when": "resourceExtname == .html",
-          "group": "1_modification"
-        }
-      ],
-      "commandPalette": [
-        {
-          "command": "cssclasssfromhtml.generateCSS",
-          "when": "editorLangId == html"
-        },
-        {
-          "command": "cssclasssfromhtml.repeatLastAction"
-        }
-      ]
+  "keybindings": [
+    {
+      "key": "ctrl+shift+h",
+      "command": "cssclasssfromhtml.generateCSS",
+      "when": "editorTextFocus"
     },
-    "configuration": {
-      "title": "CSS Classes from HTML",
-      "properties": {
-        "cssclasssfromhtml.figmaToken": {
-          "type": "string",
-          "default": "",
-          "description": "Figma personal access token for API integration",
-          "markdownDescription": "Your Figma personal access token. Get it from [Figma Settings](https://www.figma.com/settings)"
-        },
-        "cssclasssfromhtml.lastFigmaLink": {
-          "type": "string",
-          "default": "",
-          "description": "Last used Figma link (automatically saved)"
-        },
-        "cssclasssfromhtml.lastSelectedCanvases": {
-          "type": "array",
-          "default": [],
-          "description": "Last selected Canvas names (automatically managed)"
-        },
-        "cssclasssfromhtml.lastFigmaFileName": {
-          "type": "string",
-          "default": "",
-          "description": "Last Figma file name (automatically saved)"
-        },
-        "cssclasssfromhtml.actionHistory": {
-          "type": "array",
-          "default": [],
-          "description": "History of last actions for quick repeat"
-        },
-        "cssclasssfromhtml.maxHistorySize": {
-          "type": "number",
-          "default": 5,
-          "minimum": 1,
-          "maximum": 20,
-          "description": "Maximum number of actions to remember in history"
-        },
-        "cssclasssfromhtml.showActionHistory": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show action history in quick pick for repeat actions"
-        },
-        "cssclasssfromhtml.hasShownFirstTimeSetup": {
-          "type": "boolean",
-          "default": false,
-          "description": "Internal flag to track if first-time setup has been shown"
-        },
-        "cssclasssfromhtml.forceFirstTimeSetup": {
-          "type": "boolean",
-          "default": false,
-          "description": "Force show first-time setup dialog for testing"
-        },
-        "cssclasssfromhtml.savedConfiguration": {
-          "type": "object",
-          "default": {},
-          "description": "Saved configuration settings"
-        },
-        "cssclasssfromhtml.configurationPresets": {
-          "type": "object",
-          "default": {},
-          "description": "User-defined configuration presets"
-        },
-        "cssclasssfromhtml.lastActionSettings": {
-          "type": "object",
-          "default": {},
-          "description": "Settings from the last CSS generation action"
-        },
-        "cssclasssfromhtml.saveLastAction": {
-          "type": "string",
-          "default": "",
-          "description": "Last executed action type"
-        },
-        "cssclasssfromhtml.minify": {
-          "type": "boolean",
-          "default": false,
-          "description": "Minify generated CSS"
-        },
-        "cssclasssfromhtml.mode": {
-          "type": "string",
-          "enum": [
-            "minimal",
-            "maximum",
-            "production"
-          ],
-          "default": "maximum",
-          "description": "Режим роботи розширення"
-        },
-        "cssclasssfromhtml.selectedCanvas": {
-          "type": "array",
-          "default": [],
-          "description": "Вибрані Canvas для обробки"
-        },
-        "cssclasssfromhtml.selectedLayers": {
-          "type": "array",
-          "default": [],
-          "description": "Вибрані Layers для обробки"
-        }
-      }
+    {
+      "key": "ctrl+shift+r",
+      "command": "cssclasssfromhtml.repeatLastAction",
+      "when": "editorTextFocus"
     }
-  },
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/VuToV-Mykola/css-classes-from-html.git"
@@ -202,21 +46,22 @@
     "url": "https://github.com/VuToV-Mykola/css-classes-from-html/issues"
   },
   "homepage": "https://github.com/VuToV-Mykola/css-classes-from-html#readme",
-  "scripts": {
-    "build": "node build-vsix.js",
-    "package": "vsce package",
-    "publish": "vsce publish",
-    "lint": "eslint . --ext .js",
-    "test": "node test/run-all-tests.js",
-    "test:config": "node test/standalone-config-test.js",
-    "test:minify": "node test/run-all-tests.js",
-    "prepackage": "npm run lint && npm run test",
-    "prepublish": "npm run build",
-    "test:integration": "node test/integration-test.js",
-    "analyze": "node scripts/analyze-structure.js"
+  "author": "VuToV-Mykola",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "figma-api": "^2.0.2-beta",
+    "node-fetch": "^3.3.0",
+    "open": "^8.4.0",
+    "ws": "^8.13.0"
   },
   "devDependencies": {
-    "eslint": "^8.0.0",
-    "@vscode/vsce": "^2.22.0"
+    "eslint": "^8.40.0",
+    "jest": "^29.5.0",
+    "prettier": "^2.8.8"
   }
 }

@@ -1,0 +1,448 @@
+<!doctype html>
+<!-- Українською: Декларація типу документу HTML5 / English: HTML5 document type declaration -->
+<html lang="en">
+  <!-- Українською: Вказує мову сторінки / English: Specifies page language -->
+  <!--!!! HEAD !!!-->
+  <head>
+    <meta charset="UTF-8">
+    <!-- Українською: Кодування символів (UTF-8 підтримує всі мови) / English: Character encoding (UTF-8 supports all languages) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Українською: Налаштування адаптивного дизайну / English: Responsive design settings -->
+    <!--!!! TITLE !!!-->
+    <title>Chocolate</title>
+    <!-- Українською: Заголовок сторінки (вкладка браузера) / English: Page title (browser tab) -->
+    <!--!!! MODERN NORMALIZE !!!-->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/modern-normalize/3.0.1/modern-normalize.min.css"
+      integrity="sha512-q6WgHqiHlKyOqslT/lgBgodhd03Wp4BEqKeW6nNtlOY4quzyG3VoQKFrieaCeSnuVseNKRGpGeDU3qPmabCANg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer">
+    <!--!!! FONTS !!!-->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap"
+      rel="stylesheet">
+    <!--!!! STYLES !!!-->
+    <link rel="stylesheet" href="./css/styles.css">
+    <!-- Українською: Підключення CSS стилів / English: CSS stylesheet link -->
+  </head>
+  <!--!!! BODY !!!-->
+  <body class="page">
+    <!-- Українською: Універсальний контейнер / English: Universal container -->
+    <!--!!! HEADER !!!-->
+    <header class="header">
+      <!-- Українською: Верхня частина сторінки (лого, навігація) / English: Top section (logo, navigation) -->
+      <div class="container">
+        <!-- Українською: Універсальний контейнер / English: Universal container -->
+        <!-- !!!Navigation!!! -->
+        <nav class="nav">
+          <!-- Українською: Блок навігації / English: Navigation block -->
+          <!-- !!!Logo!!! -->
+          <a class="logo" href="./index.html" target="_self" rel="noopener">SIMPLY CHOCOLATE</a>
+          <ul class="nav-list">
+            <!-- Українською: Ненумерований список / English: Unordered List -->
+            <li class="nav-item">
+              <!-- Українською: Елемент списку / English: List item -->
+              <a class="nav-link" href="./index.html">
+                <!-- Українською: Навігаційне посилання / English: Navigation link -->
+                Home
+              </a>
+            </li>
+            <li class="nav-item">
+              <!-- Українською: Елемент списку / English: List item -->
+              <a class="nav-link" href="#">
+                <!-- Українською: Навігаційне посилання / English: Navigation link -->
+                How it’s made?
+              </a>
+            </li>
+            <li class="nav-item">
+              <!-- Українською: Елемент списку / English: List item -->
+              <a class="nav-link" href="#">
+                <!-- Українською: Навігаційне посилання / English: Navigation link -->
+                Chocolate is loved
+              </a>
+            </li>
+          </ul>
+        </nav>
+        <!-- !!!Address!!! -->
+        <address class="contacts">
+          <!-- Українською: Контактна інформація / English: Contact Information -->
+          <ul class="contacts-list">
+            <!-- Українською: Ненумерований список / English: Unordered List -->
+            <li class="contacts-item">
+              <!-- Українською: Елемент списку / English: List item -->
+              <a
+                class="contacts-link"
+                href="mailto:info@devstudio.com"
+                target="_blank"
+                rel="noopener">
+                <!-- Українською: Гіперпосилання / English: Hyperlink -->
+                info@devstudio.com
+              </a>
+            </li>
+            <li class="contacts-item">
+              <!-- Українською: Елемент списку / English: List item -->
+              <a class="contacts-link" href="tel:+110001111111" target="_blank" rel="noopener">
+                <!-- Українською: Гіперпосилання / English: Hyperlink -->
+                +11 (000) 111-11-11
+              </a>
+            </li>
+          </ul>
+        </address>
+      </div>
+    </header>
+    <!--!!! MAIN !!!-->
+    <main class="main">
+      <!-- Українською: Основний вміст сторінки / English: Main page content -->
+
+      <!-- !!!section HERO!!! -->
+      <section class="hero section">
+        <!-- Українською: Тематична група контенту / English: Thematic content group -->
+        <div class="container">
+          <!-- Українською: Універсальний контейнер / English: Universal container -->
+          <h1 class="hero-title" id="hero">
+            Treat yourself or a loved one to our finest ingredients for a moment of pure
+            delight!</h1
+          >
+          <button class="hero-btn" type="button">
+            <!-- Українською: Кнопка / English: Button -->
+            Buy now
+          </button>
+          <a class="hero-link" href="#" target="_self" rel="noopener">
+            <!-- Українською: Гіперпосилання / English: Hyperlink -->
+            How it’s made
+          </a>
+          <a class="hero-link" href="#" target="_self" rel="noopener">
+            <!-- Українською: Гіперпосилання / English: Hyperlink -->
+            scroll down
+          </a>
+        </div>
+      </section>
+
+      <!-- !!!section Fetures!!! -->
+      <section class="feature section">
+        <!-- Українською: Тематична група контенту / English: Thematic content group -->
+        <div class="container">
+          <!-- Українською: Універсальний контейнер / English: Universal container -->
+          <h2 class="feature-title visually-hidden" id="section-feature">Features</h2>
+          <ul class="feature-list">
+            <!-- Українською: Ненумерований список / English: Unordered List -->
+            <li class="feature-item">
+              <!-- Українською: Елемент списку / English: List item -->
+              <h3 class="feature-subtitle">
+                <!-- Українською: Заголовок 3 рівня / English: Heading level 3 -->
+                Unsurpassed taste
+              </h3>
+              <p class="feature-text">
+                <!-- Українською: Абзац / English: Paragraph -->
+                Crafted with the finest quality cocoa beans and a dedication to perfection, each
+                bite is a decadent experience that simply cannot be matched. Savor the richness and
+                complexity of our Unsurpassed Taste and discover a new level of chocolate bliss.
+              </p>
+            </li>
+            <li class="feature-item">
+              <!-- Українською: Елемент списку / English: List item -->
+              <h3 class="feature-subtitle">
+                <!-- Українською: Заголовок 3 рівня / English: Heading level 3 -->
+                Affordable price
+              </h3>
+              <p class="feature-text">
+                <!-- Українською: Абзац / English: Paragraph -->
+                Indulge in high-quality chocolate without breaking the bank with Simply Chocolate's
+                selection of affordable treats. Enjoy mouth-watering truffles and velvety chocolate
+                bars without sacrificing taste or quality. Browse our selection and indulge in
+                affordable luxury today.
+              </p>
+            </li>
+            <li class="feature-item">
+              <!-- Українською: Елемент списку / English: List item -->
+              <h3 class="feature-subtitle">
+                <!-- Українською: Заголовок 3 рівня / English: Heading level 3 -->
+                Own production
+              </h3>
+              <p class="feature-text">
+                <!-- Українською: Абзац / English: Paragraph -->
+                We take pride in our own production process, ensuring that every step is carefully
+                crafted to perfection. From selecting the finest ingredients to handcrafting each
+                piece, our attention to detail is evident in every bite.
+              </p>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- !!!section Taste!!! -->
+      <section class="taste section">
+        <!-- Українською: Тематична група контенту / English: Thematic content group -->
+        <div class="container">
+          <!-- Українською: Універсальний контейнер / English: Universal container -->
+          <h2 class="taste-title" id="taste">IT ALL ADDS UP TO ONE EXCEPTIONAL TASTE SENSATION</h2>
+          <p class="page-text">
+            <!-- Українською: Абзац / English: Paragraph -->
+            At Simply Chocolate, we believe that the secret to exceptional chocolate is in the
+            details. From the sourcing of the finest ingredients to the careful crafting of each
+            individual piece, every step of our process adds up to one exceptional taste sensation.
+          </p>
+          <ul class="taste-list">
+            <!-- Українською: Ненумерований список / English: Unordered List -->
+            <!-- !!!!taste 1!!!! -->
+            <li class="taste-item">
+              <!-- Українською: Елемент списку / English: List item -->
+              <img
+                class="taste-img"
+                src="./images/taste-img-1.png"
+                alt="mILK CHOCOLATE"
+                width="206"
+                height="160">
+              <!-- Українською: Зображення / English: Image -->
+              <div class="taste-descr">
+                <!-- Українською: Універсальний контейнер / English: Universal container -->
+                <h3 class="taste-subtitle">
+                  <!-- Українською: Заголовок 3 рівня / English: Heading level 3 -->
+                  mILK CHOCOLATE
+                </h3>
+              </div>
+            </li>
+            <!-- !!!!taste 2!!!! -->
+            <li class="taste-item">
+              <!-- Українською: Елемент списку / English: List item -->
+              <img
+                class="taste-img"
+                src="./images/taste-img-2.png"
+                alt="Milk"
+                width="206"
+                height="160">
+              <!-- Українською: Зображення / English: Image -->
+              <div class="taste-descr">
+                <!-- Українською: Універсальний контейнер / English: Universal container -->
+                <h3 class="taste-subtitle">
+                  <!-- Українською: Заголовок 3 рівня / English: Heading level 3 -->
+                  Milk
+                </h3>
+              </div>
+            </li>
+            <!-- !!!!taste 3!!!! -->
+            <li class="taste-item">
+              <!-- Українською: Елемент списку / English: List item -->
+              <img
+                class="taste-img"
+                src="./images/taste-img-3.png"
+                alt="sEMI - SWEET CHOCOLATE"
+                width="206"
+                height="160">
+              <!-- Українською: Зображення / English: Image -->
+              <div class="taste-descr">
+                <!-- Українською: Універсальний контейнер / English: Universal container -->
+                <h3 class="taste-subtitle">
+                  <!-- Українською: Заголовок 3 рівня / English: Heading level 3 -->
+                  sEMI - SWEET CHOCOLATE
+                </h3>
+              </div>
+            </li>
+            <!-- !!!!taste 4!!!! -->
+            <li class="taste-item">
+              <!-- Українською: Елемент списку / English: List item -->
+              <img
+                class="taste-img"
+                src="./images/taste-img-4.png"
+                alt="nuts"
+                width="206"
+                height="160">
+              <!-- Українською: Зображення / English: Image -->
+              <div class="taste-descr">
+                <!-- Українською: Універсальний контейнер / English: Universal container -->
+                <h3 class="taste-subtitle">
+                  <!-- Українською: Заголовок 3 рівня / English: Heading level 3 -->
+                  nuts
+                </h3>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </section>
+      <!-- !!!section Made!!! -->
+      <section class="made section">
+        <!-- Українською: Тематична група контенту / English: Thematic content group -->
+        <div class="container">
+          <!-- Українською: Універсальний контейнер / English: Universal container -->
+          <h2 class="made-title" id="made">hOW IT’S made?</h2>
+          <img
+            class="made-image"
+            src="./images/made-img.jpg"
+            alt="liquid chocolate"
+            width="600"
+            height="400"
+            loading="lazy">
+          <!-- Українською: Зображення / English: Image -->
+          <h3 class="made-subtitle">
+            <!-- Українською: Заголовок 3 рівня / English: Heading level 3 -->
+            Try our chocolates today and discover the perfect balance of flavor
+          </h3>
+          <ul class="made-list">
+            <!-- Українською: Ненумерований список / English: Unordered List -->
+            <li class="made-item">
+              <!-- Українською: Елемент списку / English: List item -->
+              <p class="made-text">
+                <!-- Українською: Абзац / English: Paragraph -->
+                Heat the milk in a saucepan without bringing it to a boil. Add sugar and cocoa
+                powder.
+              </p>
+            </li>
+            <li class="made-item">
+              <!-- Українською: Елемент списку / English: List item -->
+              <p class="made-text">
+                <!-- Українською: Абзац / English: Paragraph -->
+                At the same time, prepare a water bath. Melt the butter on it.
+              </p>
+            </li>
+            <li class="made-item">
+              <!-- Українською: Елемент списку / English: List item -->
+              <p class="made-text">
+                <!-- Українською: Абзац / English: Paragraph -->
+                "Mix" the milk mixture and already liquid butter. Mix thoroughly with a silicone
+                spatula so that the mass becomes uniform and silky.
+              </p>
+            </li>
+            <li class="made-item">
+              <!-- Українською: Елемент списку / English: List item -->
+              <p class="made-text">
+                <!-- Українською: Абзац / English: Paragraph -->
+                Heat the mixture over low heat, letting it barely boil.
+              </p>
+            </li>
+            <li class="made-item">
+              <!-- Українською: Елемент списку / English: List item -->
+              <p class="made-text">
+                <!-- Українською: Абзац / English: Paragraph -->
+                Pour the chocolate into special containers (can be replaced with ice molds). Allow
+                to cool and harden.
+              </p>
+            </li>
+          </ul>
+        </div>
+      </section>
+      <!-- !!!section Loved!!! -->
+      <section class="loved section">
+        <!-- Українською: Тематична група контенту / English: Thematic content group -->
+        <h2 class="loved section-title" id="loved-id">chocolate is loved</h2>
+        <ul class="loved-list">
+          <!-- Українською: Ненумерований список / English: Unordered List -->
+          <li class="loved-list-item">
+            <!-- Українською: Елемент списку / English: List item -->
+            <img
+              class="loved-list-image"
+              src="./images/review-img-1.jpg"
+              alt="Victoria Dobrzhanska">
+            <!-- Українською: Зображення / English: Image -->
+            <h3 class="loved-list-subtitle">
+              <!-- Українською: Заголовок 3 рівня / English: Heading level 3 -->
+              Victoria Dobrzhanska
+            </h3>
+            <p class="loved-list-text">
+              <!-- Українською: Абзац / English: Paragraph -->
+              I love this chocolate bar. Perfect combination of light crispy wafer, covered in a
+              thin layer chocolate.
+            </p>
+          </li>
+          <li class="loved-list-item">
+            <!-- Українською: Елемент списку / English: List item -->
+            <img class="loved-list-image" src="./images/review-img-2.jpg" alt="Nazar Babenko">
+            <!-- Українською: Зображення / English: Image -->
+            <h3 class="loved-list-subtitle">
+              <!-- Українською: Заголовок 3 рівня / English: Heading level 3 -->
+              Nazar Babenko
+            </h3>
+            <p class="loved-list-text">
+              <!-- Українською: Абзац / English: Paragraph -->
+              This chocolate confection is a delight! A delight! The wafer is light and crisp, the
+              hazelnut cream is smooth, and the chocolate is good.
+            </p>
+          </li>
+          <li class="loved-list-item">
+            <!-- Українською: Елемент списку / English: List item -->
+            <img class="loved-list-image" src="./images/review-img-3.jpg" alt="Olena Kampusch">
+            <!-- Українською: Зображення / English: Image -->
+            <h3 class="loved-list-subtitle">
+              <!-- Українською: Заголовок 3 рівня / English: Heading level 3 -->
+              Olena Kampusch
+            </h3>
+            <p class="loved-list-text">
+              <!-- Українською: Абзац / English: Paragraph -->
+              Chocolate is a family favourite treat. Love the delicious smooth chocolate and the
+              creaminess inside. The wafer is soft but crunchy.
+            </p>
+          </li>
+        </ul>
+      </section>
+    </main>
+    <!--!!! FOOTER !!!-->
+    <footer class="footer">
+      <!-- Українською: Нижня частина сторінки (копірайт, посилання) / English: Bottom section (copyright, links) -->
+      <div class="container">
+        <!-- Українською: Універсальний контейнер / English: Universal container -->
+        <p class="footer-text">
+          <!-- Українською: Абзац / English: Paragraph -->
+          Chocolate a delicious cure for a bad day
+        </p>
+        <p class="footer-text">
+          <!-- Українською: Абзац / English: Paragraph -->
+          Contact us
+        </p>
+        <address class="address">
+          <!-- Українською: Контактна інформація / English: Contact Information -->
+          <ul class="address-list">
+            <!-- Українською: Ненумерований список / English: Unordered List -->
+            <li class="address-list-item">
+              <!-- Українською: Елемент списку / English: List item -->
+              <a class="address-list-link" href="tel:+380684439426" target="_self" rel="noopener">
+                <!-- Українською: Гіперпосилання / English: Hyperlink -->
+                +380 (68) 443-94-26
+              </a>
+            </li>
+            <li class="address-list-item">
+              <!-- Українською: Елемент списку / English: List item -->
+              <a
+                class="address-list-link"
+                href="mailto:simplycthaoc@gmail.com"
+                target="_self"
+                rel="noopener">
+                <!-- Українською: Гіперпосилання / English: Hyperlink -->
+                simplycthаoc@gmail.com
+              </a>
+            </li>
+          </ul>
+        </address>
+        <nav class="navigation" aria-label="Footer Navigation">
+          <!-- Українською: Блок навігації / English: Navigation block -->
+          <ul class="nav-list">
+            <!-- Українською: Ненумерований список / English: Unordered List -->
+            <li class="nav-list-item">
+              <!-- Українською: Елемент списку / English: List item -->
+              <a class="nav-list-link" href="#" target="_self" rel="noopener">
+                <!-- Українською: Гіперпосилання / English: Hyperlink -->
+                Home
+              </a>
+            </li>
+            <li class="nav-list-item">
+              <!-- Українською: Елемент списку / English: List item -->
+              <a class="nav-list-link" href="#" target="_self" rel="noopener">
+                <!-- Українською: Гіперпосилання / English: Hyperlink -->
+                How it’s made?
+              </a>
+            </li>
+            <li class="nav-list-item">
+              <!-- Українською: Елемент списку / English: List item -->
+              <a class="nav-list-link" href="#" target="_self" rel="noopener">
+                <!-- Українською: Гіперпосилання / English: Hyperlink -->
+                Chocolate is loved
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+      <!-- Українською: Universal container / English: Universal container -->
+    </footer>
+  </body>
+</html>

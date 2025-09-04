@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Classes from HTML - Configuration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #007ACC;
+            --primary-dark: #005a9e;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+            --bg: #1e1e1e;
+            --bg-secondary: #252526;
+            --bg-tertiary: #2d2d30;
+            --text: #cccccc;
+            --text-secondary: #8c8c8c;
+            --border: #3c3c3c;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: var(--bg-secondary);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .container {
+            flex: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            width: 100%;
+        }
+
+        .mode-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .mode-card {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .mode-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 122, 204, 0.3);
+        }
+
+        .mode-card.selected {
+            border-color: var(--success);
+            background: var(--bg-tertiary);
+        }
+
+        .mode-card.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--success);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .mode-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .mode-title {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        .mode-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .mode-details {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .section {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .checkbox-item:hover {
+            background: var(--bg);
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            margin-right: 0.5rem;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            cursor: pointer;
+            user-select: none;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .checkbox-item.selected {
+            background: var(--bg);
+            border: 1px solid var(--primary);
+        }
+
+        .actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            padding: 2rem;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+        }
+
+        .btn {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 122, 204, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg);
+            border-color: var(--primary);
+        }
+
+        .status {
+            text-align: center;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .status.success {
+            background: rgba(76, 175, 80, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+            display: block;
+        }
+
+        .status.error {
+            background: rgba(244, 67, 54, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            display: block;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--text-secondary);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .mode-selector {
+                grid-template-columns: 1fr;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎨 CSS Classes from HTML</h1>
+        <p>Автоматична генерація CSS з HTML файлів та інтеграція з Figma</p>
+    </div>
+
+    <div class="container">
+        <!-- Mode Selection -->
+        <div class="mode-selector" id="modeSelector">
+            <div class="mode-card" data-mode="minimal">
+                <div class="mode-icon">⚡</div>
+                <div class="mode-title">Мінімальне налаштування</div>
+                <div class="mode-description">Тільки парсинг HTML та генерація порожніх класів</div>
+                <div class="mode-details">Швидкий старт • Без Figma • Без оптимізацій</div>
+            </div>
+            
+            <div class="mode-card" data-mode="maximum">
+                <div class="mode-icon">🚀</div>
+                <div class="mode-title">Максимальне налаштування</div>
+                <div class="mode-description">Повна інтеграція з Figma та всі можливості</div>
+                <div class="mode-details">Figma інтеграція • Canvas/Layers • ML matching • Всі оптимізації</div>
+            </div>
+            
+            <div class="mode-card" data-mode="production">
+                <div class="mode-icon">📦</div>
+                <div class="mode-title">Продакт</div>
+                <div class="mode-description">Оптимізований CSS для production</div>
+                <div class="mode-details">Мінімізація • Без коментарів • Canvas/Layers • Production-ready</div>
+            </div>
+        </div>
+
+        <!-- Figma Configuration -->
+        <div class="section" id="figmaSection" style="display: none;">
+            <h2 class="section-title">🎨 Налаштування Figma</h2>
+            
+            <div class="input-group">
+                <label for="figmaLink">Посилання на Figma макет</label>
+                <input type="text" id="figmaLink" placeholder="https://www.figma.com/file/...">
+            </div>
+
+            <div class="input-group">
+                <label for="figmaToken">Figma API Token (опціонально)</label>
+                <input type="password" id="figmaToken" placeholder="Ваш Figma API токен">
+            </div>
+        </div>
+
+        <!-- Canvas Selection -->
+        <div class="section" id="canvasSection" style="display: none;">
+            <h2 class="section-title">📋 Вибір Canvas</h2>
+            <div class="checkbox-group" id="canvasList">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="canvas-desktop" value="desktop">
+                    <label for="canvas-desktop">🎨 Desktop</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="canvas-mobile" value="mobile">
+                    <label for="canvas-mobile">📱 Mobile</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="canvas-tablet" value="tablet">
+                    <label for="canvas-tablet">📋 Tablet</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="canvas-components" value="components">
+                    <label for="canvas-components">🧩 Components</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="canvas-all" value="all">
+                    <label for="canvas-all">🎯 All Canvas</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Layers Selection -->
+        <div class="section" id="layersSection" style="display: none;">
+            <h2 class="section-title">🎨 Вибір Layers</h2>
+            <div class="checkbox-group" id="layersList">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="layer-layout" value="layout">
+                    <label for="layer-layout">📐 Layout</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="layer-styles" value="styles">
+                    <label for="layer-styles">🎨 Styles</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="layer-typography" value="typography">
+                    <label for="layer-typography">🔤 Typography</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="layer-images" value="images">
+                    <label for="layer-images">🖼️ Images</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="layer-components" value="components">
+                    <label for="layer-components">🔘 Components</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="layer-effects" value="effects">
+                    <label for="layer-effects">✨ Effects</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="layer-all" value="all">
+                    <label for="layer-all">📦 All Layers</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- HTML File Selection -->
+        <div class="section">
+            <h2 class="section-title">📄 HTML файл</h2>
+            <div class="input-group">
+                <label for="htmlFile">Шлях до HTML файлу</label>
+                <input type="text" id="htmlFile" placeholder="examples/example.html">
+            </div>
+        </div>
+
+        <!-- Status Messages -->
+        <div id="status" class="status"></div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="actions">
+        <button class="btn btn-secondary" id="loadLastBtn">
+            📂 Завантажити останні
+        </button>
+        <button class="btn btn-secondary" id="clearBtn">
+            🗑️ Очистити
+        </button>
+        <button class="btn btn-primary" id="generateBtn">
+            🚀 Згенерувати CSS
+        </button>
+    </div>
+
+    <script>
+        // Global state
+        let selectedMode = null;
+        let selectedCanvas = [];
+        let selectedLayers = [];
+        let config = {};
+
+        // Mode selection
+        document.querySelectorAll('.mode-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedMode = this.dataset.mode;
+                
+                // Show/hide Figma sections based on mode
+                const showFigma = selectedMode !== 'minimal';
+                document.getElementById('figmaSection').style.display = showFigma ? 'block' : 'none';
+                document.getElementById('canvasSection').style.display = showFigma ? 'block' : 'none';
+                document.getElementById('layersSection').style.display = showFigma ? 'block' : 'none';
+                
+                showStatus(`Режим "${selectedMode}" вибрано`, 'success');
+            });
+        });
+
+        // Checkbox handling
+        document.querySelectorAll('.checkbox-item input').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const parent = this.closest('.checkbox-item');
+                if (this.checked) {
+                    parent.classList.add('selected');
+                } else {
+                    parent.classList.remove('selected');
+                }
+                
+                // Update selected arrays
+                updateSelections();
+            });
+        });
+
+        // Update selections
+        function updateSelections() {
+            selectedCanvas = Array.from(document.querySelectorAll('#canvasList input:checked')).map(el => el.value);
+            selectedLayers = Array.from(document.querySelectorAll('#layersList input:checked')).map(el => el.value);
+        }
+
+        // Load last settings
+        document.getElementById('loadLastBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/load-settings');
+                const settings = await response.json();
+                
+                if (settings) {
+                    // Apply settings
+                    if (settings.mode) {
+                        document.querySelector(`[data-mode="${settings.mode}"]`)?.click();
+                    }
+                    
+                    if (settings.selectedCanvas) {
+                        settings.selectedCanvas.forEach(canvas => {
+                            const checkbox = document.querySelector(`#canvas-${canvas}`);
+                            if (checkbox) {
+                                checkbox.checked = true;
+                                checkbox.closest('.checkbox-item').classList.add('selected');
+                            }
+                        });
+                    }
+                    
+                    if (settings.selectedLayers) {
+                        settings.selectedLayers.forEach(layer => {
+                            const checkbox = document.querySelector(`#layer-${layer}`);
+                            if (checkbox) {
+                                checkbox.checked = true;
+                                checkbox.closest('.checkbox-item').classList.add('selected');
+                            }
+                        });
+                    }
+                    
+                    showStatus('Останні налаштування завантажено', 'success');
+                } else {
+                    showStatus('Немає збережених налаштувань', 'error');
+                }
+            } catch (error) {
+                showStatus('Помилка завантаження налаштувань', 'error');
+            }
+        });
+
+        // Clear settings
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            // Reset all selections
+            document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+            document.querySelectorAll('.checkbox-item input').forEach(cb => {
+                cb.checked = false;
+                cb.closest('.checkbox-item').classList.remove('selected');
+            });
+            document.querySelectorAll('input[type="text"], input[type="password"]').forEach(input => {
+                input.value = '';
+            });
+            
+            selectedMode = null;
+            selectedCanvas = [];
+            selectedLayers = [];
+            
+            showStatus('Налаштування очищено', 'success');
+        });
+
+        // Generate CSS
+        document.getElementById('generateBtn').addEventListener('click', async () => {
+            if (!selectedMode) {
+                showStatus('Виберіть режим генерації', 'error');
+                return;
+            }
+            
+            const htmlFile = document.getElementById('htmlFile').value;
+            if (!htmlFile) {
+                showStatus('Вкажіть HTML файл', 'error');
+                return;
+            }
+            
+            const figmaLink = document.getElementById('figmaLink').value;
+            const figmaToken = document.getElementById('figmaToken').value;
+            
+            const payload = {
+                mode: selectedMode,
+                htmlFile: htmlFile,
+                figmaLink: figmaLink,
+                figmaToken: figmaToken,
+                selectedCanvas: selectedCanvas,
+                selectedLayers: selectedLayers
+            };
+            
+            showStatus('<span class="loading"></span> Генерація CSS...', 'success');
+            
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus(`✅ CSS успішно згенеровано! Файл: ${result.outputFile}`, 'success');
+                } else {
+                    showStatus(`❌ Помилка: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`❌ Помилка: ${error.message}`, 'error');
+            }
+        });
+
+        // Show status message
+        function showStatus(message, type = 'success') {
+            const status = document.getElementById('status');
+            status.className = `status ${type}`;
+            status.innerHTML = message;
+            status.style.display = 'block';
+            
+            if (type === 'success' && !message.includes('loading')) {
+                setTimeout(() => {
+                    status.style.display = 'none';
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>
