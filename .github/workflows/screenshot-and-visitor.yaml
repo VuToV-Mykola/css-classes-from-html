@@ -306,120 +306,116 @@ jobs:
             npm install puppeteer --no-save 2>> "$LOG_FILE"
           fi
 
-          {
-            TMP_JS="$(mktemp --suffix=.js)"
-            # Генеруємо JS без розширення shell-ем
-            {
-              printf '%s\n' 'const puppeteer = require("puppeteer");'
-              printf '%s\n' 'const fs = require("fs");'
-              printf '%s\n' 'const path = require("path");'
-              printf '%s\n' ''
-              printf '%s\n' 'async function takeScreenshot() {'
-              printf '%s\n' '  let browser;'
-              printf '%s\n' '  try {'
-              printf '%s\n' '    const screenshotPath = process.env.SCREENSHOT_PATH;'
-              printf '%s\n' '    const screenshotDir = path.dirname(screenshotPath);'
-              printf '%s\n' '    if (!fs.existsSync(screenshotDir)) {'
-              printf '%s\n' '      fs.mkdirSync(screenshotDir, { recursive: true });'
-              printf '%s\n' '    }'
-              printf '%s\n' ''
-              printf '%s\n' '    const browserArgs = ['
-              printf '%s\n' '      "--no-sandbox",'
-              printf '%s\n' '      "--disable-setuid-sandbox",'
-              printf '%s\n' '      "--disable-dev-shm-usage",'
-              printf '%s\n' '      "--disable-web-security",'
-              printf '%s\n' '      "--headless",'
-              printf '%s\n' '      "--disable-gpu",'
-              printf '%s\n' '    ];'
-              printf '%s\n' ''
-              printf '%s\n' '    browser = await puppeteer.launch({ args: browserArgs, timeout: 30000 });'
-              printf '%s\n' '    const page = await browser.newPage();'
-              printf '%s\n' '    await page.setViewport({ width: 1280, height: 800 });'
-              printf '%s\n' ''
-              printf '%s\n' '    const owner = process.env.GITHUB_REPOSITORY_OWNER;'
-              printf '%s\n' '    const repo = process.env.GITHUB_REPOSITORY.split("/")[1];'
-              printf '%s\n' '    const githubPages = `https://${owner}.github.io/${repo}/`;'
-              printf '%s\n' ''
-              printf '%s\n' '    console.log(`🌐 Checking GitHub Pages: ${githubPages}`);'
-              printf '%s\n' ''
-              printf '%s\n' '    const response = await page.goto(githubPages, {'
-              printf '%s\n' "      waitUntil: 'networkidle0',"
-              printf '%s\n' '      timeout: 30000'
-              printf '%s\n' '    });'
-              printf '%s\n' ''
-              printf '%s\n' '    if (!response || response.status() !== 200) {'
-              printf '%s\n' "      throw new Error(`HTTP ${response?.status() || 'unknown'}`);"
-              printf '%s\n' '    }'
-              printf '%s\n' ''
-              printf '%s\n' '    const pageContent = await page.content();'
-              printf '%s\n' '    if (pageContent.includes("There isn\'t a GitHub Pages site here") ||'
-              printf '%s\n' "        pageContent.includes('404') ||"
-              printf '%s\n' '        pageContent.length < 500) {'
-              printf '%s\n' "      throw new Error('GitHub Pages has insufficient content');"
-              printf '%s\n' '    }'
-              printf '%s\n' ''
-              printf '%s\n' "    console.log('✅ GitHub Pages is accessible');"
-              printf '%s\n' ''
-              printf '%s\n' '    await page.evaluate(async () => {'
-              printf '%s\n' '      await new Promise((resolve) => {'
-              printf '%s\n' '        let totalHeight = 0;'
-              printf '%s\n' '        const distance = 200;'
-              printf '%s\n' '        const timer = setInterval(() => {'
-              printf '%s\n' '          const scrollHeight = document.body.scrollHeight;'
-              printf '%s\n' '          window.scrollBy(0, distance);'
-              printf '%s\n' '          totalHeight += distance;'
-              printf '%s\n' '          if (totalHeight >= scrollHeight) {'
-              printf '%s\n' '            clearInterval(timer);'
-              printf '%s\n' '            resolve();'
-              printf '%s\n' '          }'
-              printf '%s\n' '        }, 100);'
-              printf '%s\n' '      });'
-              printf '%s\n' '    });'
-              printf '%s\n' ''
-              printf '%s\n' '    await new Promise(resolve => setTimeout(resolve, 2000));'
-              printf '%s\n' '    await page.evaluate(() => window.scrollTo(0, 0));'
-              printf '%s\n' '    await new Promise(resolve => setTimeout(resolve, 1000));'
-              printf '%s\n' ''
-              printf '%s\n' '    await page.screenshot({'
-              printf '%s\n' '      path: screenshotPath,'
-              printf '%s\n' '      fullPage: true,'
-              printf '%s\n' "      type: 'png'"
-              printf '%s\n' '    });'
-              printf '%s\n' ''
-              printf '%s\n' '    const stats = fs.statSync(screenshotPath);'
-              printf '%s\n' '    if (stats.size > 10000) {'
-              printf '%s\n' '      console.log(`✅ Screenshot created: ${Math.round(stats.size / 1024)}KB`);'
-              printf '%s\n' "      console.log('SCREENSHOT_SUCCESS=true');"
-              printf '%s\n' '    } else {'
-              printf '%s\n' '      fs.unlinkSync(screenshotPath);'
-              printf '%s\n' "      throw new Error('Screenshot file is too small');"
-              printf '%s\n' '    }'
-              printf '%s\n' ''
-              printf '%s\n' '  } catch (error) {'
-              printf '%s\n' '    console.log(`❌ Screenshot failed: ${error.message}`);'
-              printf '%s\n' "    console.log('SCREENSHOT_SUCCESS=false');"
-              printf '%s\n' '  } finally {'
-              printf '%s\n' '    if (browser) {'
-              printf '%s\n' '      await browser.close();'
-              printf '%s\n' '    }'
-              printf '%s\n' '  }'
-              printf '%s\n' '}'
-              printf '%s\n' ''
-              printf '%s\n' 'takeScreenshot();'
-            } > "$TMP_JS"
-
-            SCREENSHOT_PATH="$SCREENSHOT_PATH" node "$TMP_JS" 2>&1 | tee -a "$LOG_FILE"
-            rm -f "$TMP_JS"
+          TMP_JS="$(mktemp --suffix=.js")"
+          cat > "$TMP_JS" <<'JS'
+          const puppeteer = require("puppeteer");
+          const fs = require("fs");
+          const path = require("path");
+          
+          async function takeScreenshot() {
+            let browser;
+            try {
+              const screenshotPath = process.env.SCREENSHOT_PATH;
+              const screenshotDir = path.dirname(screenshotPath);
+              if (!fs.existsSync(screenshotDir)) {
+                fs.mkdirSync(screenshotDir, { recursive: true });
+              }
+          
+              const browserArgs = [
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-web-security",
+                "--headless",
+                "--disable-gpu",
+              ];
+          
+              browser = await puppeteer.launch({ args: browserArgs, timeout: 30000 });
+              const page = await browser.newPage();
+              await page.setViewport({ width: 1280, height: 800 });
+          
+              const owner = process.env.GITHUB_REPOSITORY_OWNER;
+              const repo = process.env.GITHUB_REPOSITORY.split("/")[1];
+              const githubPages = `https://${owner}.github.io/${repo}/`;
+          
+              console.log(`🌐 Checking GitHub Pages: ${githubPages}`);
+          
+              const response = await page.goto(githubPages, {
+                waitUntil: 'networkidle0',
+                timeout: 30000
+              });
+          
+              if (!response || response.status() !== 200) {
+                throw new Error(`HTTP ${response?.status() || 'unknown'}`);
+              }
+          
+              const pageContent = await page.content();
+              if (pageContent.includes("There isn't a GitHub Pages site here") ||
+                  pageContent.includes('404') ||
+                  pageContent.length < 500) {
+                throw new Error('GitHub Pages has insufficient content');
+              }
+          
+              console.log('✅ GitHub Pages is accessible');
+          
+              await page.evaluate(async () => {
+                await new Promise((resolve) => {
+                  let totalHeight = 0;
+                  const distance = 200;
+                  const timer = setInterval(() => {
+                    const scrollHeight = document.body.scrollHeight;
+                    window.scrollBy(0, distance);
+                    totalHeight += distance;
+                    if (totalHeight >= scrollHeight) {
+                      clearInterval(timer);
+                      resolve();
+                    }
+                  }, 100);
+                });
+              });
+          
+              await new Promise(resolve => setTimeout(resolve, 2000));
+              await page.evaluate(() => window.scrollTo(0, 0));
+              await new Promise(resolve => setTimeout(resolve, 1000));
+          
+              await page.screenshot({
+                path: screenshotPath,
+                fullPage: true,
+                type: 'png'
+              });
+          
+              const stats = fs.statSync(screenshotPath);
+              if (stats.size > 10000) {
+                console.log(`✅ Screenshot created: ${Math.round(stats.size / 1024)}KB`);
+                console.log('SCREENSHOT_SUCCESS=true');
+              } else {
+                fs.unlinkSync(screenshotPath);
+                throw new Error('Screenshot file is too small');
+              }
+          
+            } catch (error) {
+              console.log(`❌ Screenshot failed: ${error.message}`);
+              console.log('SCREENSHOT_SUCCESS=false');
+            } finally {
+              if (browser) {
+                await browser.close();
+              }
+            }
           }
-
-          if grep -q "SCREENSHOT_SUCCESS=true" <<< "$(tail -n 50 $LOG_FILE)"; then
-            echo "screenshot_created=true" >> $GITHUB_OUTPUT
-            echo "screenshot_path=$SCREENSHOT_PATH" >> $GITHUB_OUTPUT
-          else
-            echo "screenshot_created=false" >> $GITHUB_OUTPUT
-            echo "screenshot_path=" >> $GITHUB_OUTPUT
-          fi
-
+          
+          takeScreenshot();
+          JS
+                    SCREENSHOT_PATH="$SCREENSHOT_PATH" node "$TMP_JS" 2>&1 | tee -a "$LOG_FILE"
+                    rm -f "$TMP_JS"
+          
+                    if grep -q "SCREENSHOT_SUCCESS=true" <<< "$(tail -n 50 $LOG_FILE)"; then
+                      echo "screenshot_created=true" >> $GITHUB_OUTPUT
+                      echo "screenshot_path=$SCREENSHOT_PATH" >> $GITHUB_OUTPUT
+                    else
+                      echo "screenshot_created=false" >> $GITHUB_OUTPUT
+                      echo "screenshot_path=" >> $GITHUB_OUTPUT
+                    fi
+          
       - name: 🚀 Optimize screenshot with Squoosh
         id: optimize_screenshot
         if: ${{ steps.generate_screenshot.outputs.screenshot_created == 'true' }}
