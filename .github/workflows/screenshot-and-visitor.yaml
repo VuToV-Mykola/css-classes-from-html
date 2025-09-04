@@ -132,6 +132,17 @@ jobs:
             STATS_FILE="$DATA_DIR/stats-data.json";
             mkdir -p "$DATA_DIR";
 
+            # Функція для безпечного парсингу JSON
+            safe_json_parse() {
+              local json_data="$1"
+              local default="$2"
+              if ! jq -e . <<< "$json_data" >/dev/null 2>&1; then
+                echo "$default"
+              else
+                echo "$json_data"
+              fi
+            }
+
             github_api_request() {
               local endpoint="$1";
               local temp_file;
@@ -144,7 +155,7 @@ jobs:
                 if [[ -n "${{ secrets.PAT_TOKEN }}" ]]; then
                   auth_header="Authorization: token ${{ secrets.PAT_TOKEN }}";
                 else
-                  echo "❌ PAT_TOKEN secret is not set for protected endpoint: $endpoint";
+                  echo "❌ PAT_TOKEN secret is not set for protected endpoint: $endpoint" >> "$LOG_FILE";
                   echo "{}";
                   rm -f "$temp_file";
                   return 0;
@@ -158,9 +169,9 @@ jobs:
                   "https://api.github.com/$endpoint" -o "$temp_file" 2>> "$LOG_FILE");
 
                 if [[ "$http_code" -eq 200 ]]; then
+                  # Перевіряємо чи є валідний JSON
                   if ! jq -e . "$temp_file" >/dev/null 2>&1; then
-                    echo "❌ Invalid JSON response: $endpoint";
-                    cat "$temp_file" 2>> "$LOG_FILE" || true;
+                    echo "❌ Invalid JSON response: $endpoint" >> "$LOG_FILE";
                     echo "{}";
                     rm -f "$temp_file";
                     return 0;
@@ -169,12 +180,12 @@ jobs:
                   rm -f "$temp_file";
                   return 0;
                 elif [[ "$http_code" -eq 404 ]]; then
-                  echo "❌ API endpoint not found: $endpoint";
+                  echo "❌ API endpoint not found: $endpoint" >> "$LOG_FILE";
                   echo "{}";
                   rm -f "$temp_file";
                   return 0;
                 else
-                  echo "⚠️ API request failed (attempt $((retry_count+1))/$max_retries): HTTP $http_code";
+                  echo "⚠️ API request failed (attempt $((retry_count+1))/$max_retries): HTTP $http_code" >> "$LOG_FILE";
                   retry_count=$((retry_count+1));
                   sleep 2;
                 fi;
@@ -190,12 +201,9 @@ jobs:
             OWNER="${{ github.repository_owner }}";
             REPO="${{ github.event.repository.name }}";
 
-            echo "📦 Fetching repository information...";
-            REPO_INFO=$(github_api_request "repos/$OWNER/$REPO") || REPO_INFO='{}';
-            if ! jq -e . <<< "$REPO_INFO" >/dev/null 2>&1; then
-              echo "❌ Failed to fetch repository info, continuing with defaults";
-              REPO_INFO='{}';
-            fi;
+            echo "📦 Fetching repository information..." >> "$LOG_FILE";
+            REPO_INFO=$(github_api_request "repos/$OWNER/$REPO");
+            REPO_INFO=$(safe_json_parse "$REPO_INFO" '{}');
 
             STARS_COUNT=$(jq -r '.stargazers_count // 0' <<< "$REPO_INFO");
             REPO_SIZE=$(jq -r '.size // 0' <<< "$REPO_INFO");
@@ -206,14 +214,18 @@ jobs:
             OPEN_ISSUES=$(jq -r '.open_issues_count // 0' <<< "$REPO_INFO");
             WATCHERS=$(jq -r '.watchers_count // 0' <<< "$REPO_INFO");
 
-            echo "👀 Fetching traffic statistics...";
-            VIEWS_DATA=$(github_api_request "repos/$OWNER/$REPO/traffic/views") || VIEWS_DATA='{}';
-            CLONES_DATA=$(github_api_request "repos/$OWNER/$REPO/traffic/clones") || CLONES_DATA='{}';
+            echo "👀 Fetching traffic statistics..." >> "$LOG_FILE";
+            VIEWS_DATA=$(github_api_request "repos/$OWNER/$REPO/traffic/views");
+            VIEWS_DATA=$(safe_json_parse "$VIEWS_DATA" '{}');
+            CLONES_DATA=$(github_api_request "repos/$OWNER/$REPO/traffic/clones");
+            CLONES_DATA=$(safe_json_parse "$CLONES_DATA" '{}');
 
             VIEWS=$(jq -r '.uniques // 0' <<< "$VIEWS_DATA");
             VIEWS_TOTAL=$(jq -r '.count // 0' <<< "$VIEWS_DATA");
             CLONES=$(jq -r '.uniques // 0' <<< "$CLONES_DATA");
             CLONES_TOTAL=$(jq -r '.count // 0' <<< "$CLONES_DATA");
+
+
 
             echo "💖 Checking for manual likes...";
             MANUAL_LIKES_COUNT=$(jq -r '.manual_likes.users | length' "$STATS_FILE");
@@ -312,7 +324,7 @@ jobs:
           const puppeteer = require("puppeteer");
           const fs = require("fs");
           const path = require("path");
-          
+
           async function takeScreenshot() {
             let browser;
             try {
@@ -321,7 +333,7 @@ jobs:
               if (!fs.existsSync(screenshotDir)) {
                 fs.mkdirSync(screenshotDir, { recursive: true });
               }
-          
+
               const browserArgs = [
                 "--no-sandbox",
                 "--disable-setuid-sandbox",
@@ -330,35 +342,35 @@ jobs:
                 "--headless",
                 "--disable-gpu",
               ];
-          
+
               browser = await puppeteer.launch({ args: browserArgs, timeout: 30000 });
               const page = await browser.newPage();
               await page.setViewport({ width: 1280, height: 800 });
-          
+
               const owner = process.env.GITHUB_REPOSITORY_OWNER;
               const repo = process.env.GITHUB_REPOSITORY.split("/")[1];
               const githubPages = `https://${owner}.github.io/${repo}/`;
-          
+
               console.log(`🌐 Checking GitHub Pages: ${githubPages}`);
-          
+
               const response = await page.goto(githubPages, {
                 waitUntil: 'networkidle0',
                 timeout: 30000
               });
-          
+
               if (!response || response.status() !== 200) {
                 throw new Error(`HTTP ${response?.status() || 'unknown'}`);
               }
-          
+
               const pageContent = await page.content();
               if (pageContent.includes("There isn't a GitHub Pages site here") ||
                   pageContent.includes('404') ||
                   pageContent.length < 500) {
                 throw new Error('GitHub Pages has insufficient content');
               }
-          
+
               console.log('✅ GitHub Pages is accessible');
-          
+
               await page.evaluate(async () => {
                 await new Promise((resolve) => {
                   let totalHeight = 0;
@@ -374,17 +386,17 @@ jobs:
                   }, 100);
                 });
               });
-          
+
               await new Promise(resolve => setTimeout(resolve, 2000));
               await page.evaluate(() => window.scrollTo(0, 0));
               await new Promise(resolve => setTimeout(resolve, 1000));
-          
+
               await page.screenshot({
                 path: screenshotPath,
                 fullPage: true,
                 type: 'png'
               });
-          
+
               const stats = fs.statSync(screenshotPath);
               if (stats.size > 10000) {
                 console.log(`✅ Screenshot created: ${Math.round(stats.size / 1024)}KB`);
@@ -393,7 +405,7 @@ jobs:
                 fs.unlinkSync(screenshotPath);
                 throw new Error('Screenshot file is too small');
               }
-          
+
             } catch (error) {
               console.log(`❌ Screenshot failed: ${error.message}`);
               console.log('SCREENSHOT_SUCCESS=false');
@@ -403,7 +415,7 @@ jobs:
               }
             }
           }
-          
+
           takeScreenshot();
           JS_EOF
 
