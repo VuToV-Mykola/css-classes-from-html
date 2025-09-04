@@ -4,29 +4,31 @@ on:
   push:
     branches: [main, master]
     paths:
-      - 'README*'
-      - 'docs/**'
-      - 'assets/**'
-      - '.github/workflows/screenshot-and-visitor-multilingual.yaml'
+      - "README*"
+      - "docs/**"
+      - "assets/**"
+      - ".github/workflows/screenshot-and-visitor.yaml"
   schedule:
-    - cron: '0 */2 * * *'
+    - cron: "0 */2 * * *"
   workflow_dispatch:
     inputs:
       add_like:
-        description: 'Add your like (only one per user allowed)'
+        description: "Add your like (only one per user allowed)"
         required: false
         default: true
         type: boolean
       target_readme:
-        description: 'Target README file to update'
+        description: "Target README file to update"
         required: false
-        default: 'ALL'
+        default: "ALL"
         type: choice
         options:
           - README.md
           - README.en.md
           - README.de.md
           - ALL
+  repository_dispatch:
+    types: [update_stats]
 
 permissions:
   contents: write
@@ -35,20 +37,20 @@ permissions:
   pull-requests: read
 
 env:
-  BADGE_STYLE: 'for-the-badge'
-  BADGE_COLOR: 'brightgreen'
-  LIKES_COLOR: 'gold'
-  DATA_DIR: 'assets/db'
-  SCREENSHOT_DIR: 'assets'
-  LOG_DIR: 'logs/workflow'
+  BADGE_STYLE: "for-the-badge"
+  BADGE_COLOR: "brightgreen"
+  LIKES_COLOR: "gold"
+  DATA_DIR: "assets/db"
+  SCREENSHOT_DIR: "assets"
+  LOG_DIR: "logs/workflow"
   MAX_LOG_FILES: 10
 
 jobs:
   update-readme-and-visitor:
     runs-on: ubuntu-latest
     env:
-      NODE_VERSION: '20.x'
-      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'false'
+      NODE_VERSION: "20.x"
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "false"
 
     steps:
       - name: 🔥 Checkout repository
@@ -58,673 +60,521 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
       - name: 📁 Setup directories
         run: |
-          mkdir -p ${{ env.DATA_DIR }} ${{ env.SCREENSHOT_DIR }} ${{ env.LOG_DIR }}
-          echo "📁 Directories created: ${{ env.DATA_DIR }}, ${{ env.SCREENSHOT_DIR }}, ${{ env.LOG_DIR }}"
+          mkdir -p "${{ env.DATA_DIR }}" "${{ env.SCREENSHOT_DIR }}" "${{ env.LOG_DIR }}"
+          echo "📁 Directories created"
 
       - name: 📊 Initialize logging
         run: |
           TIMESTAMP=$(date -u +"%Y%m%d_%H%M%S")
           LOG_FILE="${{ env.LOG_DIR }}/workflow_${TIMESTAMP}.log"
-          echo "🔄 Workflow started at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" > $LOG_FILE
-          echo "📦 Repository: ${{ github.repository }}" >> $LOG_FILE
-          echo "🔀 Event: ${{ github.event_name }}" >> $LOG_FILE
-          echo "📝 Log file: $LOG_FILE" >> $LOG_FILE
+          echo "🔄 Workflow started: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" > "$LOG_FILE"
+          echo "📦 Repository: ${{ github.repository }}" >> "$LOG_FILE"
+          echo "🔀 Event: ${{ github.event_name }}" >> "$LOG_FILE"
+          echo "📝 Log file: $LOG_FILE" >> "$LOG_FILE"
           echo "LOG_FILE=$LOG_FILE" >> $GITHUB_ENV
 
       - name: 🔍 Detect README files
         run: |
-          echo "🔍 Searching for README files..." >> $LOG_FILE
-          
+          echo "🔍 Searching for README files..." >> "$LOG_FILE"
           README_FILES=()
-          if [ -f "README.md" ]; then
-            README_FILES+=("README.md")
-            echo "✅ Found: README.md" >> $LOG_FILE
-          fi
-          if [ -f "README.en.md" ]; then
-            README_FILES+=("README.en.md")
-            echo "✅ Found: README.en.md" >> $LOG_FILE
-          fi
-          if [ -f "README.de.md" ]; then
-            README_FILES+=("README.de.md")
-            echo "✅ Found: README.de.md" >> $LOG_FILE
-          fi
-          
-          if [ ${#README_FILES[@]} -eq 0 ]; then
-            echo "❌ No README files found" >> $LOG_FILE
-            echo "README_FILES_COUNT=0" >> $GITHUB_ENV
+          [[ -f "README.md" ]] && README_FILES+=("README.md") && echo "✅ Found: README.md" >> "$LOG_FILE"
+          [[ -f "README.en.md" ]] && README_FILES+=("README.en.md") && echo "✅ Found: README.en.md" >> "$LOG_FILE"
+          [[ -f "README.de.md" ]] && README_FILES+=("README.de.md") && echo "✅ Found: README.de.md" >> "$LOG_FILE"
+
+          if [[ ${#README_FILES[@]} -eq 0 ]]; then
+            echo "❌ No README files found" >> "$LOG_FILE"
             exit 1
           fi
-          
           echo "README_FILES=${README_FILES[*]}" >> $GITHUB_ENV
           echo "README_FILES_COUNT=${#README_FILES[@]}" >> $GITHUB_ENV
-          echo "📄 Found ${#README_FILES[@]} README files: ${README_FILES[*]}" >> $LOG_FILE
 
       - name: 🔄 Determine target READMEs
         run: |
-          echo "🎯 Determining target README files..." >> $LOG_FILE
-          
+          echo "🎯 Determining target README files..." >> "$LOG_FILE"
           TARGET_READMES=()
-          case "${{ github.event.inputs.target_readme }}" in
+          TARGET_INPUT="${{ github.event.inputs.target_readme }}"
+
+          case "$TARGET_INPUT" in
             "ALL")
-              TARGET_READMES=($README_FILES)
-              echo "🌍 Targeting ALL README files" >> $LOG_FILE
+              TARGET_READMES=("${README_FILES[@]}")
+              echo "🌍 Targeting ALL README files" >> "$LOG_FILE"
               ;;
             "README.md"|"README.en.md"|"README.de.md")
-              if [ -f "${{ github.event.inputs.target_readme }}" ]; then
-                TARGET_READMES=("${{ github.event.inputs.target_readme }}")
-                echo "🎯 Targeting specific file: ${{ github.event.inputs.target_readme }}" >> $LOG_FILE
+              if [[ -f "$TARGET_INPUT" ]]; then
+                TARGET_READMES=("$TARGET_INPUT")
+                echo "🎯 Targeting specific file: $TARGET_INPUT" >> "$LOG_FILE"
               else
-                echo "⚠️ Target file not found, using default README.md" >> $LOG_FILE
+                echo "⚠️ Target file not found, using default README.md" >> "$LOG_FILE"
                 TARGET_READMES=("README.md")
               fi
               ;;
             *)
-              # Default behavior for push/schedule events
-              TARGET_READMES=($README_FILES)
-              echo "⚡ Default: targeting all README files" >> $LOG_FILE
+              TARGET_READMES=("${README_FILES[@]}")
+              echo "⚡ Default: targeting all README files" >> "$LOG_FILE"
               ;;
           esac
-          
           echo "TARGET_READMES=${TARGET_READMES[*]}" >> $GITHUB_ENV
-          echo "📋 Final target files: ${TARGET_READMES[*]}" >> $LOG_FILE
 
       - name: 📊 Collect comprehensive statistics
+        id: collect_stats
         run: |
-          echo "📊 Starting comprehensive data collection..." >> $LOG_FILE
-          
+          echo "📊 Starting comprehensive data collection..." >> "$LOG_FILE"
           DATA_DIR="${{ env.DATA_DIR }}"
           STATS_FILE="$DATA_DIR/stats-data.json"
-          USERS_FILE="$DATA_DIR/unique-users.json"
-          STARGAZERS_FILE="$DATA_DIR/stargazers.json"
-          MANUAL_LIKES_FILE="$DATA_DIR/manual-likes.json"
-          REPO_STATS_FILE="$DATA_DIR/repository-stats.json"
-          TRAFFIC_FILE="$DATA_DIR/traffic-stats.json"
-          
-          OWNER=$(echo "${{ github.repository }}" | cut -d'/' -f1)
-          REPO=$(echo "${{ github.repository }}" | cut -d'/' -f2)
-          
-          # Initialize stats file if not exists
-          [ ! -f "$STATS_FILE" ] && echo '{"manual_likes": {"users": [], "details": []}}' > "$STATS_FILE"
-          
-          # Function to make API requests with error handling
+          mkdir -p "$DATA_DIR"
+
           github_api_request() {
-            local endpoint=$1
-            local temp_file=$(mktemp)
+            local endpoint="$1"
+            local temp_file
+            temp_file=$(mktemp)
             local max_retries=3
             local retry_count=0
-            
-            while [ $retry_count -lt $max_retries ]; do
-              local response=$(curl -s -w "%{http_code}" -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-                "https://api.github.com/$endpoint" -o "$temp_file")
-              
-              if [ "$response" -eq 200 ]; then
+            local auth_header=""
+
+            if [[ "$endpoint" == *"traffic"* ]] || [[ "$endpoint" == *"stargazers"* ]] || [[ "$endpoint" == *"repos/"*"/"*"/"* ]]; then
+              if [[ -n "${{ secrets.PAT_TOKEN }}" ]]; then
+                auth_header="Authorization: token ${{ secrets.PAT_TOKEN }}"
+              else
+                echo "❌ PAT_TOKEN secret is not set for protected endpoint: $endpoint" >> "$LOG_FILE"
+                rm -f "$temp_file"
+                echo "{}"
+                return 1
+              fi
+            fi
+
+            while [[ $retry_count -lt $max_retries ]]; do
+              local http_code
+              http_code=$(curl -s -w "%{http_code}" -H "$auth_header" \
+                -H "Accept: application/vnd.github.v3+json" \
+                "https://api.github.com/$endpoint" -o "$temp_file" 2>> "$LOG_FILE")
+
+              if [[ "$http_code" -eq 200 ]]; then
+                if ! jq -e . "$temp_file" >/dev/null 2>&1; then
+                  echo "❌ Invalid JSON response: $endpoint" >> "$LOG_FILE"
+                  rm -f "$temp_file"
+                  echo "{}"
+                  return 1
+                fi
                 cat "$temp_file"
                 rm -f "$temp_file"
                 return 0
+              elif [[ "$http_code" -eq 404 ]]; then
+                echo "❌ API endpoint not found: $endpoint" >> "$LOG_FILE"
+                rm -f "$temp_file"
+                echo "{}"
+                return 1
+              else
+                echo "⚠️ API request failed (attempt $((retry_count+1))/$max_retries): HTTP $http_code" >> "$LOG_FILE"
+                retry_count=$((retry_count+1))
+                sleep 2
               fi
-              
-              echo "⚠️ API request failed (attempt $((retry_count+1))/$max_retries): HTTP $response" >> $LOG_FILE
-              retry_count=$((retry_count+1))
-              sleep 2
             done
-            
+
             rm -f "$temp_file"
             echo "{}"
             return 1
           }
 
-          # 1. REPOSITORY BASIC INFO
-          echo "📦 Fetching repository information..." >> $LOG_FILE
-          REPO_INFO=$(github_api_request "repos/$OWNER/$REPO")
-          
-          REPO_SIZE=$(echo "$REPO_INFO" | jq -r '.size // 0')
-          REPO_SIZE_MB=$(echo "scale=1; $REPO_SIZE / 1024" | bc -l 2>/dev/null || echo "0")
-          MAIN_LANGUAGE=$(echo "$REPO_INFO" | jq -r '.language // "Unknown"')
-          LICENSE=$(echo "$REPO_INFO" | jq -r '.license.name // "No License"')
-          DEFAULT_BRANCH=$(echo "$REPO_INFO" | jq -r '.default_branch // "main"')
-          CREATED_AT=$(echo "$REPO_INFO" | jq -r '.created_at // ""')
-          UPDATED_AT=$(echo "$REPO_INFO" | jq -r '.updated_at // ""')
-          PUSHED_AT=$(echo "$REPO_INFO" | jq -r '.pushed_at // ""')
-          FORKS_COUNT=$(echo "$REPO_INFO" | jq -r '.forks_count // 0')
-          OPEN_ISSUES=$(echo "$REPO_INFO" | jq -r '.open_issues_count // 0')
-          WATCHERS=$(echo "$REPO_INFO" | jq -r '.watchers_count // 0')
-          ARCHIVED=$(echo "$REPO_INFO" | jq -r '.archived // false')
-          DISABLED=$(echo "$REPO_INFO" | jq -r '.disabled // false')
+          [[ ! -f "$STATS_FILE" ]] && echo '{"manual_likes": {"users": [], "details": []}}' > "$STATS_FILE"
 
-          # 2. TRAFFIC STATISTICS
-          echo "👀 Fetching traffic statistics..." >> $LOG_FILE
+          OWNER="${{ github.repository_owner }}"
+          REPO="${{ github.event.repository.name }}"
+
+          echo "📦 Fetching repository information..." >> "$LOG_FILE"
+          REPO_INFO=$(github_api_request "repos/$OWNER/$REPO")
+          if ! jq -e . <<< "$REPO_INFO" >/dev/null 2>&1; then
+            echo "❌ Failed to fetch repository info" >> "$LOG_FILE"
+            exit 1
+          fi
+
+          STARS_COUNT=$(jq -r '.stargazers_count // 0' <<< "$REPO_INFO")
+          REPO_SIZE=$(jq -r '.size // 0' <<< "$REPO_INFO")
+          REPO_SIZE_MB=$(echo "scale=1; $REPO_SIZE / 1024" | bc -l 2>/dev/null || echo "0")
+          MAIN_LANGUAGE=$(jq -r '.language // "Unknown"' <<< "$REPO_INFO")
+          LICENSE=$(jq -r '.license.name // "No License"' <<< "$REPO_INFO")
+          FORKS_COUNT=$(jq -r '.forks_count // 0' <<< "$REPO_INFO")
+          OPEN_ISSUES=$(jq -r '.open_issues_count // 0' <<< "$REPO_INFO")
+          WATCHERS=$(jq -r '.watchers_count // 0' <<< "$REPO_INFO")
+
+          echo "👀 Fetching traffic statistics..." >> "$LOG_FILE"
           VIEWS_DATA=$(github_api_request "repos/$OWNER/$REPO/traffic/views")
           CLONES_DATA=$(github_api_request "repos/$OWNER/$REPO/traffic/clones")
-          POPULAR_PATHS=$(github_api_request "repos/$OWNER/$REPO/traffic/popular/paths")
-          POPULAR_REFERRERS=$(github_api_request "repos/$OWNER/$REPO/traffic/popular/referrers")
-          
-          VIEWS=$(echo "$VIEWS_DATA" | jq '.uniques // 0')
-          VIEWS_TOTAL=$(echo "$VIEWS_DATA" | jq '.count // 0')
-          CLONES=$(echo "$CLONES_DATA" | jq '.uniques // 0')
-          CLONES_TOTAL=$(echo "$CLONES_DATA" | jq '.count // 0')
 
-          # 3. STARS & LIKES
-          echo "⭐ Processing stars and likes..." >> $LOG_FILE
-          STARS_RESPONSE=$(github_api_request "repos/$OWNER/$REPO/stargazers?per_page=100")
-          
-          if echo "$STARS_RESPONSE" | jq -e '. | length > 0' >/dev/null 2>&1; then
-            STARS_USERS=$(echo "$STARS_RESPONSE" | jq -r '.[].login' | jq -R -s 'split("\n") | map(select(length > 0))')
-            STARS_COUNT=$(echo "$STARS_USERS" | jq 'length')
-            STARGAZERS_DETAILED=$(echo "$STARS_RESPONSE" | jq '[.[] | {login: .login, avatar_url: .avatar_url, html_url: .html_url, starred_at: (.starred_at // now | todate)}]')
-          else
-            STARS_USERS='[]'
-            STARS_COUNT=0
-            STARGAZERS_DETAILED='[]'
-          fi
+          VIEWS=$(jq -r '.uniques // 0' <<< "$VIEWS_DATA")
+          VIEWS_TOTAL=$(jq -r '.count // 0' <<< "$VIEWS_DATA")
+          CLONES=$(jq -r '.uniques // 0' <<< "$CLONES_DATA")
+          CLONES_TOTAL=$(jq -r '.count // 0' <<< "$CLONES_DATA")
 
-          # 4. MANUAL LIKES PROCESSING
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.add_like }}" = "true" ]; then
+          echo "💖 Checking for manual likes..." >> "$LOG_FILE"
+          MANUAL_LIKES_COUNT=$(jq -r '.manual_likes.users | length' "$STATS_FILE")
+          EVENT_NAME="${{ github.event_name }}"
+          ADD_LIKE_INPUT="${{ github.event.inputs.add_like }}"
+
+          if { [[ "$EVENT_NAME" == "workflow_dispatch" ]] || [[ "$EVENT_NAME" == "repository_dispatch" ]]; } &&
+             [[ "$ADD_LIKE_INPUT" == "true" ]]; then
             USER="${{ github.actor }}"
-            IS_STARGAZER=$(echo "$STARS_USERS" | jq --arg user "$USER" 'index($user) != null')
-            
-            if [ "$IS_STARGAZER" = "false" ]; then
-              ALREADY_LIKED=$(jq --arg user "$USER" '.manual_likes.users | index($user) != null' "$STATS_FILE")
-              if [ "$ALREADY_LIKED" = "false" ]; then
+            echo "👤 Processing manual like for user: $USER" >> "$LOG_FILE"
+
+            IS_STARGAZER="false"
+            STARGHAZERS_PAGE=1
+            while [[ "$IS_STARGAZER" == "false" && $STARGHAZERS_PAGE -le 3 ]]; do
+              STARS_RESPONSE=$(github_api_request "repos/$OWNER/$REPO/stargazers?page=$STARGHAZERS_PAGE&per_page=100")
+              if jq -e --arg user "$USER" '.[] | select(.login == $user)' <<< "$STARS_RESPONSE" >/dev/null 2>&1; then
+                IS_STARGAZER="true"
+                break
+              fi
+              STARGHAZERS_PAGE=$((STARGHAZERS_PAGE + 1))
+            done
+
+            if [[ "$IS_STARGAZER" == "false" ]]; then
+              if ! jq -e --arg user "$USER" '.manual_likes.users | index($user) != null' "$STATS_FILE" >/dev/null 2>&1; then
                 CURRENT_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
                 jq --arg user "$USER" --arg time "$CURRENT_TIME" \
-                  '.manual_likes.users += [$user] | .manual_likes.details += [{login: $user, liked_at: $time, type: "manual", source: "workflow_dispatch"}]' \
+                  '.manual_likes.users += [$user] | .manual_likes.details += [{login: $user, liked_at: $time, type: "manual", source: "'"$EVENT_NAME"'"}]' \
                   "$STATS_FILE" > tmp.json && mv tmp.json "$STATS_FILE"
-                echo "💖 New manual like from $USER!" >> $LOG_FILE
+                MANUAL_LIKES_COUNT=$((MANUAL_LIKES_COUNT + 1))
+                echo "💖 New manual like from $USER!" >> "$LOG_FILE"
+              else
+                echo "⏭️ User $USER already has a manual like" >> "$LOG_FILE"
               fi
+            else
+              echo "⏭️ User $USER is already a stargazer" >> "$LOG_FILE"
             fi
+          else
+            echo "⏭️ No manual like to process (event: $EVENT_NAME, add_like: $ADD_LIKE_INPUT)" >> "$LOG_FILE"
           fi
 
-          MANUAL_LIKES_COUNT=$(jq -r '.manual_likes.users | length' "$STATS_FILE")
           TOTAL_LIKES=$((STARS_COUNT + MANUAL_LIKES_COUNT))
 
-          # 5. COMMITS AND CONTRIBUTORS
-          echo "📝 Fetching commit statistics..." >> $LOG_FILE
+          echo "📝 Fetching commit statistics..." >> "$LOG_FILE"
           COMMITS_DATA=$(github_api_request "repos/$OWNER/$REPO/stats/contributors")
-          CONTRIBUTORS_COUNT=$(echo "$COMMITS_DATA" | jq 'length // 0')
-          TOTAL_COMMITS=$(echo "$COMMITS_DATA" | jq '[.[].total] | add // 0')
+          CONTRIBUTORS_COUNT=$(jq -r 'length // 0' <<< "$COMMITS_DATA")
+          TOTAL_COMMITS=$(jq -r '[.[].total] | add // 0' <<< "$COMMITS_DATA")
 
-          # 6. RELEASES AND DOWNLOADS
-          echo "📦 Fetching releases information..." >> $LOG_FILE
+          echo "📦 Fetching releases information..." >> "$LOG_FILE"
           RELEASES_RESPONSE=$(github_api_request "repos/$OWNER/$REPO/releases")
           TOTAL_DOWNLOADS=0
-          LATEST_RELEASE=""
-          if echo "$RELEASES_RESPONSE" | jq -e '. | length > 0' >/dev/null 2>&1; then
-            TOTAL_DOWNLOADS=$(echo "$RELEASES_RESPONSE" | jq '[.[].assets[].download_count] | add // 0')
-            LATEST_RELEASE=$(echo "$RELEASES_RESPONSE" | jq '.[0] | {tag_name: .tag_name, name: .name, published_at: .published_at, html_url: .html_url}')
+          if jq -e '. | length > 0' <<< "$RELEASES_RESPONSE" >/dev/null 2>&1; then
+            TOTAL_DOWNLOADS=$(jq -r '[.[].assets[].download_count] | add // 0' <<< "$RELEASES_RESPONSE")
           fi
 
-          # 7. LANGUAGES
-          echo "🔤 Fetching languages..." >> $LOG_FILE
+          echo "🔤 Fetching languages..." >> "$LOG_FILE"
           LANGUAGES_RESPONSE=$(github_api_request "repos/$OWNER/$REPO/languages")
-          LANGUAGES=$(echo "$LANGUAGES_RESPONSE" | jq -r 'to_entries | sort_by(.value) | reverse | map({language: .key, bytes: .value})')
+          LANGUAGES=$(jq -r 'to_entries | sort_by(.value) | reverse | map({language: .key, bytes: .value}) | tostring' <<< "$LANGUAGES_RESPONSE")
 
-          # 8. TOPICS
-          echo "🏷️ Fetching topics..." >> $LOG_FILE
+          echo "🏷️ Fetching topics..." >> "$LOG_FILE"
           TOPICS_RESPONSE=$(github_api_request "repos/$OWNER/$REPO/topics")
-          TOPICS=$(echo "$TOPICS_RESPONSE" | jq -r '.names // []')
+          TOPICS=$(jq -r '.names // [] | join(", ")' <<< "$TOPICS_RESPONSE")
 
-          # Create badges
-          echo '{"schemaVersion": 1, "label": "📊 views", "message": "'$VIEWS'", "color": "'$BADGE_COLOR'", "style": "'$BADGE_STYLE'"}' > "$DATA_DIR/visitors-badge.json"
-          echo '{"schemaVersion": 1, "label": "⭐ stars", "message": "'$TOTAL_LIKES'", "color": "'$LIKES_COLOR'", "style": "'$BADGE_STYLE'"}' > "$DATA_DIR/likes-badge.json"
-          echo '{"schemaVersion": 1, "label": "📦 size", "message": "'${REPO_SIZE_MB}'MB", "color": "blue", "style": "'$BADGE_STYLE'"}' > "$DATA_DIR/repo-size.json"
-          echo '{"schemaVersion": 1, "label": "📄 license", "message": "'$LICENSE'", "color": "blue", "style": "'$BADGE_STYLE'"}' > "$DATA_DIR/repo-license.json"
-          echo '{"schemaVersion": 1, "label": "📝 commits", "message": "'$TOTAL_COMMITS'", "color": "green", "style": "'$BADGE_STYLE'"}' > "$DATA_DIR/commits-badge.json"
-          echo '{"schemaVersion": 1, "label": "👥 contributors", "message": "'$CONTRIBUTORS_COUNT'", "color": "yellow", "style": "'$BADGE_STYLE'"}' > "$DATA_DIR/contributors-badge.json"
+          # Запис JSON бейджів у DATA_DIR
+          echo '{"schemaVersion": 1, "label": "📊 views", "message": "'$VIEWS'", "color": "'${{ env.BADGE_COLOR }}'", "style": "'${{ env.BADGE_STYLE }}'"}' > "$DATA_DIR/visitors-badge.json"
+          echo '{"schemaVersion": 1, "label": "⭐ stars", "message": "'$TOTAL_LIKES'", "color": "'${{ env.LIKES_COLOR }}'", "style": "'${{ env.BADGE_STYLE }}'"}' > "$DATA_DIR/likes-badge.json"
+          echo '{"schemaVersion": 1, "label": "📦 size", "message": "'${REPO_SIZE_MB}'MB", "color": "blue", "style": "'${{ env.BADGE_STYLE }}'"}' > "$DATA_DIR/repo-size.json"
+          echo '{"schemaVersion": 1, "label": "📄 license", "message": "'$LICENSE'", "color": "blue", "style": "'${{ env.BADGE_STYLE }}'"}' > "$DATA_DIR/repo-license.json"
+          echo '{"schemaVersion": 1, "label": "📝 commits", "message": "'$TOTAL_COMMITS'", "color": "green", "style": "'${{ env.BADGE_STYLE }}'"}' > "$DATA_DIR/commits-badge.json"
+          echo '{"schemaVersion": 1, "label": "👥 contributors", "message": "'$CONTRIBUTORS_COUNT'", "color": "yellow", "style": "'${{ env.BADGE_STYLE }}'"}' > "$DATA_DIR/contributors-badge.json"
 
-          if [ $TOTAL_DOWNLOADS -gt 0 ]; then
-            echo '{"schemaVersion": 1, "label": "⬇️ downloads", "message": "'$TOTAL_DOWNLOADS'", "color": "orange", "style": "'$BADGE_STYLE'"}' > "$DATA_DIR/downloads-badge.json"
+          if [[ $TOTAL_DOWNLOADS -gt 0 ]]; then
+            echo '{"schemaVersion": 1, "label": "⬇️ downloads", "message": "'$TOTAL_DOWNLOADS'", "color": "orange", "style": "'${{ env.BADGE_STYLE }}'"}' > "$DATA_DIR/downloads-badge.json"
           fi
 
-          # Generate technology badges
-          TECH_BADGES=""
-          TOP_LANGUAGES=$(echo "$LANGUAGES_RESPONSE" | jq -r 'to_entries | sort_by(.value) | reverse | .[0:3] | .[].key')
-          
-          for lang in $TOP_LANGUAGES; do
-            case $lang in
-              "HTML") TECH_BADGES="$TECH_BADGES[![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML) " ;;
-              "CSS") TECH_BADGES="$TECH_BADGES[![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS) " ;;
-              "JavaScript") TECH_BADGES="$TECH_BADGES[![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript) " ;;
-              "TypeScript") TECH_BADGES="$TECH_BADGES[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/) " ;;
-              "Python") TECH_BADGES="$TECH_BADGES[![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/) " ;;
-              "Java") TECH_BADGES="$TECH_BADGES[![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=java&logoColor=white)](https://www.java.com/) " ;;
-              *) TECH_BADGES="$TECH_BADGES[![$lang](https://img.shields.io/badge/$lang-000000?style=for-the-badge)]() " ;;
-            esac
-          done
+          echo "✅ Data collection completed successfully" >> "$LOG_FILE"
 
-          TECH_BADGES="$TECH_BADGES[![Terminal](https://img.shields.io/badge/mac%20terminal-000000?style=for-the-badge&logo=apple&logoColor=white&labelColor=000000)](https://support.apple.com/guide/terminal/welcome/mac) "
-          TECH_BADGES="$TECH_BADGES[![VS Code](https://img.shields.io/badge/VS_Code-007ACC?style=for-the-badge&logo=visual-studio-code&logoColor=white)](https://code.visualstudio.com/) "
-          TECH_BADGES="$TECH_BADGES[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/) "
-          TECH_BADGES="$TECH_BADGES[![Figma](https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)](https://www.figma.com/) "
-
-          echo "$TECH_BADGES" > "$DATA_DIR/tech-badges.txt"
-
-          # Save detailed statistics
-          echo "💾 Saving detailed statistics..." >> $LOG_FILE
-          
-          # Repository statistics
-          echo "{
-            \"repository\": {
-              \"name\": \"$REPO\",
-              \"owner\": \"$OWNER\",
-              \"size_mb\": $REPO_SIZE_MB,
-              \"main_language\": \"$MAIN_LANGUAGE\",
-              \"license\": \"$LICENSE\",
-              \"default_branch\": \"$DEFAULT_BRANCH\",
-              \"created_at\": \"$CREATED_AT\",
-              \"updated_at\": \"$UPDATED_AT\",
-              \"pushed_at\": \"$PUSHED_AT\",
-              \"forks_count\": $FORKS_COUNT,
-              \"open_issues\": $OPEN_ISSUES,
-              \"watchers\": $WATCHERS,
-              \"archived\": $ARCHIVED,
-              \"disabled\": $DISABLED
-            },
-            \"languages\": $LANGUAGES,
-            \"topics\": $TOPICS,
-            \"updated_at\": \"$(date -u +\"%Y-%m-%dT%H:%M:%SZ\")\"
-          }" > "$REPO_STATS_FILE"
-
-          # Traffic statistics
-          echo "{
-            \"views\": {
-              \"unique\": $VIEWS,
-              \"total\": $VIEWS_TOTAL,
-              \"data\": $VIEWS_DATA
-            },
-            \"clones\": {
-              \"unique\": $CLONES,
-              \"total\": $CLONES_TOTAL,
-              \"data\": $CLONES_DATA
-            },
-            \"popular_paths\": $POPULAR_PATHS,
-            \"popular_referrers\": $POPULAR_REFERRERS,
-            \"updated_at\": \"$(date -u +\"%Y-%m-%dT%H:%M:%SZ\")\"
-          }" > "$TRAFFIC_FILE"
-
-          # User statistics
-          MANUAL_LIKES_DETAILED=$(jq -r '.manual_likes.details // []' "$STATS_FILE")
-          echo "{\"count\": $MANUAL_LIKES_COUNT, \"users\": $MANUAL_LIKES_DETAILED, \"updated_at\": \"$(date -u +\"%Y-%m-%dT%H:%M:%SZ\")\"}" > "$MANUAL_LIKES_FILE"
-          echo "{\"count\": $STARS_COUNT, \"users\": $STARGAZERS_DETAILED, \"updated_at\": \"$(date -u +\"%Y-%m-%dT%H:%M:%SZ\")\"}" > "$STARGAZERS_FILE"
-
-          ALL_UNIQUE_USERS=$(echo "$STARS_USERS" | jq --argjson manual "$(jq -r '.manual_likes.users // []' "$STATS_FILE")" '. + $manual | unique')
-          TOTAL_UNIQUE_USERS=$(echo "$ALL_UNIQUE_USERS" | jq 'length')
-
-          echo "{
-            \"total_unique_users\": $TOTAL_UNIQUE_USERS,
-            \"unique_visitors\": $VIEWS,
-            \"stargazers\": {
-              \"count\": $STARS_COUNT,
-              \"users\": $STARS_USERS
-            },
-            \"manual_likes\": {
-              \"count\": $MANUAL_LIKES_COUNT,
-              \"users\": $(jq -r '.manual_likes.users // []' "$STATS_FILE")
-            },
-            \"contributors\": $CONTRIBUTORS_COUNT,
-            \"total_commits\": $TOTAL_COMMITS,
-            \"all_engaged_users\": $ALL_UNIQUE_USERS,
-            \"releases\": {
-              \"total_downloads\": $TOTAL_DOWNLOADS,
-              \"latest\": $LATEST_RELEASE
-            },
-            \"updated_at\": \"$(date -u +\"%Y-%m-%dT%H:%M:%SZ\")\"
-          }" > "$USERS_FILE"
-
-          echo "✅ All statistics collected and saved" >> $LOG_FILE
-          echo "📊 Views: $VIEWS, Stars: $STARS_COUNT, Manual: $MANUAL_LIKES_COUNT" >> $LOG_FILE
-          echo "👥 Total engaged users: $TOTAL_UNIQUE_USERS" >> $LOG_FILE
-
-      - name: 🖥 Setup Node.js and dependencies
+      - name: 📸 Generate screenshot from GitHub Pages
+        id: generate_screenshot
         run: |
-          echo "🔧 Setting up Node.js and dependencies..." >> $LOG_FILE
-          
-          # Check if screenshot is needed
-          SCREENSHOT_NEEDED=false
-          for readme in $TARGET_READMES; do
-            if grep -q "^[[:space:]]*<!--.*📸.*Скріншот\\|📸.*Screenshot" "$readme"; then
-              echo "⏭️ Screenshot section commented in $readme" >> $LOG_FILE
-            else
-              SCREENSHOT_NEEDED=true
-              echo "📸 Screenshot needed for $readme" >> $LOG_FILE
-            fi
-          done
-          
-          if [ "$SCREENSHOT_NEEDED" = "false" ]; then
-            echo "SCREENSHOT_SKIP=true" >> $GITHUB_ENV
-            echo "⏭️ Skipping Node.js setup - screenshot not needed" >> $LOG_FILE
+          echo "📸 Starting screenshot generation..." >> "$LOG_FILE"
+          SCREENSHOT_PATH="${{ env.SCREENSHOT_DIR }}/screenshot_$(date +%s).png"
+
+          if ! command -v node &> /dev/null || ! command -v npm &> /dev/null; then
+            echo "❌ Node.js/npm not available - skipping screenshot" >> "$LOG_FILE"
+            echo "screenshot_created=false" >> $GITHUB_OUTPUT
+            echo "screenshot_path=" >> $GITHUB_OUTPUT
             exit 0
           fi
-          
-          echo "📦 Installing Node.js..." >> $LOG_FILE
-          curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-          sudo apt-get install -y nodejs
-          
-          echo "Node.js $(node --version)" >> $LOG_FILE
-          echo "npm $(npm --version)" >> $LOG_FILE
-          
-          echo "🌐 Installing Chrome..." >> $LOG_FILE
-          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/google-chrome-keyring.gpg
-          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable jq libgbm-dev
-          
-          echo "📦 Installing Puppeteer..." >> $LOG_FILE
-          npm config set registry https://registry.npmjs.org/
-          npm install --no-package-lock --no-save puppeteer@latest --timeout=120000
-          
-          if [ -d "node_modules/puppeteer" ]; then
-            PUPPETEER_VERSION=$(node -e "console.log(require('./node_modules/puppeteer/package.json').version)")
-            echo "✅ Puppeteer $PUPPETEER_VERSION installed" >> $LOG_FILE
-            echo "SCREENSHOT_DEPENDENCIES_AVAILABLE=true" >> $GITHUB_ENV
-          else
-            echo "❌ Puppeteer installation failed" >> $LOG_FILE
-            echo "SCREENSHOT_DEPENDENCIES_AVAILABLE=false" >> $GITHUB_ENV
+
+          if ! npm list puppeteer &> /dev/null; then
+            echo "📦 Installing puppeteer..." >> "$LOG_FILE"
+            npm install puppeteer --no-save 2>> "$LOG_FILE"
           fi
 
-      - name: 📸 Generate screenshot
-        run: |
-          if [ "$SCREENSHOT_DEPENDENCIES_AVAILABLE" = "false" ]; then
-            echo "❌ Screenshot dependencies not available" >> $LOG_FILE
-            echo "SCREENSHOT_CREATED=false" >> $GITHUB_ENV
-            exit 0
-          fi
-          
-          if [ "$SCREENSHOT_SKIP" = "true" ]; then
-            echo "⏭️ Screenshot generation skipped" >> $LOG_FILE
-            echo "SCREENSHOT_CREATED=false" >> $GITHUB_ENV
-            exit 0
-          fi
-          
-          echo "📸 Starting screenshot generation..." >> $LOG_FILE
-          
-          node -e "
-          const puppeteer = require('puppeteer');
-          const fs = require('fs');
-          const path = require('path');
-          const { execSync } = require('child_process');
+          {
+            TMP_JS="$(mktemp --suffix=.js)"
+            {
+              echo "const puppeteer = require('puppeteer');"
+              echo "const fs = require('fs');"
+              echo "const path = require('path');"
+              echo ""
+              echo "async function takeScreenshot() {"
+              echo "  let browser;"
+              echo "  try {"
+              echo "    const screenshotPath = process.env.SCREENSHOT_PATH;"
+              echo "    const screenshotDir = path.dirname(screenshotPath);"
+              echo "    if (!fs.existsSync(screenshotDir)) {"
+              echo "      fs.mkdirSync(screenshotDir, { recursive: true });"
+              echo "    }"
+              echo ""
+              echo "    const browserArgs = ["
+              echo "      '--no-sandbox',"
+              echo "      '--disable-setuid-sandbox',"
+              echo "      '--disable-dev-shm-usage',"
+              echo "      '--disable-web-security',"
+              echo "      '--headless',"
+              echo "      '--disable-gpu',"
+              echo "    ];"
+              echo ""
+              echo "    browser = await puppeteer.launch({ args: browserArgs, timeout: 30000 });"
+              echo "    const page = await browser.newPage();"
+              echo "    await page.setViewport({ width: 1280, height: 800 });"
+              echo ""
+              echo "    const owner = process.env.GITHUB_REPOSITORY_OWNER;"
+              echo "    const repo = process.env.GITHUB_REPOSITORY.split('/')[1];"
+              echo "    const githubPages = `https://${owner}.github.io/${repo}/`;"
+              echo ""
+              echo "    console.log(`🌐 Checking GitHub Pages: ${githubPages}`);"
+              echo ""
+              echo "    const response = await page.goto(githubPages, { "
+              echo "      waitUntil: 'networkidle0', "
+              echo "      timeout: 30000 "
+              echo "    });"
+              echo ""
+              echo "    if (!response || response.status() !== 200) {"
+              echo "      throw new Error(`HTTP ${response?.status() || 'unknown'}`);"
+              echo "    }"
+              echo ""
+              echo "    const pageContent = await page.content();"
+              echo "    if (pageContent.includes(\"There isn't a GitHub Pages site here\") ||"
+              echo "        pageContent.includes('404') ||"
+              echo "        pageContent.length < 500) {"
+              echo "      throw new Error('GitHub Pages has insufficient content');"
+              echo "    }"
+              echo ""
+              echo "    console.log('✅ GitHub Pages is accessible');"
+              echo ""
+              echo "    await page.evaluate(async () => {"
+              echo "      await new Promise((resolve) => {"
+              echo "        let totalHeight = 0;"
+              echo "        const distance = 200;"
+              echo "        const timer = setInterval(() => {"
+              echo "          const scrollHeight = document.body.scrollHeight;"
+              echo "          window.scrollBy(0, distance);"
+              echo "          totalHeight += distance;"
+              echo "          if (totalHeight >= scrollHeight) {"
+              echo "            clearInterval(timer);"
+              echo "            resolve();"
+              echo "          }"
+              echo "        }, 100);"
+              echo "      });"
+              echo "    });"
+              echo ""
+              echo "    await new Promise(resolve => setTimeout(resolve, 2000));"
+              echo "    await page.evaluate(() => window.scrollTo(0, 0));"
+              echo "    await new Promise(resolve => setTimeout(resolve, 1000));"
+              echo ""
+              echo "    await page.screenshot({ "
+              echo "      path: screenshotPath, "
+              echo "      fullPage: true,"
+              echo "      type: 'png'"
+              echo "    });"
+              echo ""
+              echo "    const stats = fs.statSync(screenshotPath);"
+              echo "    if (stats.size > 10000) {"
+              echo "      console.log(`✅ Screenshot created: ${Math.round(stats.size / 1024)}KB`);"
+              echo "      console.log('SCREENSHOT_SUCCESS=true');"
+              echo "    } else {"
+              echo "      fs.unlinkSync(screenshotPath);"
+              echo "      throw new Error('Screenshot file is too small');"
+              echo "    }"
+              echo ""
+              echo "  } catch (error) {"
+              echo "    console.log(`❌ Screenshot failed: ${error.message}`);"
+              echo "    console.log('SCREENSHOT_SUCCESS=false');"
+              echo "  } finally {"
+              echo "    if (browser) {"
+              echo "      await browser.close();"
+              echo "    }"
+              echo "  }"
+              echo "}"
+              echo ""
+              echo "takeScreenshot();"
+            } > "$TMP_JS"
 
-          async function takeScreenshot() {
-            let browser;
-            try {
-              const screenshotDir = process.env.SCREENSHOT_DIR || 'assets';
-              const screenshotPath = path.resolve(screenshotDir, 'screenshot.png');
-              const logFile = process.env.LOG_FILE;
-              
-              function log(message) {
-                if (logFile) {
-                  fs.appendFileSync(logFile, message + '\\n');
-                }
-                console.log(message);
-              }
-              
-              log('📁 Preparing screenshot directory...');
-              if (!fs.existsSync(screenshotDir)) fs.mkdirSync(screenshotDir, { recursive: true });
-              if (fs.existsSync(screenshotPath)) fs.unlinkSync(screenshotPath);
-              
-              let chromeExecutable = '/usr/bin/google-chrome';
-              if (!fs.existsSync(chromeExecutable)) {
-                try {
-                  const chromePath = execSync('which google-chrome-stable || which google-chrome', { encoding: 'utf8' }).trim();
-                  if (chromePath) chromeExecutable = chromePath;
-                } catch (e) {
-                  log('❌ Chrome not found: ' + e.message);
-                  return false;
-                }
-              }
-
-              log('🔧 Using Chrome: ' + chromeExecutable);
-              
-              const browserArgs = [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-web-security',
-                '--disable-features=VizDisplayCompositor',
-                '--headless',
-                '--disable-gpu',
-                '--disable-software-rasterizer',
-                '--remote-debugging-port=0',
-                '--no-zygote',
-                '--no-first-run',
-                '--disable-extensions',
-                '--disable-background-timer-throttling',
-                '--disable-backgrounding-occluded-windows',
-                '--disable-renderer-backgrounding'
-              ];
-
-              browser = await puppeteer.launch({
-                args: browserArgs,
-                executablePath: chromeExecutable,
-                timeout: 30000,
-                dumpio: false
-              });
-              
-              const page = await browser.newPage();
-              await page.setViewport({ width: 1280, height: 800 });
-              
-              const githubPages = 'https://' + '${{ github.repository_owner }}' + '.github.io/' + '${{ github.event.repository.name }}' + '/';
-              log('🌐 Checking: ' + githubPages);
-              
-              try {
-                const response = await page.goto(githubPages, { 
-                  waitUntil: 'networkidle0', 
-                  timeout: 30000 
-                });
-                
-                if (!response || response.status() !== 200) {
-                  log('❌ HTTP Status: ' + (response?.status() || 'unknown'));
-                  return false;
-                }
-                
-                const pageTitle = await page.title();
-                const pageContent = await page.content();
-                
-                const hasMeaningfulContent = pageContent.length > 500 && 
-                                           !pageTitle.includes('404') &&
-                                           !pageContent.includes('There isn\\'t a GitHub Pages site here');
-                
-                if (!hasMeaningfulContent) {
-                  log('❌ Insufficient content');
-                  return false;
-                }
-                
-                log('✅ Page loaded successfully');
-                
-                await new Promise(resolve => setTimeout(resolve, 3000));
-                
-                await page.evaluate(() => {
-                  return new Promise(resolve => {
-                    let totalHeight = 0;
-                    const distance = 200;
-                    const timer = setInterval(() => {
-                      const scrollHeight = document.body.scrollHeight;
-                      window.scrollBy(0, distance);
-                      totalHeight += distance;
-                      
-                      if (totalHeight >= scrollHeight) {
-                        clearInterval(timer);
-                        resolve();
-                      }
-                    }, 50);
-                  });
-                });
-                
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                await page.evaluate(() => window.scrollTo(0, 0));
-                await new Promise(resolve => setTimeout(resolve, 1000));
-
-                await page.screenshot({ 
-                  path: screenshotPath, 
-                  fullPage: true,
-                  type: 'png'
-                });
-                
-                if (fs.existsSync(screenshotPath)) {
-                  const stats = fs.statSync(screenshotPath);
-                  if (stats.size > 1000) {
-                    log('✅ Screenshot created: ' + Math.round(stats.size / 1024) + 'KB');
-                    return true;
-                  } else {
-                    log('❌ Screenshot too small: ' + stats.size + ' bytes');
-                    fs.unlinkSync(screenshotPath);
-                    return false;
-                  }
-                } else {
-                  log('❌ Screenshot file not created');
-                  return false;
-                }
-                
-              } catch (error) {
-                log('❌ Screenshot error: ' + error.message);
-                return false;
-              }
-              
-            } catch (error) {
-              log('❌ Browser error: ' + error.message);
-              return false;
-            } finally {
-              if (browser) {
-                try {
-                  await browser.close();
-                } catch (closeError) {
-                  log('⚠️ Browser close error: ' + closeError.message);
-                }
-              }
-            }
+            SCREENSHOT_PATH="$SCREENSHOT_PATH" node "$TMP_JS" | tee -a "$LOG_FILE"
+            rm -f "$TMP_JS"
           }
 
-          takeScreenshot().then(success => {
-            if (success) {
-              console.log('SCREENSHOT_SUCCESS=true');
-            } else {
-              console.log('SCREENSHOT_SUCCESS=false');
-            }
-          }).catch(error => {
-            console.log('❌ Unhandled error: ' + error.message);
-            console.log('SCREENSHOT_SUCCESS=false');
-          });
-          " | tee -a $LOG_FILE
-
-          if grep -q "SCREENSHOT_SUCCESS=true" $LOG_FILE; then
-            echo "SCREENSHOT_CREATED=true" >> $GITHUB_ENV
-            echo "🎯 Screenshot created successfully" >> $LOG_FILE
+          if grep -q "SCREENSHOT_SUCCESS=true" <<< "$(tail -n 50 $LOG_FILE)"; then
+            echo "screenshot_created=true" >> $GITHUB_OUTPUT
+            echo "screenshot_path=$SCREENSHOT_PATH" >> $GITHUB_OUTPUT
           else
-            echo "SCREENSHOT_CREATED=false" >> $GITHUB_ENV
-            echo "⏭️ Screenshot creation failed" >> $LOG_FILE
+            echo "screenshot_created=false" >> $GITHUB_OUTPUT
+            echo "screenshot_path=" >> $GITHUB_OUTPUT
           fi
 
-      - name: 📝 Update README files
+      - name: 🚀 Optimize screenshot with Squoosh
+        id: optimize_screenshot
+        if: ${{ steps.generate_screenshot.outputs.screenshot_created == 'true' }}
         run: |
-          echo "📝 Updating README files..." >> $LOG_FILE
-          
-          REPO_URL="https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}"
-          TECH_BADGES=$(cat $DATA_DIR/tech-badges.txt 2>/dev/null || echo "")
-          
-          DOWNLOADS_BADGE=""
-          if [ -f "$DATA_DIR/downloads-badge.json" ]; then
-            DOWNLOADS_BADGE="[![⬇️ Downloads](https://img.shields.io/endpoint?url=$REPO_URL/$DATA_DIR/downloads-badge.json)](https://github.com/${{ github.repository }}/releases)"
+          echo "🚀 Starting screenshot optimization with Squoosh..." >> "$LOG_FILE"
+          INPUT_PATH="${{ steps.generate_screenshot.outputs.screenshot_path }}"
+          OUTPUT_PATH="${INPUT_PATH%.png}_optimized.png"
+
+          if [[ -z "$INPUT_PATH" ]]; then
+            echo "❌ No input screenshot path provided" >> "$LOG_FILE"
+            echo "optimization_success=false" >> $GITHUB_OUTPUT
+            exit 0
           fi
-          
-          COMMITS_BADGE="[![📝 Commits](https://img.shields.io/endpoint?url=$REPO_URL/$DATA_DIR/commits-badge.json)](https://github.com/${{ github.repository }}/commits)"
-          CONTRIBUTORS_BADGE="[![👥 Contributors](https://img.shields.io/endpoint?url=$REPO_URL/$DATA_DIR/contributors-badge.json)](https://github.com/${{ github.repository }}/graphs/contributors)"
-          
-          for readme_file in $TARGET_READMES; do
-            echo "🔄 Processing $readme_file..." >> $LOG_FILE
-            
-            if [ ! -f "$readme_file" ]; then
-              echo "⚠️ File $readme_file not found, skipping" >> $LOG_FILE
+
+          if ! command -v npx &> /dev/null; then
+            echo "❌ npx not available - skipping optimization" >> "$LOG_FILE"
+            echo "optimization_success=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "📦 Installing @squoosh/cli..." >> "$LOG_FILE"
+          npm install @squoosh/cli --no-save 2>> "$LOG_FILE"
+
+          echo "🔄 Optimizing screenshot..." >> "$LOG_FILE"
+          npx squoosh-cli --oxipng auto --webp auto "$INPUT_PATH" -d "$(dirname "$INPUT_PATH")" 2>> "$LOG_FILE"
+
+          if [[ -f "$OUTPUT_PATH" ]]; then
+            ORIGINAL_SIZE=$(stat -c%s "$INPUT_PATH")
+            OPTIMIZED_SIZE=$(stat -c%s "$OUTPUT_PATH")
+            SAVED_BYTES=$((ORIGINAL_SIZE - OPTIMIZED_SIZE))
+            SAVED_PERCENT=$(echo "scale=1; $SAVED_BYTES * 100 / $ORIGINAL_SIZE" | bc -l)
+
+            echo "✅ Optimization successful!" >> "$LOG_FILE"
+            echo "📊 Original: $(($ORIGINAL_SIZE / 1024))KB" >> "$LOG_FILE"
+            echo "📊 Optimized: $(($OPTIMIZED_SIZE / 1024))KB" >> "$LOG_FILE"
+            echo "💾 Saved: $(($SAVED_BYTES / 1024))KB (${SAVED_PERCENT}%)" >> "$LOG_FILE"
+
+            mv "$OUTPUT_PATH" "$INPUT_PATH"
+            echo "🔄 Replaced original with optimized version" >> "$LOG_FILE"
+            echo "optimization_success=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Optimization failed - output file not found" >> "$LOG_FILE"
+            echo "optimization_success=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🛠️ Update README with badges
+        run: |
+          echo "🛠️ Updating README files with badges..." >> "$LOG_FILE"
+
+          # Генеруємо секцію бейджів локально в цьому кроці (щоб уникнути cross-step env issues)
+          BADGES_SECTION=$(
+          {
+            echo "<!-- BADGES-SECTION:START -->"
+            echo "![Views](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/${{ github.repository }}/main/${{ env.DATA_DIR }}/visitors-badge.json)"
+            echo "![Stars](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/${{ github.repository }}/main/${{ env.DATA_DIR }}/likes-badge.json)"
+            echo "![Size](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/${{ github.repository }}/main/${{ env.DATA_DIR }}/repo-size.json)"
+            echo "![License](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/${{ github.repository }}/main/${{ env.DATA_DIR }}/repo-license.json)"
+            echo "![Commits](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/${{ github.repository }}/main/${{ env.DATA_DIR }}/commits-badge.json)"
+            echo "![Contributors](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/${{ github.repository }}/main/${{ env.DATA_DIR }}/contributors-badge.json)"
+          }
+          )
+
+          if [[ -f "${{ env.DATA_DIR }}/downloads-badge.json" ]]; then
+            BADGES_SECTION="$BADGES_SECTION"$'\n'"![Downloads](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/${{ github.repository }}/main/${{ env.DATA_DIR }}/downloads-badge.json)"
+          fi
+
+          BADGES_SECTION="$BADGES_SECTION"$'\n'"<!-- BADGES-SECTION:END -->"
+
+          for FILE in $TARGET_READMES; do
+            echo "🔄 Processing $FILE" >> "$LOG_FILE"
+
+            if [[ ! -f "$FILE" ]]; then
+              echo "⚠️ File $FILE not found, skipping" >> "$LOG_FILE"
               continue
             fi
-            
-            # # Create backup
-            # cp "$readme_file" "$readme_file.backup"
-            
-            # Extract content before and after autogen section
-            awk '/<!-- AUTOGEN:STATS -->/{exit} {print}' "$readme_file" > "${readme_file}_before.tmp"
-            awk '/<!-- END:AUTOGEN -->/{found=1; next} found{print}' "$readme_file" > "${readme_file}_after.tmp"
-            
-            # Determine language for screenshot title
-            SCREENSHOT_TITLE="## 📸 Скріншот проекту"
-            if [[ "$readme_file" == *".en.md" ]]; then
-              SCREENSHOT_TITLE="## 📸 Latest Screenshot"
-            elif [[ "$readme_file" == *".de.md" ]]; then
-              SCREENSHOT_TITLE="## 📸 Projekt Screenshot"
+
+            if grep -q "<!-- BADGES-SECTION:START -->" "$FILE" && grep -q "<!-- BADGES-SECTION:END -->" "$FILE"; then
+              TEMP_FILE=$(mktemp)
+              awk -v new_section="$BADGES_SECTION" '
+                /<!-- BADGES-SECTION:START -->/ {print; in_section=1; next}
+                /<!-- BADGES-SECTION:END -->/ {print new_section; in_section=0; next}
+                !in_section {print}
+              ' "$FILE" > "$TEMP_FILE"
+              mv "$TEMP_FILE" "$FILE"
+              echo "✅ Updated badges section in $FILE" >> "$LOG_FILE"
+            else
+              # Якщо знайдено будь-яку згадку BADGES-SECTION (можливо закоментовану) — лог і пропуск
+              if grep -q "BADGES-SECTION" "$FILE"; then
+                echo "⚠️ Found existing BADGES-SECTION reference in $FILE, skipping automatic insertion" >> "$LOG_FILE"
+                continue
+              fi
+
+              # Вставляємо секцію на початок файлу
+              TEMP_FILE=$(mktemp)
+              printf "%s\n\n" "$BADGES_SECTION" > "$TEMP_FILE"
+              cat "$FILE" >> "$TEMP_FILE"
+              mv "$TEMP_FILE" "$FILE"
+              echo "✅ Prepended badges section to $FILE" >> "$LOG_FILE"
             fi
-            
-            {
-              cat "${readme_file}_before.tmp"
-              echo "<!-- AUTOGEN:STATS -->"
-              echo "$TECH_BADGES"
-              echo ""
-              echo "[![📊 Views](https://img.shields.io/endpoint?url=$REPO_URL/$DATA_DIR/visitors-badge.json)](https://github.com/${{ github.repository }}/graphs/traffic)"
-              echo "[![⭐ Stars](https://img.shields.io/endpoint?url=$REPO_URL/$DATA_DIR/likes-badge.json)](https://github.com/${{ github.repository }}/actions/workflows/screenshot-and-visitor.yaml)"
-              echo "[![📦 Size](https://img.shields.io/endpoint?url=$REPO_URL/$DATA_DIR/repo-size.json)](https://github.com/${{ github.repository }})"
-              echo "[![📄 License](https://img.shields.io/endpoint?url=$REPO_URL/$DATA_DIR/repo-license.json)](https://github.com/${{ github.repository }}/blob/main/LICENSE)"
-              echo "$COMMITS_BADGE"
-              echo "$CONTRIBUTORS_BADGE"
-              if [ -n "$DOWNLOADS_BADGE" ]; then
-                echo "$DOWNLOADS_BADGE"
-              fi
-              
-              if [ "$SCREENSHOT_CREATED" = "true" ] && [ -f "$SCREENSHOT_DIR/screenshot.png" ]; then
-                SCREENSHOT_SIZE=$(stat -f%z "$SCREENSHOT_DIR/screenshot.png" 2>/dev/null || stat -c%s "$SCREENSHOT_DIR/screenshot.png" 2>/dev/null || echo "0")
-                if [ "$SCREENSHOT_SIZE" -gt 0 ]; then
-                  echo ""
-                  echo "$SCREENSHOT_TITLE"
-                  echo "![Project Screenshot](./$SCREENSHOT_DIR/screenshot.png)"
-                fi
-              fi
-              
-              echo "<!-- END:AUTOGEN -->"
-              cat "${readme_file}_after.tmp"
-            } > "$readme_file"
-            
-            rm -f "${readme_file}_before.tmp" "${readme_file}_after.tmp"
-            echo "✅ $readme_file updated successfully" >> $LOG_FILE
           done
 
-      - name: 📤 Commit and deploy changes
+      - name: 📤 Commit changes
         run: |
-          echo "📤 Committing changes..." >> $LOG_FILE
-          
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          
-          # Add all changed files
-          git add .
-          
-          COMMIT_MSG="📊 Auto-update: statistics, badges"
-          if [ "$SCREENSHOT_CREATED" = "true" ]; then
-            COMMIT_MSG="$COMMIT_MSG + screenshot"
-          fi
-          
-          COMMIT_MSG="$COMMIT_MSG | $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
-          
-          if git diff --cached --quiet; then
-            echo "⏭️ No changes to commit" >> $LOG_FILE
-          else
-            git commit -m "$COMMIT_MSG"
-            git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-            echo "✅ Changes committed and pushed" >> $LOG_FILE
-          fi
-          
-          # Clean up old log files
-          echo "🧹 Cleaning up old log files..." >> $LOG_FILE
-          ls -t ${{ env.LOG_DIR }}/*.log | tail -n +$(({{ env.MAX_LOG_FILES }} + 1)) | xargs rm -f 2>/dev/null || true
-          
-          echo "🎉 Workflow completed successfully!" >> $LOG_FILE
+          echo "📤 Preparing commit..." >> "$LOG_FILE"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
 
-      - name: 📋 Final status report
-        if: always()
+          git add --all
+
+          if git diff --cached --quiet; then
+            echo "⏭️ No changes to commit" >> "$LOG_FILE"
+          else
+            COMMIT_DATE=$(date -u '+%Y-%m-%d %H:%M')
+            git commit -m "🔄 Update stats, badges, screenshot ($COMMIT_DATE) [skip ci]"
+            git push
+            echo "✅ Changes committed and pushed" >> "$LOG_FILE"
+          fi
+
+      - name: 🧹 Manage old log and screenshot files
         run: |
-          echo "📋 Workflow Status Report"
-          echo "========================"
-          echo "Status: ${{ job.status }}"
-          echo "README Files Processed: ${{ env.TARGET_READMES }}"
-          echo "Screenshot Created: ${{ env.SCREENSHOT_CREATED }}"
-          echo "Log File: ${{ env.LOG_FILE }}"
-          echo ""
-          echo "Last lines of log:"
-          tail -20 ${{ env.LOG_FILE }} 2>/dev/null || echo "Log file not available"
+          LOG_DIR="${{ env.LOG_DIR }}"
+          SCREENSHOT_DIR="${{ env.SCREENSHOT_DIR }}"
+          MAX_FILES=${{ env.MAX_LOG_FILES }}
+
+          echo "🧹 Cleaning old files..." >> "$LOG_FILE"
+
+          find "$LOG_DIR" -name "workflow_*.log" -type f | sort -r | tail -n +$((MAX_FILES+1)) | xargs rm -f 2>/dev/null || true
+
+          find "$SCREENSHOT_DIR" -name "screenshot_*.png" -type f | sort -r | tail -n +6 | xargs rm -f 2>/dev/null || true
+
+          echo "🗑️ Old files cleaned up" >> "$LOG_FILE"
+
+      - name: 📄 Final status report
+        run: |
+          SCREENSHOT_CREATED="${{ steps.generate_screenshot.outputs.screenshot_created }}"
+          SCREENSHOT_PATH="${{ steps.generate_screenshot.outputs.screenshot_path }}"
+          OPTIMIZATION_SUCCESS="${{ steps.optimize_screenshot.outputs.optimization_success }}"
+
+          echo "📄 Workflow Summary:" >> "$LOG_FILE"
+          echo "- Repository: ${{ github.repository }}" >> "$LOG_FILE"
+          echo "- Stars: $STARS_COUNT" >> "$LOG_FILE"
+          echo "- Manual Likes: $MANUAL_LIKES_COUNT" >> "$LOG_FILE"
+          echo "- Total Likes: $TOTAL_LIKES" >> "$LOG_FILE"
+          echo "- Views: $VIEWS (total $VIEWS_TOTAL)" >> "$LOG_FILE"
+          echo "- Clones: $CLONES (total $CLONES_TOTAL)" >> "$LOG_FILE"
+          echo "- Commits: $TOTAL_COMMITS" >> "$LOG_FILE"
+          echo "- Contributors: $CONTRIBUTORS_COUNT" >> "$LOG_FILE"
+          echo "- Downloads: $TOTAL_DOWNLOADS" >> "$LOG_FILE"
+
+          if [[ "$SCREENSHOT_CREATED" == "true" ]]; then
+            if [[ "$OPTIMIZATION_SUCCESS" == "true" ]]; then
+              echo "- Screenshot: ✅ Created and optimized (path: $SCREENSHOT_PATH)" >> "$LOG_FILE"
+            else
+              echo "- Screenshot: ✅ Created (not optimized) (path: $SCREENSHOT_PATH)" >> "$LOG_FILE"
+            fi
+          else
+            echo "- Screenshot: ❌ Failed" >> "$LOG_FILE"
+          fi
+
+          echo "✅ Workflow completed at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> "$LOG_FILE"
