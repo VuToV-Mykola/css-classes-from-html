@@ -20,7 +20,7 @@ on:
       target_readme:
         description: 'Target README file to update'
         required: false
-        default: 'README.md'
+        default: 'ALL'
         type: choice
         options:
           - README.md
@@ -638,8 +638,8 @@ jobs:
               continue
             fi
             
-            # Create backup
-            cp "$readme_file" "$readme_file.backup"
+            # # Create backup
+            # cp "$readme_file" "$readme_file.backup"
             
             # Extract content before and after autogen section
             awk '/<!-- AUTOGEN:STATS -->/{exit} {print}' "$readme_file" > "${readme_file}_before.tmp"
