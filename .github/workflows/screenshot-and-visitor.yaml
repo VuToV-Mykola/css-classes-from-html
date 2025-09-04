@@ -143,7 +143,6 @@ jobs:
                 auth_header="Authorization: token ${{ secrets.PAT_TOKEN }}"
               else
                 echo "❌ PAT_TOKEN secret is not set for protected endpoint: $endpoint" >> "$LOG_FILE"
-                # повертаємо валідний JSON, але не аварійно
                 echo "{}"
                 rm -f "$temp_file"
                 return 0
@@ -309,106 +308,107 @@ jobs:
 
           {
             TMP_JS="$(mktemp --suffix=.js)"
+            # Генеруємо JS без розширення shell-ем
             {
-              echo "const puppeteer = require('puppeteer');"
-              echo "const fs = require('fs');"
-              echo "const path = require('path');"
-              echo ""
-              echo "async function takeScreenshot() {"
-              echo "  let browser;"
-              echo "  try {"
-              echo "    const screenshotPath = process.env.SCREENSHOT_PATH;"
-              echo "    const screenshotDir = path.dirname(screenshotPath);"
-              echo "    if (!fs.existsSync(screenshotDir)) {"
-              echo "      fs.mkdirSync(screenshotDir, { recursive: true });"
-              echo "    }"
-              echo ""
-              echo "    const browserArgs = ["
-              echo "      '--no-sandbox',"
-              echo "      '--disable-setuid-sandbox',"
-              echo "      '--disable-dev-shm-usage',"
-              echo "      '--disable-web-security',"
-              echo "      '--headless',"
-              echo "      '--disable-gpu',"
-              echo "    ];"
-              echo ""
-              echo "    browser = await puppeteer.launch({ args: browserArgs, timeout: 30000 });"
-              echo "    const page = await browser.newPage();"
-              echo "    await page.setViewport({ width: 1280, height: 800 });"
-              echo ""
-              echo "    const owner = process.env.GITHUB_REPOSITORY_OWNER;"
-              echo "    const repo = process.env.GITHUB_REPOSITORY.split('/')[1];"
-              echo "    const githubPages = `https://${owner}.github.io/${repo}/`;"
-              echo ""
-              echo "    console.log(`🌐 Checking GitHub Pages: ${githubPages}`);"
-              echo ""
-              echo "    const response = await page.goto(githubPages, { "
-              echo "      waitUntil: 'networkidle0', "
-              echo "      timeout: 30000 "
-              echo "    });"
-              echo ""
-              echo "    if (!response || response.status() !== 200) {"
-              echo "      throw new Error(`HTTP ${response?.status() || 'unknown'}`);"
-              echo "    }"
-              echo ""
-              echo "    const pageContent = await page.content();"
-              echo "    if (pageContent.includes(\"There isn't a GitHub Pages site here\") ||"
-              echo "        pageContent.includes('404') ||"
-              echo "        pageContent.length < 500) {"
-              echo "      throw new Error('GitHub Pages has insufficient content');"
-              echo "    }"
-              echo ""
-              echo "    console.log('✅ GitHub Pages is accessible');"
-              echo ""
-              echo "    await page.evaluate(async () => {"
-              echo "      await new Promise((resolve) => {"
-              echo "        let totalHeight = 0;"
-              echo "        const distance = 200;"
-              echo "        const timer = setInterval(() => {"
-              echo "          const scrollHeight = document.body.scrollHeight;"
-              echo "          window.scrollBy(0, distance);"
-              echo "          totalHeight += distance;"
-              echo "          if (totalHeight >= scrollHeight) {"
-              echo "            clearInterval(timer);"
-              echo "            resolve();"
-              echo "          }"
-              echo "        }, 100);"
-              echo "      });"
-              echo "    });"
-              echo ""
-              echo "    await new Promise(resolve => setTimeout(resolve, 2000));"
-              echo "    await page.evaluate(() => window.scrollTo(0, 0));"
-              echo "    await new Promise(resolve => setTimeout(resolve, 1000));"
-              echo ""
-              echo "    await page.screenshot({ "
-              echo "      path: screenshotPath, "
-              echo "      fullPage: true,"
-              echo "      type: 'png'"
-              echo "    });"
-              echo ""
-              echo "    const stats = fs.statSync(screenshotPath);"
-              echo "    if (stats.size > 10000) {"
-              echo "      console.log(`✅ Screenshot created: ${Math.round(stats.size / 1024)}KB`);"
-              echo "      console.log('SCREENSHOT_SUCCESS=true');"
-              echo "    } else {"
-              echo "      fs.unlinkSync(screenshotPath);"
-              echo "      throw new Error('Screenshot file is too small');"
-              echo "    }"
-              echo ""
-              echo "  } catch (error) {"
-              echo "    console.log(`❌ Screenshot failed: ${error.message}`);"
-              echo "    console.log('SCREENSHOT_SUCCESS=false');"
-              echo "  } finally {"
-              echo "    if (browser) {"
-              echo "      await browser.close();"
-              echo "    }"
-              echo "  }"
-              echo "}"
-              echo ""
-              echo "takeScreenshot();"
+              printf '%s\n' 'const puppeteer = require("puppeteer");'
+              printf '%s\n' 'const fs = require("fs");'
+              printf '%s\n' 'const path = require("path");'
+              printf '%s\n' ''
+              printf '%s\n' 'async function takeScreenshot() {'
+              printf '%s\n' '  let browser;'
+              printf '%s\n' '  try {'
+              printf '%s\n' '    const screenshotPath = process.env.SCREENSHOT_PATH;'
+              printf '%s\n' '    const screenshotDir = path.dirname(screenshotPath);'
+              printf '%s\n' '    if (!fs.existsSync(screenshotDir)) {'
+              printf '%s\n' '      fs.mkdirSync(screenshotDir, { recursive: true });'
+              printf '%s\n' '    }'
+              printf '%s\n' ''
+              printf '%s\n' '    const browserArgs = ['
+              printf '%s\n' '      "--no-sandbox",'
+              printf '%s\n' '      "--disable-setuid-sandbox",'
+              printf '%s\n' '      "--disable-dev-shm-usage",'
+              printf '%s\n' '      "--disable-web-security",'
+              printf '%s\n' '      "--headless",'
+              printf '%s\n' '      "--disable-gpu",'
+              printf '%s\n' '    ];'
+              printf '%s\n' ''
+              printf '%s\n' '    browser = await puppeteer.launch({ args: browserArgs, timeout: 30000 });'
+              printf '%s\n' '    const page = await browser.newPage();'
+              printf '%s\n' '    await page.setViewport({ width: 1280, height: 800 });'
+              printf '%s\n' ''
+              printf '%s\n' '    const owner = process.env.GITHUB_REPOSITORY_OWNER;'
+              printf '%s\n' '    const repo = process.env.GITHUB_REPOSITORY.split("/")[1];'
+              printf '%s\n' '    const githubPages = `https://${owner}.github.io/${repo}/`;'
+              printf '%s\n' ''
+              printf '%s\n' '    console.log(`🌐 Checking GitHub Pages: ${githubPages}`);'
+              printf '%s\n' ''
+              printf '%s\n' '    const response = await page.goto(githubPages, {'
+              printf '%s\n' "      waitUntil: 'networkidle0',"
+              printf '%s\n' '      timeout: 30000'
+              printf '%s\n' '    });'
+              printf '%s\n' ''
+              printf '%s\n' '    if (!response || response.status() !== 200) {'
+              printf '%s\n' "      throw new Error(`HTTP ${response?.status() || 'unknown'}`);"
+              printf '%s\n' '    }'
+              printf '%s\n' ''
+              printf '%s\n' '    const pageContent = await page.content();'
+              printf '%s\n' '    if (pageContent.includes("There isn\'t a GitHub Pages site here") ||'
+              printf '%s\n' "        pageContent.includes('404') ||"
+              printf '%s\n' '        pageContent.length < 500) {'
+              printf '%s\n' "      throw new Error('GitHub Pages has insufficient content');"
+              printf '%s\n' '    }'
+              printf '%s\n' ''
+              printf '%s\n' "    console.log('✅ GitHub Pages is accessible');"
+              printf '%s\n' ''
+              printf '%s\n' '    await page.evaluate(async () => {'
+              printf '%s\n' '      await new Promise((resolve) => {'
+              printf '%s\n' '        let totalHeight = 0;'
+              printf '%s\n' '        const distance = 200;'
+              printf '%s\n' '        const timer = setInterval(() => {'
+              printf '%s\n' '          const scrollHeight = document.body.scrollHeight;'
+              printf '%s\n' '          window.scrollBy(0, distance);'
+              printf '%s\n' '          totalHeight += distance;'
+              printf '%s\n' '          if (totalHeight >= scrollHeight) {'
+              printf '%s\n' '            clearInterval(timer);'
+              printf '%s\n' '            resolve();'
+              printf '%s\n' '          }'
+              printf '%s\n' '        }, 100);'
+              printf '%s\n' '      });'
+              printf '%s\n' '    });'
+              printf '%s\n' ''
+              printf '%s\n' '    await new Promise(resolve => setTimeout(resolve, 2000));'
+              printf '%s\n' '    await page.evaluate(() => window.scrollTo(0, 0));'
+              printf '%s\n' '    await new Promise(resolve => setTimeout(resolve, 1000));'
+              printf '%s\n' ''
+              printf '%s\n' '    await page.screenshot({'
+              printf '%s\n' '      path: screenshotPath,'
+              printf '%s\n' '      fullPage: true,'
+              printf '%s\n' "      type: 'png'"
+              printf '%s\n' '    });'
+              printf '%s\n' ''
+              printf '%s\n' '    const stats = fs.statSync(screenshotPath);'
+              printf '%s\n' '    if (stats.size > 10000) {'
+              printf '%s\n' '      console.log(`✅ Screenshot created: ${Math.round(stats.size / 1024)}KB`);'
+              printf '%s\n' "      console.log('SCREENSHOT_SUCCESS=true');"
+              printf '%s\n' '    } else {'
+              printf '%s\n' '      fs.unlinkSync(screenshotPath);'
+              printf '%s\n' "      throw new Error('Screenshot file is too small');"
+              printf '%s\n' '    }'
+              printf '%s\n' ''
+              printf '%s\n' '  } catch (error) {'
+              printf '%s\n' '    console.log(`❌ Screenshot failed: ${error.message}`);'
+              printf '%s\n' "    console.log('SCREENSHOT_SUCCESS=false');"
+              printf '%s\n' '  } finally {'
+              printf '%s\n' '    if (browser) {'
+              printf '%s\n' '      await browser.close();'
+              printf '%s\n' '    }'
+              printf '%s\n' '  }'
+              printf '%s\n' '}'
+              printf '%s\n' ''
+              printf '%s\n' 'takeScreenshot();'
             } > "$TMP_JS"
 
-            SCREENSHOT_PATH="$SCREENSHOT_PATH" node "$TMP_JS" | tee -a "$LOG_FILE"
+            SCREENSHOT_PATH="$SCREENSHOT_PATH" node "$TMP_JS" 2>&1 | tee -a "$LOG_FILE"
             rm -f "$TMP_JS"
           }
 
