@@ -1,0 +1,25 @@
+{
+  "minimal": {
+    "description": "Minimal configuration for quick start",
+    "includeGlobal": false,
+    "includeReset": false,
+    "includeComments": false,
+    "optimizeCSS": false
+  },
+  "maximum": {
+    "description": "Full feature set with all optimizations",
+    "includeGlobal": true,
+    "includeReset": true,
+    "includeComments": true,
+    "optimizeCSS": true,
+    "enableMLMatching": true
+  },
+  "production": {
+    "description": "Optimized for production deployment",
+    "includeGlobal": true,
+    "includeReset": true,
+    "includeComments": false,
+    "optimizeCSS": true,
+    "minify": true
+  }
+}

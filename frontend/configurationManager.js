@@ -1,47 +1,82 @@
 /* frontend/configurationManager.js
-   Уніфікований менеджер конфігурацій для основного меню
-*/
+ * Уніфікований менеджер конфігурацій для VS Code розширення
+ * @version 3.0.0
+ */
+
 const fs = require("fs")
 const path = require("path")
-import * as vscode from "vscode"
 
 class ConfigurationManager {
   constructor() {
-    this.configPath = this.getConfigPath()
-  }
-
-  /**
-   * Отримує шлях до файлу конфігурації
-   */
-  getConfigPath() {
-    const workspaceFolders = vscode.workspace.workspaceFolders
-    if (!workspaceFolders || workspaceFolders.length === 0) {
-      return path.join(process.cwd(), ".vscode", "css-classes-config.json")
-    }
-
-    return path.join(workspaceFolders[0].uri.fsPath, ".vscode", "css-classes-config.json")
-  }
-
-  /**
-   * Створює директорію конфігурації
-   */
-  ensureConfigDir() {
-    const dir = path.dirname(this.configPath)
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, {recursive: true})
+    this.configPath = null
+    this.defaultConfig = {
+      mode: "maximum",
+      figmaLink: "",
+      figmaToken: "",
+      selectedCanvas: [],
+      selectedLayers: [],
+      includeGlobal: false,
+      includeReset: true,
+      includeComments: true,
+      optimizeCSS: true,
+      generateResponsive: true,
+      savedAt: null,
+      version: "3.0.0"
     }
   }
 
   /**
-   * Зберігає конфігурацію
+   * Ініціалізація конфігурації
+   * @param {string} extensionPath - Шлях до розширення
+   */
+  initialize(extensionPath) {
+    const configDir = path.join(extensionPath, ".vscode", "css-classes-config")
+    this.configPath = path.join(configDir, "last-settings.json")
+
+    // Створюємо директорію якщо не існує
+    if (!fs.existsSync(configDir)) {
+      fs.mkdirSync(configDir, {recursive: true})
+    }
+  }
+
+  /**
+   * Завантаження конфігурації
+   * @returns {Object} Конфігурація
+   */
+  loadConfig() {
+    try {
+      if (fs.existsSync(this.configPath)) {
+        const raw = fs.readFileSync(this.configPath, "utf8")
+        const config = JSON.parse(raw)
+
+        // Перевіряємо версію
+        if (config.version === this.defaultConfig.version) {
+          return {...this.defaultConfig, ...config}
+        } else {
+          // Міграція старої конфігурації
+          return this.migrateConfig(config)
+        }
+      }
+
+      return this.defaultConfig
+    } catch (error) {
+      console.error("Помилка завантаження конфігурації:", error.message)
+      return this.defaultConfig
+    }
+  }
+
+  /**
+   * Збереження конфігурації
+   * @param {Object} config - Конфігурація для збереження
+   * @returns {boolean} Успішність операції
    */
   saveConfig(config) {
     try {
-      this.ensureConfigDir()
       const dataToSave = {
+        ...this.defaultConfig,
         ...config,
         savedAt: new Date().toISOString(),
-        version: "3.0.0"
+        version: this.defaultConfig.version
       }
 
       fs.writeFileSync(this.configPath, JSON.stringify(dataToSave, null, 2), "utf8")
@@ -53,59 +88,15 @@ class ConfigurationManager {
   }
 
   /**
-   * Завантажує конфігурацію
-   */
-  loadConfig() {
-    try {
-      if (fs.existsSync(this.configPath)) {
-        const raw = fs.readFileSync(this.configPath, "utf8")
-        const config = JSON.parse(raw)
-
-        // Перевіряємо версію конфігурації
-        if (config.version && config.version === "3.0.0") {
-          return config
-        } else {
-          console.warn("Застаріла версія конфігурації")
-          return this.migrateConfig(config)
-        }
-      }
-      return null
-    } catch (error) {
-      console.error("Помилка завантаження конфігурації:", error.message)
-      return null
-    }
-  }
-
-  /**
-   * Мігрує застарілу конфігурацію
-   */
-  migrateConfig(oldConfig) {
-    // Конвертуємо старі формати в новий
-    const newConfig = {
-      mode: oldConfig.mode || "maximum",
-      figmaLink: oldConfig.figmaLink || "",
-      figmaToken: oldConfig.figmaToken || "",
-      selectedCanvas: oldConfig.selectedCanvas || [],
-      selectedLayers: oldConfig.selectedLayers || [],
-      version: "3.0.0",
-      savedAt: new Date().toISOString()
-    }
-
-    // Зберігаємо мігровану конфігурацію
-    this.saveConfig(newConfig)
-    return newConfig
-  }
-
-  /**
-   * Очищає конфігурацію
+   * Очищення конфігурації
+   * @returns {boolean} Успішність операції
    */
   clearConfig() {
     try {
       if (fs.existsSync(this.configPath)) {
         fs.unlinkSync(this.configPath)
-        return true
       }
-      return false
+      return true
     } catch (error) {
       console.error("Помилка очищення конфігурації:", error.message)
       return false
@@ -113,45 +104,89 @@ class ConfigurationManager {
   }
 
   /**
-   * Отримує налаштування VS Code
+   * Міграція старої конфігурації
+   * @param {Object} oldConfig - Стара конфігурація
+   * @returns {Object} Нова конфігурація
    */
-  getVSCodeConfig() {
-    const config = vscode.workspace.getConfiguration("css-classes")
-    return {
-      figmaToken: config.get("figmaToken") || "",
-      lastFigmaLink: config.get("lastFigmaLink") || "",
-      lastSelectedCanvases: config.get("lastSelectedCanvases") || [],
-      lastSelectedLayers: config.get("lastSelectedLayers") || [],
-      mode: config.get("mode") || "maximum"
+  migrateConfig(oldConfig) {
+    const newConfig = {...this.defaultConfig}
+
+    // Копіюємо існуючі поля
+    Object.keys(oldConfig).forEach(key => {
+      if (key in newConfig) {
+        newConfig[key] = oldConfig[key]
+      }
+    })
+
+    // Зберігаємо мігровану конфігурацію
+    this.saveConfig(newConfig)
+    return newConfig
+  }
+
+  /**
+   * Експорт конфігурації
+   * @param {string} filePath - Шлях для експорту
+   * @returns {boolean} Успішність операції
+   */
+  exportConfig(filePath) {
+    try {
+      const config = this.loadConfig()
+      fs.writeFileSync(filePath, JSON.stringify(config, null, 2), "utf8")
+      return true
+    } catch (error) {
+      console.error("Помилка експорту конфігурації:", error.message)
+      return false
     }
   }
 
   /**
-   * Зберігає налаштування VS Code
+   * Імпорт конфігурації
+   * @param {string} filePath - Шлях до файлу
+   * @returns {boolean} Успішність операції
    */
-  async saveVSCodeConfig(config) {
+  importConfig(filePath) {
     try {
-      await vscode.workspace
-        .getConfiguration("css-classes")
-        .update("figmaToken", config.figmaToken, true)
-      await vscode.workspace
-        .getConfiguration("css-classes")
-        .update("lastFigmaLink", config.figmaLink, true)
-      await vscode.workspace
-        .getConfiguration("css-classes")
-        .update("lastSelectedCanvases", config.selectedCanvas, true)
-      await vscode.workspace
-        .getConfiguration("css-classes")
-        .update("lastSelectedLayers", config.selectedLayers, true)
-      await vscode.workspace.getConfiguration("css-classes").update("mode", config.mode, true)
-      return true
+      const raw = fs.readFileSync(filePath, "utf8")
+      const config = JSON.parse(raw)
+      return this.saveConfig(config)
     } catch (error) {
-      console.error("Помилка збереження налаштувань VS Code:", error.message)
+      console.error("Помилка імпорту конфігурації:", error.message)
       return false
+    }
+  }
+
+  /**
+   * Валідація конфігурації
+   * @param {Object} config - Конфігурація для перевірки
+   * @returns {Object} Результат валідації
+   */
+  validateConfig(config) {
+    const errors = []
+    const warnings = []
+
+    // Перевірка обов'язкових полів
+    if (!config.mode || !["minimal", "maximum", "production"].includes(config.mode)) {
+      errors.push("Невірний режим генерації")
+    }
+
+    // Перевірка Figma налаштувань
+    if (config.mode === "maximum" && !config.figmaLink) {
+      warnings.push("Для максимального режиму рекомендується вказати Figma посилання")
+    }
+
+    // Перевірка версії
+    if (config.version && config.version !== this.defaultConfig.version) {
+      warnings.push("Конфігурація створена для іншої версії розширення")
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors,
+      warnings
     }
   }
 }
 
-// Експортуємо як singleton
+// Експорт як singleton
 const configManager = new ConfigurationManager()
 module.exports = configManager

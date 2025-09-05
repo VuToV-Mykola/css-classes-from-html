@@ -23,6 +23,7 @@
             --text: #cccccc;
             --text-secondary: #8c8c8c;
             --border: #3c3c3c;
+            --shadow: rgba(0, 0, 0, 0.3);
         }
 
         body {
@@ -32,8 +33,10 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            font-size: 14px;
         }
 
+        /* Header */
         .header {
             background: var(--bg-secondary);
             padding: 1.5rem;
@@ -42,7 +45,7 @@
         }
 
         .header h1 {
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             color: var(--primary);
             margin-bottom: 0.5rem;
         }
@@ -52,18 +55,20 @@
             font-size: 0.9rem;
         }
 
+        /* Container */
         .container {
             flex: 1;
+            padding: 1.5rem;
             max-width: 1200px;
             margin: 0 auto;
-            padding: 2rem;
             width: 100%;
         }
 
+        /* Mode selector */
         .mode-selector {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
             margin-bottom: 2rem;
         }
 
@@ -80,7 +85,7 @@
         .mode-card:hover {
             border-color: var(--primary);
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 122, 204, 0.3);
+            box-shadow: 0 4px 12px var(--shadow);
         }
 
         .mode-card.selected {
@@ -118,22 +123,19 @@
         .mode-description {
             color: var(--text-secondary);
             font-size: 0.9rem;
-            margin-bottom: 0.5rem;
         }
 
-        .mode-details {
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border);
-        }
-
+        /* Sections */
         .section {
             background: var(--bg-secondary);
             border-radius: 8px;
             padding: 1.5rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+
+        .section.active {
+            display: block;
         }
 
         .section-title {
@@ -142,6 +144,7 @@
             color: var(--primary);
         }
 
+        /* Form elements */
         .input-group {
             margin-bottom: 1rem;
         }
@@ -153,7 +156,8 @@
             font-size: 0.9rem;
         }
 
-        .input-group input {
+        .input-group input,
+        .input-group select {
             width: 100%;
             padding: 0.75rem;
             background: var(--bg-tertiary);
@@ -163,15 +167,17 @@
             font-size: 0.95rem;
         }
 
-        .input-group input:focus {
+        .input-group input:focus,
+        .input-group select:focus {
             outline: none;
             border-color: var(--primary);
         }
 
+        /* Checkboxes */
         .checkbox-group {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 1rem;
+            gap: 0.75rem;
             margin: 1rem 0;
         }
 
@@ -182,11 +188,17 @@
             background: var(--bg-tertiary);
             border-radius: 4px;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
+            border: 2px solid transparent;
         }
 
         .checkbox-item:hover {
             background: var(--bg);
+        }
+
+        .checkbox-item.selected {
+            background: var(--bg);
+            border-color: var(--primary);
         }
 
         .checkbox-item input[type="checkbox"] {
@@ -205,11 +217,7 @@
             gap: 0.5rem;
         }
 
-        .checkbox-item.selected {
-            background: var(--bg);
-            border: 1px solid var(--primary);
-        }
-
+        /* Actions */
         .actions {
             display: flex;
             gap: 1rem;
@@ -217,6 +225,8 @@
             padding: 2rem;
             background: var(--bg-secondary);
             border-top: 1px solid var(--border);
+            position: sticky;
+            bottom: 0;
         }
 
         .btn {
@@ -232,15 +242,19 @@
             gap: 0.5rem;
         }
 
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         .btn-primary {
             background: var(--primary);
             color: white;
         }
 
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             background: var(--primary-dark);
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 122, 204, 0.4);
         }
 
         .btn-secondary {
@@ -249,11 +263,12 @@
             border: 1px solid var(--border);
         }
 
-        .btn-secondary:hover {
+        .btn-secondary:hover:not(:disabled) {
             background: var(--bg);
             border-color: var(--primary);
         }
 
+        /* Status messages */
         .status {
             text-align: center;
             padding: 1rem;
@@ -262,24 +277,33 @@
             display: none;
         }
 
+        .status.show {
+            display: block;
+        }
+
         .status.success {
             background: rgba(76, 175, 80, 0.1);
             border: 1px solid var(--success);
             color: var(--success);
-            display: block;
         }
 
         .status.error {
             background: rgba(244, 67, 54, 0.1);
             border: 1px solid var(--danger);
             color: var(--danger);
-            display: block;
         }
 
+        .status.warning {
+            background: rgba(255, 152, 0, 0.1);
+            border: 1px solid var(--warning);
+            color: var(--warning);
+        }
+
+        /* Loading spinner */
         .loading {
             display: inline-block;
-            width: 20px;
-            height: 20px;
+            width: 16px;
+            height: 16px;
             border: 2px solid var(--text-secondary);
             border-radius: 50%;
             border-top-color: var(--primary);
@@ -290,6 +314,7 @@
             to { transform: rotate(360deg); }
         }
 
+        /* Responsive */
         @media (max-width: 768px) {
             .container {
                 padding: 1rem;
@@ -321,32 +346,29 @@
         <div class="mode-selector" id="modeSelector">
             <div class="mode-card" data-mode="minimal">
                 <div class="mode-icon">⚡</div>
-                <div class="mode-title">Мінімальне налаштування</div>
-                <div class="mode-description">Тільки парсинг HTML та генерація порожніх класів</div>
-                <div class="mode-details">Швидкий старт • Без Figma • Без оптимізацій</div>
+                <div class="mode-title">Мінімальний</div>
+                <div class="mode-description">Базова генерація CSS класів без додаткових опцій</div>
             </div>
             
             <div class="mode-card" data-mode="maximum">
                 <div class="mode-icon">🚀</div>
-                <div class="mode-title">Максимальне налаштування</div>
-                <div class="mode-description">Повна інтеграція з Figma та всі можливості</div>
-                <div class="mode-details">Figma інтеграція • Canvas/Layers • ML matching • Всі оптимізації</div>
+                <div class="mode-title">Максимальний</div>
+                <div class="mode-description">Повна інтеграція з Figma, всі можливості</div>
             </div>
             
             <div class="mode-card" data-mode="production">
                 <div class="mode-icon">📦</div>
-                <div class="mode-title">Продакт</div>
-                <div class="mode-description">Оптимізований CSS для production</div>
-                <div class="mode-details">Мінімізація • Без коментарів • Canvas/Layers • Production-ready</div>
+                <div class="mode-title">Production</div>
+                <div class="mode-description">Оптимізований CSS для продакшену</div>
             </div>
         </div>
 
         <!-- Figma Configuration -->
-        <div class="section" id="figmaSection" style="display: none;">
+        <div class="section" id="figmaSection">
             <h2 class="section-title">🎨 Налаштування Figma</h2>
             
             <div class="input-group">
-                <label for="figmaLink">Посилання на Figma макет</label>
+                <label for="figmaLink">Посилання на Figma файл</label>
                 <input type="text" id="figmaLink" placeholder="https://www.figma.com/file/...">
             </div>
 
@@ -354,76 +376,49 @@
                 <label for="figmaToken">Figma API Token (опціонально)</label>
                 <input type="password" id="figmaToken" placeholder="Ваш Figma API токен">
             </div>
+
+            <button class="btn btn-secondary" id="loadCanvasBtn">
+                📋 Завантажити Canvas
+            </button>
         </div>
 
         <!-- Canvas Selection -->
-        <div class="section" id="canvasSection" style="display: none;">
+        <div class="section" id="canvasSection">
             <h2 class="section-title">📋 Вибір Canvas</h2>
             <div class="checkbox-group" id="canvasList">
-                <div class="checkbox-item">
-                    <input type="checkbox" id="canvas-desktop" value="desktop">
-                    <label for="canvas-desktop">🎨 Desktop</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="canvas-mobile" value="mobile">
-                    <label for="canvas-mobile">📱 Mobile</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="canvas-tablet" value="tablet">
-                    <label for="canvas-tablet">📋 Tablet</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="canvas-components" value="components">
-                    <label for="canvas-components">🧩 Components</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="canvas-all" value="all">
-                    <label for="canvas-all">🎯 All Canvas</label>
-                </div>
+                <!-- Динамічно заповнюється -->
             </div>
         </div>
 
         <!-- Layers Selection -->
-        <div class="section" id="layersSection" style="display: none;">
+        <div class="section" id="layersSection">
             <h2 class="section-title">🎨 Вибір Layers</h2>
             <div class="checkbox-group" id="layersList">
-                <div class="checkbox-item">
-                    <input type="checkbox" id="layer-layout" value="layout">
-                    <label for="layer-layout">📐 Layout</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="layer-styles" value="styles">
-                    <label for="layer-styles">🎨 Styles</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="layer-typography" value="typography">
-                    <label for="layer-typography">🔤 Typography</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="layer-images" value="images">
-                    <label for="layer-images">🖼️ Images</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="layer-components" value="components">
-                    <label for="layer-components">🔘 Components</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="layer-effects" value="effects">
-                    <label for="layer-effects">✨ Effects</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="layer-all" value="all">
-                    <label for="layer-all">📦 All Layers</label>
-                </div>
+                <!-- Динамічно заповнюється -->
             </div>
         </div>
 
-        <!-- HTML File Selection -->
-        <div class="section">
-            <h2 class="section-title">📄 HTML файл</h2>
-            <div class="input-group">
-                <label for="htmlFile">Шлях до HTML файлу</label>
-                <input type="text" id="htmlFile" placeholder="examples/example.html">
+        <!-- Options -->
+        <div class="section" id="optionsSection">
+            <h2 class="section-title">⚙️ Додаткові налаштування</h2>
+            
+            <div class="checkbox-group">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="includeReset" checked>
+                    <label for="includeReset">Включити Reset стилі</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="includeComments" checked>
+                    <label for="includeComments">Додати коментарі</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="optimizeCSS" checked>
+                    <label for="optimizeCSS">Оптимізувати CSS</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="generateResponsive" checked>
+                    <label for="generateResponsive">Генерувати адаптивні стилі</label>
+                </div>
             </div>
         </div>
 
@@ -442,72 +437,214 @@
         <button class="btn btn-secondary" id="clearBtn">
             🗑️ Очистити
         </button>
-        <button class="btn btn-primary" id="generateBtn">
+        <button class="btn btn-primary" id="generateBtn" disabled>
             🚀 Згенерувати CSS
         </button>
     </div>
 
     <script>
+        // VS Code API
         const vscode = acquireVsCodeApi();
         
         // Global state
-        let selectedMode = null;
-        let selectedCanvas = [];
-        let selectedLayers = [];
-        let config = {};
+        let state = {
+            mode: null,
+            figmaLink: '',
+            figmaToken: '',
+            selectedCanvas: [],
+            selectedLayers: [],
+            includeReset: true,
+            includeComments: true,
+            optimizeCSS: true,
+            generateResponsive: true
+        };
 
-        // Завантажити налаштування при ініціалізації
-        window.addEventListener('load', () => {
-            vscode.postMessage({ command: 'loadLastSettings' });
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            initializeUI();
+            loadLastSettings();
         });
 
-        // Mode selection
-        document.querySelectorAll('.mode-card').forEach(card => {
-            card.addEventListener('click', function() {
-                document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
-                this.classList.add('selected');
-                selectedMode = this.dataset.mode;
-                
-                const showFigma = selectedMode !== 'minimal';
-                document.getElementById('figmaSection').style.display = showFigma ? 'block' : 'none';
-                document.getElementById('canvasSection').style.display = showFigma ? 'block' : 'none';
-                document.getElementById('layersSection').style.display = showFigma ? 'block' : 'none';
-                
-                showStatus(`Режим "${selectedMode}" вибрано`, 'success');
+        // Initialize UI
+        function initializeUI() {
+            // Mode selection
+            document.querySelectorAll('.mode-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    selectMode(this.dataset.mode);
+                });
             });
-        });
 
-        // Checkbox handling
-        document.querySelectorAll('.checkbox-item input').forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                const parent = this.closest('.checkbox-item');
-                if (this.checked) {
-                    parent.classList.add('selected');
-                } else {
-                    parent.classList.remove('selected');
-                }
-                
-                // Update selected arrays
-                updateSelections();
+            // Checkbox handling
+            document.querySelectorAll('.checkbox-item input').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const parent = this.closest('.checkbox-item');
+                    if (this.checked) {
+                        parent.classList.add('selected');
+                    } else {
+                        parent.classList.remove('selected');
+                    }
+                    updateState();
+                });
             });
-        });
 
-        // Update selections
-        function updateSelections() {
-            selectedCanvas = Array.from(document.querySelectorAll('#canvasList input:checked')).map(el => el.value);
-            selectedLayers = Array.from(document.querySelectorAll('#layersList input:checked')).map(el => el.value);
+            // Button handlers
+            document.getElementById('loadLastBtn').addEventListener('click', loadLastSettings);
+            document.getElementById('saveBtn').addEventListener('click', saveSettings);
+            document.getElementById('clearBtn').addEventListener('click', clearSettings);
+            document.getElementById('generateBtn').addEventListener('click', generateCSS);
+            document.getElementById('loadCanvasBtn')?.addEventListener('click', loadFigmaCanvases);
+
+            // Input handlers
+            document.getElementById('figmaLink')?.addEventListener('input', updateState);
+            document.getElementById('figmaToken')?.addEventListener('input', updateState);
         }
 
-        // Обробник повідомлень від VS Code
+        // Select mode
+        function selectMode(mode) {
+            // Update UI
+            document.querySelectorAll('.mode-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector(`[data-mode="${mode}"]`).classList.add('selected');
+            
+            // Update state
+            state.mode = mode;
+            
+            // Show/hide sections based on mode
+            const showFigma = mode !== 'minimal';
+            document.getElementById('figmaSection').classList.toggle('active', showFigma);
+            document.getElementById('optionsSection').classList.add('active');
+            
+            // Enable generate button if mode selected
+            document.getElementById('generateBtn').disabled = false;
+            
+            showStatus(`Режим "${getModeName(mode)}" вибрано`, 'success');
+            updateState();
+        }
+
+        // Get mode name in Ukrainian
+        function getModeName(mode) {
+            const names = {
+                minimal: 'Мінімальний',
+                maximum: 'Максимальний',
+                production: 'Production'
+            };
+            return names[mode] || mode;
+        }
+
+        // Update state
+        function updateState() {
+            state.figmaLink = document.getElementById('figmaLink')?.value || '';
+            state.figmaToken = document.getElementById('figmaToken')?.value || '';
+            state.includeReset = document.getElementById('includeReset')?.checked || false;
+            state.includeComments = document.getElementById('includeComments')?.checked || false;
+            state.optimizeCSS = document.getElementById('optimizeCSS')?.checked || false;
+            state.generateResponsive = document.getElementById('generateResponsive')?.checked || false;
+            
+            // Update selected canvas/layers
+            state.selectedCanvas = Array.from(document.querySelectorAll('#canvasList input:checked'))
+                .map(el => el.value);
+            state.selectedLayers = Array.from(document.querySelectorAll('#layersList input:checked'))
+                .map(el => el.value);
+        }
+
+        // Load last settings
+        function loadLastSettings() {
+            showStatus('<span class="loading"></span> Завантаження налаштувань...', 'warning');
+            vscode.postMessage({ command: 'loadLastSettings' });
+        }
+
+        // Save settings
+        function saveSettings() {
+            updateState();
+            showStatus('<span class="loading"></span> Збереження налаштувань...', 'warning');
+            vscode.postMessage({
+                command: 'saveCurrentSettings',
+                settings: state
+            });
+        }
+
+        // Clear settings
+        function clearSettings() {
+            // Reset UI
+            document.querySelectorAll('.mode-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                cb.checked = false;
+                cb.closest('.checkbox-item')?.classList.remove('selected');
+            });
+            document.querySelectorAll('input[type="text"], input[type="password"]').forEach(input => {
+                input.value = '';
+            });
+            
+            // Reset state
+            state = {
+                mode: null,
+                figmaLink: '',
+                figmaToken: '',
+                selectedCanvas: [],
+                selectedLayers: [],
+                includeReset: true,
+                includeComments: true,
+                optimizeCSS: true,
+                generateResponsive: true
+            };
+            
+            // Disable generate button
+            document.getElementById('generateBtn').disabled = true;
+            
+            // Hide sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            showStatus('Налаштування очищено', 'success');
+            
+            // Send to extension
+            vscode.postMessage({ command: 'clearSettings' });
+        }
+
+        // Generate CSS
+        function generateCSS() {
+            if (!state.mode) {
+                showStatus('Виберіть режим генерації', 'error');
+                return;
+            }
+            
+            updateState();
+            showStatus('<span class="loading"></span> Генерація CSS...', 'warning');
+            
+            vscode.postMessage({
+                command: 'generateCSS',
+                settings: state
+            });
+        }
+
+        // Load Figma canvases
+        function loadFigmaCanvases() {
+            if (!state.figmaLink) {
+                showStatus('Введіть посилання на Figma файл', 'error');
+                return;
+            }
+            
+            showStatus('<span class="loading"></span> Завантаження Canvas...', 'warning');
+            
+            vscode.postMessage({
+                command: 'getFigmaCanvases',
+                figmaLink: state.figmaLink,
+                figmaToken: state.figmaToken
+            });
+        }
+
+        // Handle messages from VS Code
         window.addEventListener('message', event => {
             const message = event.data;
             
             switch (message.command) {
                 case 'lastSettingsLoaded':
-                    if (message.settings) {
-                        applySettings(message.settings);
-                        showStatus('Останні налаштування завантажено', 'success');
-                    }
+                    applySettings(message.settings);
+                    showStatus('Налаштування завантажено', 'success');
                     break;
                     
                 case 'settingsSaved':
@@ -520,10 +657,24 @@
                     
                 case 'generationComplete':
                     if (message.success) {
-                        showStatus(`✅ CSS згенеровано! Файл: ${message.cssPath}`, 'success');
+                        showStatus(`✅ CSS згенеровано успішно!`, 'success');
                     } else {
                         showStatus(`❌ Помилка: ${message.error}`, 'error');
                     }
+                    break;
+                    
+                case 'figmaCanvases':
+                    displayCanvases(message.canvases);
+                    showStatus('Canvas завантажено', 'success');
+                    break;
+                    
+                case 'figmaLayers':
+                    displayLayers(message.layers);
+                    showStatus('Layers завантажено', 'success');
+                    break;
+                    
+                case 'settingsCleared':
+                    showStatus('Налаштування очищено', 'success');
                     break;
                     
                 case 'error':
@@ -532,127 +683,107 @@
             }
         });
 
-        // Застосування налаштувань
+        // Apply settings from storage
         function applySettings(settings) {
+            if (!settings) return;
+            
+            // Apply mode
             if (settings.mode) {
-                document.querySelector(`[data-mode="${settings.mode}"]`)?.click();
+                selectMode(settings.mode);
             }
             
+            // Apply inputs
             if (settings.figmaLink) {
                 document.getElementById('figmaLink').value = settings.figmaLink;
             }
-            
             if (settings.figmaToken) {
                 document.getElementById('figmaToken').value = settings.figmaToken;
             }
             
-            if (settings.selectedCanvas) {
-                settings.selectedCanvas.forEach(canvas => {
-                    const checkbox = document.querySelector(`#canvas-${canvas}`);
-                    if (checkbox) {
-                        checkbox.checked = true;
-                        checkbox.closest('.checkbox-item').classList.add('selected');
-                    }
-                });
-            }
+            // Apply checkboxes
+            document.getElementById('includeReset').checked = settings.includeReset !== false;
+            document.getElementById('includeComments').checked = settings.includeComments !== false;
+            document.getElementById('optimizeCSS').checked = settings.optimizeCSS !== false;
+            document.getElementById('generateResponsive').checked = settings.generateResponsive !== false;
             
-            if (settings.selectedLayers) {
-                settings.selectedLayers.forEach(layer => {
-                    const checkbox = document.querySelector(`#layer-${layer}`);
-                    if (checkbox) {
-                        checkbox.checked = true;
-                        checkbox.closest('.checkbox-item').classList.add('selected');
-                    }
-                });
-            }
+            // Update checkbox UI
+            document.querySelectorAll('.checkbox-item input').forEach(cb => {
+                const parent = cb.closest('.checkbox-item');
+                if (cb.checked) {
+                    parent.classList.add('selected');
+                } else {
+                    parent.classList.remove('selected');
+                }
+            });
             
-            updateSelections();
+            // Update state
+            state = { ...state, ...settings };
         }
 
-        // Load last settings
-        document.getElementById('loadLastBtn').addEventListener('click', () => {
-            vscode.postMessage({ command: 'loadLastSettings' });
-        });
+        // Display canvases
+        function displayCanvases(canvases) {
+            const container = document.getElementById('canvasList');
+            container.innerHTML = '';
+            
+            canvases.forEach(canvas => {
+                const item = document.createElement('div');
+                item.className = 'checkbox-item';
+                item.innerHTML = `
+                    <input type="checkbox" id="canvas-${canvas.id}" value="${canvas.id}">
+                    <label for="canvas-${canvas.id}">
+                        ${canvas.name} (${canvas.childrenCount} елементів)
+                    </label>
+                `;
+                container.appendChild(item);
+                
+                // Add event listener
+                item.querySelector('input').addEventListener('change', function() {
+                    this.closest('.checkbox-item').classList.toggle('selected', this.checked);
+                    updateState();
+                });
+            });
+            
+            // Show section
+            document.getElementById('canvasSection').classList.add('active');
+        }
 
-        // Save settings
-        document.getElementById('saveBtn').addEventListener('click', () => {
-            const settings = {
-                mode: selectedMode,
-                figmaLink: document.getElementById('figmaLink').value,
-                figmaToken: document.getElementById('figmaToken').value,
-                selectedCanvas: selectedCanvas,
-                selectedLayers: selectedLayers
-            };
+        // Display layers
+        function displayLayers(layers) {
+            const container = document.getElementById('layersList');
+            container.innerHTML = '';
             
-            vscode.postMessage({
-                command: 'saveCurrentSettings',
-                settings: settings
-            });
-        });
-
-        // Clear settings
-        document.getElementById('clearBtn').addEventListener('click', () => {
-            // Reset all selections
-            document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
-            document.querySelectorAll('.checkbox-item input').forEach(cb => {
-                cb.checked = false;
-                cb.closest('.checkbox-item').classList.remove('selected');
-            });
-            document.querySelectorAll('input[type="text"], input[type="password"]').forEach(input => {
-                input.value = '';
+            layers.forEach(layer => {
+                const item = document.createElement('div');
+                item.className = 'checkbox-item';
+                item.innerHTML = `
+                    <input type="checkbox" id="layer-${layer.id}" value="${layer.id}">
+                    <label for="layer-${layer.id}">
+                        ${layer.name} (${layer.type})
+                    </label>
+                `;
+                container.appendChild(item);
+                
+                // Add event listener
+                item.querySelector('input').addEventListener('change', function() {
+                    this.closest('.checkbox-item').classList.toggle('selected', this.checked);
+                    updateState();
+                });
             });
             
-            selectedMode = null;
-            selectedCanvas = [];
-            selectedLayers = [];
-            
-            showStatus('Налаштування очищено', 'success');
-        });
-
-        // Generate CSS
-        document.getElementById('generateBtn').addEventListener('click', () => {
-            if (!selectedMode) {
-                showStatus('Виберіть режим генерації', 'error');
-                return;
-            }
-            
-            const htmlFile = document.getElementById('htmlFile').value;
-            if (!htmlFile) {
-                showStatus('Вкажіть HTML файл', 'error');
-                return;
-            }
-            
-            const figmaLink = document.getElementById('figmaLink').value;
-            const figmaToken = document.getElementById('figmaToken').value;
-            
-            const payload = {
-                mode: selectedMode,
-                htmlFile: htmlFile,
-                figmaLink: figmaLink,
-                figmaToken: figmaToken,
-                selectedCanvas: selectedCanvas,
-                selectedLayers: selectedLayers
-            };
-            
-            showStatus('<span class="loading"></span> Генерація CSS...', 'success');
-            
-            // Відправляємо повідомлення в VS Code
-            vscode.postMessage({
-                command: 'generateCSS',
-                settings: payload
-            });
-        });
+            // Show section
+            document.getElementById('layersSection').classList.add('active');
+        }
 
         // Show status message
         function showStatus(message, type = 'success') {
             const status = document.getElementById('status');
-            status.className = `status ${type}`;
+            status.className = `status ${type} show`;
             status.innerHTML = message;
-            status.style.display = 'block';
             
-            if (type === 'success' && !message.includes('loading')) {
+            // Auto-hide after 5 seconds (except for loading)
+            if (!message.includes('loading')) {
                 setTimeout(() => {
-                    status.style.display = 'none';
+                    status.classList.remove('show');
                 }, 5000);
             }
         }

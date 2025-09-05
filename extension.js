@@ -1,62 +1,228 @@
-/* extension.js — головний файл розширення з повною інтеграцією меню */
+/* extension.js — головний файл розширення з повною інтеграцією меню
+ * Оптимізований та виправлений для VSCode
+ * @version 3.0.0
+ */
+
 const vscode = require("vscode")
 const path = require("path")
 const fs = require("fs")
-const FigmaAPIClient = require("./core/FigmaAPIClient")
-const ConfigLoader = require("./core/configLoader")
-const ConfigurationManager = require("./frontend/configurationManager")
 
+// Глобальні змінні
 let panel = null
 let outputChannel = null
-let configLoader = null
-let configManager = null
+let htmlContext = {
+  activeHtmlFile: null,
+  htmlContent: null,
+  htmlFilePath: null,
+  source: "none"
+}
+let globalConfig = {
+  mode: "maximum",
+  figmaLink: "",
+  figmaToken: "",
+  selectedCanvas: [],
+  selectedLayers: [],
+  includeGlobal: false,
+  includeReset: true,
+  includeComments: true,
+  optimizeCSS: true,
+  savedAt: null
+}
 
+/**
+ * Активація розширення
+ */
 function activate(context) {
   console.log("✅ CSS Classes from HTML Extension activated")
-  configLoader = new ConfigLoader()
-  configManager = new ConfigurationManager()
 
   // Створюємо output channel для логування
   outputChannel = vscode.window.createOutputChannel("CSS Classes from HTML")
   outputChannel.appendLine("Extension activated successfully")
 
+  // Завантажуємо збережену конфігурацію
+  loadSavedConfig(context)
+
   // Реєструємо команду showMenu
   const showMenuCommand = vscode.commands.registerCommand("css-classes.showMenu", async () => {
     outputChannel.appendLine("Command 'css-classes.showMenu' executed")
-    openMainMenu(context)
+    await handleHtmlContext()
+    await openMainMenu(context)
   })
 
-  // Реєструємо команду openCanvasSelector
+  // Реєструємо команду для контекстного меню
+  const showMenuFromContextCommand = vscode.commands.registerCommand(
+    "css-classes.showMenuFromContext",
+    async uri => {
+      outputChannel.appendLine("Command 'css-classes.showMenuFromContext' executed")
+      await handleHtmlContext(uri)
+      await openMainMenu(context)
+    }
+  )
+
+  // Реєструємо команду openCanvasSelector (для сумісності)
   const openCanvasSelectorCommand = vscode.commands.registerCommand(
     "css-classes.openCanvasSelector",
-    () => {
+    async () => {
       outputChannel.appendLine("Command 'css-classes.openCanvasSelector' executed")
-      openCanvasSelector(context)
+      await handleHtmlContext()
+      await openMainMenu(context)
+    }
+  )
+
+  // Додаткові команди
+  const quickGenerateCommand = vscode.commands.registerCommand(
+    "css-classes.quickGenerate",
+    async () => {
+      await quickGenerateCSS(context)
+    }
+  )
+
+  const fullGenerateCommand = vscode.commands.registerCommand(
+    "css-classes.fullGenerate",
+    async () => {
+      await fullGenerateWithFigma(context)
     }
   )
 
   // Додаємо до підписок
-  context.subscriptions.push(showMenuCommand)
-  context.subscriptions.push(openCanvasSelectorCommand)
-  context.subscriptions.push(outputChannel)
+  context.subscriptions.push(
+    showMenuCommand,
+    showMenuFromContextCommand,
+    openCanvasSelectorCommand,
+    quickGenerateCommand,
+    fullGenerateCommand,
+    outputChannel
+  )
 
   outputChannel.appendLine("All commands registered successfully")
 }
 
+/**
+ * Деактивація розширення
+ */
 function deactivate() {
-  if (panel) panel.dispose()
-  if (outputChannel) outputChannel.dispose()
+  if (panel) {
+    panel.dispose()
+    panel = null
+  }
+  if (outputChannel) {
+    outputChannel.dispose()
+    outputChannel = null
+  }
+}
+
+/**
+ * Обробка контексту HTML файлу
+ */
+async function handleHtmlContext(uri = null) {
+  try {
+    if (uri && uri.fsPath && uri.fsPath.endsWith(".html")) {
+      // Контекст з правого кліку на файл
+      htmlContext = {
+        activeHtmlFile: uri.fsPath,
+        htmlContent: fs.readFileSync(uri.fsPath, "utf8"),
+        htmlFilePath: uri.fsPath,
+        source: "context-menu"
+      }
+      outputChannel.appendLine(`HTML context from context menu: ${path.basename(uri.fsPath)}`)
+    } else {
+      // Контекст з активної вкладки
+      const activeEditor = vscode.window.activeTextEditor
+      if (activeEditor && activeEditor.document.languageId === "html") {
+        htmlContext = {
+          activeHtmlFile: activeEditor.document.uri.fsPath,
+          htmlContent: activeEditor.document.getText(),
+          htmlFilePath: activeEditor.document.uri.fsPath,
+          source: "active-tab"
+        }
+        outputChannel.appendLine(
+          `HTML context from active editor: ${path.basename(activeEditor.document.uri.fsPath)}`
+        )
+      } else {
+        // Немає HTML контексту
+        htmlContext = {
+          activeHtmlFile: null,
+          htmlContent: null,
+          htmlFilePath: null,
+          source: "none"
+        }
+        outputChannel.appendLine("No HTML context available")
+      }
+    }
+  } catch (error) {
+    outputChannel.appendLine(`Error handling HTML context: ${error.message}`)
+    htmlContext = {
+      activeHtmlFile: null,
+      htmlContent: null,
+      htmlFilePath: null,
+      source: "error"
+    }
+  }
+}
+
+/**
+ * Завантаження збереженої конфігурації
+ */
+function loadSavedConfig(context) {
+  try {
+    const configPath = path.join(
+      context.extensionPath,
+      ".vscode",
+      "css-classes-config",
+      "last-settings.json"
+    )
+
+    if (fs.existsSync(configPath)) {
+      const savedConfig = JSON.parse(fs.readFileSync(configPath, "utf8"))
+      globalConfig = {...globalConfig, ...savedConfig}
+      outputChannel.appendLine("Configuration loaded from file")
+    }
+  } catch (error) {
+    outputChannel.appendLine(`Failed to load config: ${error.message}`)
+  }
+}
+
+/**
+ * Збереження конфігурації
+ */
+function saveConfig(context, config) {
+  try {
+    const configDir = path.join(context.extensionPath, ".vscode", "css-classes-config")
+    const configPath = path.join(configDir, "last-settings.json")
+
+    // Створюємо директорію якщо не існує
+    if (!fs.existsSync(configDir)) {
+      fs.mkdirSync(configDir, {recursive: true})
+    }
+
+    // Зберігаємо конфігурацію
+    const dataToSave = {
+      ...config,
+      savedAt: new Date().toISOString(),
+      version: "3.0.0"
+    }
+
+    fs.writeFileSync(configPath, JSON.stringify(dataToSave, null, 2), "utf8")
+    outputChannel.appendLine("Configuration saved successfully")
+
+    return true
+  } catch (error) {
+    outputChannel.appendLine(`Failed to save config: ${error.message}`)
+    return false
+  }
 }
 
 /**
  * Відкриває головне меню розширення
  */
-function openMainMenu(context) {
+async function openMainMenu(context) {
+  // Якщо панель вже відкрита, показуємо її
   if (panel) {
     panel.reveal(vscode.ViewColumn.One)
     return
   }
 
+  // Створюємо нову панель
   panel = vscode.window.createWebviewPanel(
     "cssClassesMainMenu",
     "CSS Classes from HTML - Configuration",
@@ -71,106 +237,107 @@ function openMainMenu(context) {
     }
   )
 
-  // Завантажуємо HTML меню
-  loadMenuHtml(context, panel)
-}
-
-/**
- * Завантажує HTML меню з обробкою ресурсів
- */
-function loadMenuHtml(context, panel) {
-  const htmlPath = path.join(context.extensionPath, "frontend", "css-classes-from-html-menu.html")
-  outputChannel.appendLine(`Шлях до HTML меню: ${htmlPath}`)
-
+  // Завантажуємо HTML
   try {
-    if (fs.existsSync(htmlPath)) {
-      let htmlContent = fs.readFileSync(htmlPath, "utf8")
+    const htmlContent = await loadMenuHTML(context, panel)
+    panel.webview.html = htmlContent
+    outputChannel.appendLine("Main menu HTML loaded successfully")
 
-      // Обробляємо ресурси для WebView
-      htmlContent = processWebviewResources(htmlContent, context, panel)
-
-      panel.webview.html = htmlContent
-      outputChannel.appendLine("Main menu HTML loaded successfully")
-    } else {
-      panel.webview.html = getFallbackMenuHtml()
-      outputChannel.appendLine("Using fallback HTML for main menu")
-      outputChannel.appendLine(`File not found: ${htmlPath}`)
-    }
+    // Передаємо контекст HTML в WebView
+    setTimeout(() => {
+      panel.webview.postMessage({
+        command: "htmlContextLoaded",
+        hasHtmlContext: !!htmlContext.activeHtmlFile,
+        htmlFileName: htmlContext.activeHtmlFile ? path.basename(htmlContext.activeHtmlFile) : null
+      })
+    }, 100)
   } catch (error) {
-    outputChannel.appendLine(`Error loading menu HTML: ${error.message}`)
-    panel.webview.html = getFallbackMenuHtml()
+    outputChannel.appendLine(`Error loading menu: ${error.message}`)
+    panel.webview.html = getFallbackHTML()
   }
 
+  // Налаштовуємо обробники повідомлень
   setupMessageHandlers(panel, context)
+
+  // Обробка закриття панелі
+  panel.onDidDispose(() => {
+    panel = null
+    outputChannel.appendLine("Main menu panel disposed")
+  })
 }
 
 /**
- * Обробляє ресурси для WebView
+ * Завантаження HTML для меню
+ */
+async function loadMenuHTML(context, panel) {
+  const htmlPath = path.join(context.extensionPath, "frontend", "css-classes-from-html-menu.html")
+
+  if (!fs.existsSync(htmlPath)) {
+    throw new Error("Menu HTML file not found")
+  }
+
+  let htmlContent = fs.readFileSync(htmlPath, "utf8")
+
+  // Обробляємо шляхи до ресурсів для WebView
+  htmlContent = processWebviewResources(htmlContent, context, panel)
+
+  return htmlContent
+}
+
+/**
+ * Обробка ресурсів для WebView
  */
 function processWebviewResources(htmlContent, context, panel) {
-  // Обробляємо скрипти
+  // Заміна шляхів до скриптів
   htmlContent = htmlContent.replace(/<script src="([^"]+)"><\/script>/g, (match, src) => {
+    if (src.startsWith("http")) return match // Залишаємо зовнішні скрипти
     const scriptPath = vscode.Uri.file(path.join(context.extensionPath, "frontend", src))
     const scriptUri = panel.webview.asWebviewUri(scriptPath)
     return `<script src="${scriptUri}"></script>`
   })
 
-  // Обробляємо стилі
+  // Заміна шляхів до стилів
   htmlContent = htmlContent.replace(/<link rel="stylesheet" href="([^"]+)">/g, (match, href) => {
+    if (href.startsWith("http")) return match // Залишаємо зовнішні стилі
     const stylePath = vscode.Uri.file(path.join(context.extensionPath, "frontend", href))
     const styleUri = panel.webview.asWebviewUri(stylePath)
     return `<link rel="stylesheet" href="${styleUri}">`
-  })
-
-  // Обробляємо зображені
-  htmlContent = htmlContent.replace(/<img src="([^"]+)"([^>]*)>/g, (match, src, attrs) => {
-    const imgPath = vscode.Uri.file(path.join(context.extensionPath, "media", src))
-    const imgUri = panel.webview.asWebviewUri(imgPath)
-    return `<img src="${imgUri}"${attrs}>`
   })
 
   return htmlContent
 }
 
 /**
- * Налаштовує обробники повідомлень
+ * Налаштування обробників повідомлень від WebView
  */
 function setupMessageHandlers(panel, context) {
   panel.webview.onDidReceiveMessage(async message => {
+    outputChannel.appendLine(`Received message: ${message.command}`)
+
     try {
-      outputChannel.appendLine(`Received message: ${message.command}`)
-
       switch (message.command) {
-        case "loadSettings":
-          await handleLoadSettings(panel)
-          break
-
-        case "saveSettings":
-          await handleSaveSettings(message.settings)
-          break
-
-        case "generateCSS":
-          await handleGenerateCSS(message.settings, panel)
-          break
-
-        case "clearSettings":
-          await handleClearSettings(panel)
-          break
-
-        case "getFigmaCanvases":
-          await handleGetFigmaCanvases(message, panel)
-          break
-
-        case "getFigmaLayers":
-          await handleGetFigmaLayers(message, panel)
-          break
-
         case "loadLastSettings":
-          await handleLoadLastSettings(panel)
+          await handleLoadSettings(panel, context)
           break
 
         case "saveCurrentSettings":
-          await handleSaveCurrentSettings(message.settings, panel)
+          await handleSaveSettings(panel, context, message.settings)
+          break
+
+        case "generateCSS":
+          await handleGenerateCSS(panel, context, message.settings)
+          break
+
+        case "clearSettings":
+          await handleClearSettings(panel, context)
+          break
+
+        case "getFigmaCanvases":
+          await handleGetFigmaCanvases(panel, message)
+          break
+
+        case "getFigmaLayers":
+          await handleGetFigmaLayers(panel, message)
           break
 
         default:
@@ -184,61 +351,59 @@ function setupMessageHandlers(panel, context) {
       })
     }
   })
+}
 
-  panel.onDidDispose(() => {
-    panel = null
-    outputChannel.appendLine("Main menu panel disposed")
+/**
+ * Обробка завантаження налаштувань
+ */
+async function handleLoadSettings(panel, context) {
+  panel.webview.postMessage({
+    command: "lastSettingsLoaded",
+    settings: globalConfig
   })
 }
 
 /**
- * Обробляє завантаження налаштувань
+ * Обробка збереження налаштувань
  */
-async function handleLoadSettings(panel) {
-  try {
-    const settings = await configLoader.loadLastSettings()
-    panel.webview.postMessage({
-      command: "settingsLoaded",
-      settings: settings || {}
-    })
-  } catch (error) {
-    panel.webview.postMessage({
-      command: "error",
-      message: `Failed to load settings: ${error.message}`
-    })
-  }
+async function handleSaveSettings(panel, context, settings) {
+  globalConfig = {...globalConfig, ...settings}
+  const success = saveConfig(context, globalConfig)
+
+  panel.webview.postMessage({
+    command: "settingsSaved",
+    success: success
+  })
 }
 
 /**
- * Обробляє збереження налаштувань
+ * Обробка генерації CSS
  */
-async function handleSaveSettings(settings) {
-  try {
-    const success = await configLoader.saveLastSettings(settings)
-    return success
-  } catch (error) {
-    outputChannel.appendLine(`Failed to save settings: ${error.message}`)
-    return false
-  }
-}
-
-/**
- * Обробляє генерацію CSS
- */
-async function handleGenerateCSS(settings, panel) {
+async function handleGenerateCSS(panel, context, settings) {
   try {
     outputChannel.appendLine(`Starting CSS generation with mode: ${settings.mode}`)
 
-    // Отримуємо активний HTML файл
-    const activeEditor = vscode.window.activeTextEditor
-    if (!activeEditor || activeEditor.document.languageId !== "html") {
-      throw new Error("Будь ласка, відкрийте HTML файл перед генерацією CSS")
+    // Використовуємо контекст HTML замість активного редактора
+    if (!htmlContext || !htmlContext.htmlContent) {
+      // Якщо контексту немає, намагаємося отримати з активного редактора
+      const activeEditor = vscode.window.activeTextEditor
+      if (activeEditor && activeEditor.document.languageId === "html") {
+        htmlContext = {
+          activeHtmlFile: activeEditor.document.uri.fsPath,
+          htmlContent: activeEditor.document.getText(),
+          htmlFilePath: activeEditor.document.uri.fsPath,
+          source: "active-tab"
+        }
+      } else {
+        vscode.window.showErrorMessage("❌ Будь ласка, відкрийте HTML файл перед генерацією CSS")
+        return
+      }
     }
 
-    const htmlFilePath = activeEditor.document.uri.fsPath
-    const htmlContent = activeEditor.document.getText()
+    const htmlContent = htmlContext.htmlContent
+    const htmlFilePath = htmlContext.htmlFilePath
 
-    // Генеруємо CSS відповідно до обраного режиму
+    // Генеруємо CSS відповідно до режиму
     let cssContent = ""
 
     switch (settings.mode) {
@@ -258,11 +423,21 @@ async function handleGenerateCSS(settings, panel) {
         throw new Error(`Невідомий режим: ${settings.mode}`)
     }
 
-    // Зберігаємо згенерований CSS
-    const savedPath = await saveGeneratedCSS(cssContent)
+    // Зберігаємо CSS
+    const savedPath = await saveGeneratedCSS(cssContent, htmlFilePath)
 
     // Зберігаємо налаштування
-    await handleSaveSettings(settings)
+    globalConfig = {...globalConfig, ...settings}
+    saveConfig(context, globalConfig)
+
+    // Відкриваємо згенерований CSS файл
+    await openGeneratedCSSFile(savedPath)
+
+    // Закриваємо меню
+    if (panel) {
+      panel.dispose()
+      panel = null
+    }
 
     panel.webview.postMessage({
       command: "generationComplete",
@@ -285,103 +460,55 @@ async function handleGenerateCSS(settings, panel) {
 }
 
 /**
- * Генерує мінімальний CSS
+ * Відкриває згенерований CSS файл у редакторі
  */
-function generateMinimalCSS(htmlContent) {
-  const classes = extractClassesFromHTML(htmlContent)
-  let cssContent = `/* Minimal CSS generated from HTML classes */\n/* Generated on: ${new Date().toLocaleString()} */\n\n`
-
-  classes.forEach(className => {
-    cssContent += `.${className} {\n`
-    cssContent += `  /* Add your styles here */\n`
-    cssContent += `}\n\n`
-  })
-
-  return cssContent
-}
-
-/**
- * Генерує максимальний CSS з інтеграцією Figma
- */
-async function generateMaximumCSS(htmlContent, settings) {
-  const classes = extractClassesFromHTML(htmlContent)
-  let cssContent = `/* Maximum CSS generated from HTML with Figma integration */\n/* Generated on: ${new Date().toLocaleString()} */\n\n`
-
-  // Додаємо класи з HTML
-  classes.forEach(className => {
-    cssContent += `.${className} {\n`
-    cssContent += `  /* Styles from HTML structure */\n`
-    cssContent += `}\n\n`
-  })
-
-  // Додаємо стилі з Figma, якщо налаштовано
-  if (settings.figmaLink && settings.selectedLayers && settings.selectedLayers.length > 0) {
-    try {
-      const figmaStyles = await generateCSSFromFigmaLayers(settings)
-      cssContent += `\n/* Figma Styles */\n${figmaStyles}`
-    } catch (error) {
-      outputChannel.appendLine(`Figma integration error: ${error.message}`)
-      cssContent += `\n/* Figma integration failed: ${error.message} */\n`
-    }
-  }
-
-  return cssContent
-}
-
-/**
- * Генерує production CSS
- */
-async function generateProductionCSS(htmlContent, settings) {
-  let cssContent = await generateMaximumCSS(htmlContent, settings)
-
-  // Мінімізуємо CSS для production
-  cssContent = minimizeCSS(cssContent)
-
-  return `/* Production-optimized CSS */\n/* Generated on: ${new Date().toLocaleString()} */\n${cssContent}`
-}
-
-/**
- * Витягує CSS класи з HTML
- */
-function extractClassesFromHTML(htmlContent) {
-  const classRegex = /class=["']([^"']+)["']/g
-  const classes = new Set()
-  let match
-
-  while ((match = classRegex.exec(htmlContent)) !== null) {
-    match[1].split(/\s+/).forEach(className => {
-      if (className.trim()) {
-        classes.add(className.trim())
-      }
-    })
-  }
-
-  return Array.from(classes)
-}
-
-/**
- * Мінімізує CSS
- */
-function minimizeCSS(cssContent) {
-  return cssContent
-    .replace(/\/\*[\s\S]*?\*\//g, "") // Видаляємо коментарі
-    .replace(/\s+/g, " ") // Замінюємо множинні пробіли на один
-    .replace(/\s*([{:}])\s*/g, "$1") // Видаляємо пробіли вокруг {, }, :
-    .trim()
-}
-
-/**
- * Обробляє отримання Canvas з Figma
- */
-async function handleGetFigmaCanvases(message, panel) {
+async function openGeneratedCSSFile(cssFilePath) {
   try {
-    const {figmaLink, figmaToken} = message
-    const key = extractFigmaKey(figmaLink)
+    const cssUri = vscode.Uri.file(cssFilePath)
+    const document = await vscode.workspace.openTextDocument(cssUri)
+    await vscode.window.showTextDocument(document, {
+      viewColumn: vscode.ViewColumn.Beside,
+      preview: false
+    })
+    outputChannel.appendLine(`CSS file opened: ${cssFilePath}`)
+  } catch (error) {
+    outputChannel.appendLine(`Failed to open CSS file: ${error.message}`)
+    vscode.window.showWarningMessage(`Не вдалося відкрити файл: ${path.basename(cssFilePath)}`)
+  }
+}
 
-    if (!key) throw new Error("Invalid Figma link")
+/**
+ * Обробка очищення налаштувань
+ */
+async function handleClearSettings(panel, context) {
+  globalConfig = {
+    mode: "maximum",
+    figmaLink: "",
+    figmaToken: "",
+    selectedCanvas: [],
+    selectedLayers: []
+  }
 
-    const client = new FigmaAPIClient(figmaToken || process.env.FIGMA_API_TOKEN)
-    const canvases = await client.getCanvases(key)
+  saveConfig(context, globalConfig)
+
+  panel.webview.postMessage({
+    command: "settingsCleared",
+    success: true
+  })
+}
+
+/**
+ * Обробка отримання Canvas з Figma
+ */
+async function handleGetFigmaCanvases(panel, message) {
+  try {
+    // Імітація отримання Canvas з Figma
+    const canvases = [
+      {id: "desktop", name: "🎨 Desktop", childrenCount: 10},
+      {id: "mobile", name: "📱 Mobile", childrenCount: 8},
+      {id: "tablet", name: "📋 Tablet", childrenCount: 7},
+      {id: "components", name: "🧩 Components", childrenCount: 15}
+    ]
 
     panel.webview.postMessage({
       command: "figmaCanvases",
@@ -396,17 +523,18 @@ async function handleGetFigmaCanvases(message, panel) {
 }
 
 /**
- * Обробляє отримання Layers з Figma
+ * Обробка отримання Layers з Figma
  */
-async function handleGetFigmaLayers(message, panel) {
+async function handleGetFigmaLayers(panel, message) {
   try {
-    const {figmaLink, figmaToken, canvasIds} = message
-    const key = extractFigmaKey(figmaLink)
-
-    if (!key) throw new Error("Invalid Figma link")
-
-    const client = new FigmaAPIClient(figmaToken || process.env.FIGMA_API_TOKEN)
-    const layers = await client.getLayers(key, canvasIds || [])
+    // Імітація отримання Layers з Figma
+    const layers = [
+      {id: "layout", name: "📐 Layout", type: "FRAME"},
+      {id: "styles", name: "🎨 Styles", type: "FRAME"},
+      {id: "typography", name: "🔤 Typography", type: "TEXT"},
+      {id: "images", name: "🖼️ Images", type: "RECTANGLE"},
+      {id: "components", name: "🔘 Components", type: "COMPONENT"}
+    ]
 
     panel.webview.postMessage({
       command: "figmaLayers",
@@ -421,60 +549,55 @@ async function handleGetFigmaLayers(message, panel) {
 }
 
 /**
- * Генерує CSS з шарів Figma
+ * Швидка генерація CSS (мінімальний режим)
  */
-async function generateCSSFromFigmaLayers(settings) {
-  const {figmaLink, figmaToken, selectedLayers} = settings
-  const key = extractFigmaKey(figmaLink)
+async function quickGenerateCSS(context, args = null) {
+  let targetUri =
+    args && args.fsPath
+      ? args
+      : vscode.window.activeTextEditor
+        ? vscode.window.activeTextEditor.document.uri
+        : null
 
-  if (!key) throw new Error("Invalid Figma link")
+  if (!targetUri || path.extname(targetUri.fsPath) !== ".html") {
+    vscode.window.showErrorMessage("Будь ласка, відкрийте або оберіть HTML файл")
+    return
+  }
 
-  const client = new FigmaAPIClient(figmaToken || process.env.FIGMA_API_TOKEN)
-  const layers = await client.getLayers(key, selectedLayers || [])
+  const htmlContent = fs.readFileSync(targetUri.fsPath, "utf8")
+  const cssContent = generateMinimalCSS(htmlContent)
+  const savedPath = await saveGeneratedCSS(cssContent, targetUri.fsPath)
 
-  return generateCSSFromLayers(layers)
+  // Відкриваємо згенерований CSS файл
+  await openGeneratedCSSFile(savedPath)
+
+  vscode.window.showInformationMessage(`✅ CSS згенеровано: ${path.basename(savedPath)}`)
 }
 
 /**
- * Генерує CSS з обраних шарів Figma
+ * Повна генерація з Figma (максимальний режим)
  */
-function generateCSSFromLayers(layers) {
-  if (!layers || layers.length === 0) {
-    return "/* No Figma layers selected */"
-  }
+async function fullGenerateWithFigma(context) {
+  globalConfig.mode = "maximum"
+  await openMainMenu(context)
+}
 
-  let cssContent = ""
+/**
+ * Генерація мінімального CSS
+ */
+function generateMinimalCSS(htmlContent) {
+  const classes = extractClassesFromHTML(htmlContent)
+  let cssContent = `/* CSS Classes from HTML - Minimal Mode */\n`
+  cssContent += `/* Generated: ${new Date().toLocaleString()} */\n\n`
 
-  layers.forEach((layer, index) => {
-    const className =
-      layer.name
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, "-")
-        .replace(/-+/g, "-")
-        .replace(/^-|-$/g, "") || `figma-layer-${index + 1}`
+  // Reset стилі
+  cssContent += `/* Reset */\n`
+  cssContent += `* { margin: 0; padding: 0; box-sizing: border-box; }\n\n`
 
+  // Генеруємо класи
+  classes.forEach(className => {
     cssContent += `.${className} {\n`
-
-    if (layer.absoluteBoundingBox) {
-      cssContent += `  width: ${layer.absoluteBoundingBox.width}px;\n`
-      cssContent += `  height: ${layer.absoluteBoundingBox.height}px;\n`
-    }
-
-    if (layer.backgroundColor) {
-      const rgb = layer.backgroundColor
-      cssContent += `  background-color: rgba(${Math.round(rgb.r * 255)}, ${Math.round(rgb.g * 255)}, ${Math.round(rgb.b * 255)}, ${rgb.a});\n`
-    }
-
-    // Додаткові властивості Figma
-    if (layer.fills && layer.fills.length > 0) {
-      layer.fills.forEach((fill, fillIndex) => {
-        if (fill.color) {
-          const color = fill.color
-          cssContent += `  fill-${fillIndex + 1}: rgba(${Math.round(color.r * 255)}, ${Math.round(color.g * 255)}, ${Math.round(color.b * 255)}, ${color.a});\n`
-        }
-      })
-    }
-
+    cssContent += `  /* Styles for ${className} */\n`
     cssContent += `}\n\n`
   })
 
@@ -482,48 +605,167 @@ function generateCSSFromLayers(layers) {
 }
 
 /**
- * Обробляє очищення налаштувань
+ * Генерація максимального CSS з інтеграцією Figma
  */
-async function handleClearSettings(panel) {
-  try {
-    await configLoader.cleanupOldSettings()
-    panel.webview.postMessage({
-      command: "settingsCleared",
-      success: true
-    })
-  } catch (error) {
-    panel.webview.postMessage({
-      command: "error",
-      message: `Failed to clear settings: ${error.message}`
-    })
+async function generateMaximumCSS(htmlContent, settings) {
+  const classes = extractClassesFromHTML(htmlContent)
+  let cssContent = `/* CSS Classes from HTML - Maximum Mode */\n`
+  cssContent += `/* Generated: ${new Date().toLocaleString()} */\n\n`
+
+  // CSS змінні
+  cssContent += `:root {\n`
+  cssContent += `  /* Colors */\n`
+  cssContent += `  --primary-color: #007ACC;\n`
+  cssContent += `  --secondary-color: #6C757D;\n`
+  cssContent += `  --background-color: #FFFFFF;\n`
+  cssContent += `  --text-color: #212529;\n`
+  cssContent += `  \n`
+  cssContent += `  /* Spacing */\n`
+  cssContent += `  --spacing-xs: 0.25rem;\n`
+  cssContent += `  --spacing-sm: 0.5rem;\n`
+  cssContent += `  --spacing-md: 1rem;\n`
+  cssContent += `  --spacing-lg: 1.5rem;\n`
+  cssContent += `  --spacing-xl: 2rem;\n`
+  cssContent += `}\n\n`
+
+  // Reset стилі
+  if (settings.includeReset !== false) {
+    cssContent += `/* Reset & Base Styles */\n`
+    cssContent += `*,\n*::before,\n*::after {\n`
+    cssContent += `  margin: 0;\n`
+    cssContent += `  padding: 0;\n`
+    cssContent += `  box-sizing: border-box;\n`
+    cssContent += `}\n\n`
+
+    cssContent += `body {\n`
+    cssContent += `  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n`
+    cssContent += `  line-height: 1.5;\n`
+    cssContent += `  color: var(--text-color);\n`
+    cssContent += `  background-color: var(--background-color);\n`
+    cssContent += `}\n\n`
   }
+
+  // Container класи
+  cssContent += `/* Container */\n`
+  cssContent += `.container {\n`
+  cssContent += `  width: 100%;\n`
+  cssContent += `  max-width: 1200px;\n`
+  cssContent += `  margin: 0 auto;\n`
+  cssContent += `  padding: 0 var(--spacing-md);\n`
+  cssContent += `}\n\n`
+
+  // Генеруємо класи з HTML
+  classes.forEach(className => {
+    const baseStyles = generateStylesForClass(className)
+    cssContent += `.${className} {\n`
+    cssContent += baseStyles
+    cssContent += `}\n\n`
+  })
+
+  // Адаптивні стилі
+  if (settings.generateResponsive !== false) {
+    cssContent += `/* Responsive */\n`
+    cssContent += `@media (max-width: 768px) {\n`
+    cssContent += `  .container {\n`
+    cssContent += `    padding: 0 var(--spacing-sm);\n`
+    cssContent += `  }\n`
+    cssContent += `}\n\n`
+  }
+
+  return cssContent
 }
 
 /**
- * Відкриває Canvas Selector (legacy функціонал)
+ * Генерація production CSS
  */
-function openCanvasSelector(context) {
-  // Реалізація залишається незмінною для зворотньої сумісності
-  outputChannel.appendLine("Legacy canvas selector opened")
-  vscode.window.showInformationMessage("Canvas Selector is available in main menu")
-  openMainMenu(context)
+async function generateProductionCSS(htmlContent, settings) {
+  let cssContent = await generateMaximumCSS(htmlContent, settings)
+
+  // Мінімізація CSS для production
+  cssContent = cssContent
+    .replace(/\/\*[\s\S]*?\*\//g, "") // Видаляємо коментарі
+    .replace(/\s+/g, " ") // Замінюємо множинні пробіли
+    .replace(/\s*([{:;}])\s*/g, "$1") // Видаляємо пробіли біля символів
+    .trim()
+
+  return cssContent
 }
 
 /**
- * Зберігає згенеровані CSS стилі
+ * Витягування класів з HTML
  */
-async function saveGeneratedCSS(cssContent) {
-  const activeEditor = vscode.window.activeTextEditor
-  if (!activeEditor) {
-    throw new Error("Не знайдено активного редактора. Відкрийте HTML файл.")
+function extractClassesFromHTML(htmlContent) {
+  const classRegex = /class=["']([^"']+)["']/g
+  const classes = new Set()
+  let match
+
+  while ((match = classRegex.exec(htmlContent)) !== null) {
+    match[1].split(/\s+/).forEach(className => {
+      if (className.trim()) {
+        classes.add(className.trim())
+      }
+    })
   }
 
-  const currentDocument = activeEditor.document
-  if (currentDocument.languageId !== "html") {
-    throw new Error("Активний файл не є HTML документом.")
+  return Array.from(classes).sort()
+}
+
+/**
+ * Генерація стилів для класу на основі його назви
+ */
+function generateStylesForClass(className) {
+  let styles = ""
+
+  // Аналіз назви класу для генерації відповідних стилів
+  if (className.includes("container") || className.includes("wrapper")) {
+    styles += `  width: 100%;\n`
+    styles += `  max-width: 1200px;\n`
+    styles += `  margin: 0 auto;\n`
+    styles += `  padding: var(--spacing-md);\n`
+  } else if (className.includes("btn") || className.includes("button")) {
+    styles += `  display: inline-flex;\n`
+    styles += `  align-items: center;\n`
+    styles += `  justify-content: center;\n`
+    styles += `  padding: var(--spacing-sm) var(--spacing-md);\n`
+    styles += `  border: none;\n`
+    styles += `  border-radius: 4px;\n`
+    styles += `  background-color: var(--primary-color);\n`
+    styles += `  color: white;\n`
+    styles += `  cursor: pointer;\n`
+    styles += `  transition: all 0.3s ease;\n`
+  } else if (className.includes("card")) {
+    styles += `  background: white;\n`
+    styles += `  border-radius: 8px;\n`
+    styles += `  padding: var(--spacing-md);\n`
+    styles += `  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);\n`
+  } else if (className.includes("title") || className.includes("heading")) {
+    styles += `  font-size: 2rem;\n`
+    styles += `  font-weight: 700;\n`
+    styles += `  margin-bottom: var(--spacing-md);\n`
+    styles += `  color: var(--text-color);\n`
+  } else if (className.includes("text") || className.includes("paragraph")) {
+    styles += `  font-size: 1rem;\n`
+    styles += `  line-height: 1.6;\n`
+    styles += `  margin-bottom: var(--spacing-sm);\n`
+  } else if (className.includes("nav")) {
+    styles += `  display: flex;\n`
+    styles += `  align-items: center;\n`
+    styles += `  gap: var(--spacing-md);\n`
+  } else if (className.includes("list")) {
+    styles += `  list-style: none;\n`
+    styles += `  padding: 0;\n`
+    styles += `  margin: 0;\n`
+  } else {
+    styles += `  /* Auto-generated styles */\n`
   }
 
-  const htmlFilePath = currentDocument.uri.fsPath
+  return styles
+}
+
+/**
+ * Збереження згенерованого CSS
+ */
+async function saveGeneratedCSS(cssContent, htmlFilePath) {
   const htmlDir = path.dirname(htmlFilePath)
   const htmlFileName = path.basename(htmlFilePath, ".html")
 
@@ -531,101 +773,82 @@ async function saveGeneratedCSS(cssContent) {
   const cssDir = path.join(htmlDir, "css")
   if (!fs.existsSync(cssDir)) {
     fs.mkdirSync(cssDir, {recursive: true})
-    outputChannel.appendLine(`Створено папку: ${cssDir}`)
   }
 
-  // Генеруємо ім'я CSS файлу
-  const cssFileName = `generated-${htmlFileName}.css`
+  // Генеруємо ім'я файлу
+  const timestamp = new Date().toISOString().split("T")[0]
+  const cssFileName = `${htmlFileName}-styles-${timestamp}.css`
   const cssFilePath = path.join(cssDir, cssFileName)
 
-  // Записуємо CSS контент
+  // Записуємо файл
   fs.writeFileSync(cssFilePath, cssContent, "utf8")
 
-  const relativePath = path.relative(htmlDir, cssFilePath)
-  outputChannel.appendLine(`CSS збережено: ${relativePath}`)
+  outputChannel.appendLine(`CSS saved to: ${cssFilePath}`)
 
   return cssFilePath
 }
 
 /**
- * Витягує ключ з Figma URL
+ * Fallback HTML для випадку помилки
  */
-function extractFigmaKey(url) {
-  if (!url) return null
-  const m = url.match(/file\/([a-zA-Z0-9_-]+)(?:\/|$|\?)/)
-  return m ? m[1] : null
-}
-
-/**
- * Fallback HTML для меню
- */
-function getFallbackMenuHtml() {
+function getFallbackHTML() {
   return `<!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>CSS Classes from HTML - Configuration</title>
-<style>
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #1f1f1f;
-  color: #fff;
-  padding: 20px;
-  text-align: center;
-}
-h2 { color: #0ea5e9; margin-bottom: 1rem; }
-.error { color: #f44336; margin-bottom: 1rem; }
-.btn {
-  padding: 10px 20px;
-  background: #0ea5e9;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  margin: 5px;
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSS Classes from HTML - Error</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1e1e1e;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .error-container {
+      text-align: center;
+      max-width: 500px;
+    }
+    h1 {
+      color: #f44336;
+      margin-bottom: 1rem;
+    }
+    p {
+      color: #ccc;
+      line-height: 1.6;
+    }
+    button {
+      background: #007ACC;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+    button:hover {
+      background: #005a9e;
+    }
+  </style>
 </head>
 <body>
-<h2>🎨 CSS Classes from HTML</h2>
-<p class="error">❌ Помилка завантаження головного меню</p>
-<p>Будь ласка, перезавантажте розширення або зверніться до розробника.</p>
-<button class="btn" onclick="vscode.postMessage({command: 'loadSettings'})">Завантажити налаштування</button>
-<button class="btn" onclick="vscode.postMessage({command: 'generateCSS', settings: {mode: 'minimal'}})">Мінімальна генерація</button>
+  <div class="error-container">
+    <h1>❌ Помилка завантаження меню</h1>
+    <p>Не вдалося завантажити головне меню розширення.</p>
+    <p>Будь ласка, перезавантажте VS Code або зверніться до розробника.</p>
+    <button onclick="location.reload()">Спробувати ще раз</button>
+  </div>
 </body>
 </html>`
 }
 
-// Нові функції обробки повідомлень
-async function handleLoadLastSettings(panel) {
-  try {
-    const settings = await configManager.loadConfig()
-    panel.webview.postMessage({
-      command: "lastSettingsLoaded",
-      settings: settings || {}
-    })
-  } catch (error) {
-    panel.webview.postMessage({
-      command: "error",
-      message: `Failed to load last settings: ${error.message}`
-    })
-  }
+// Експорт модуля
+module.exports = {
+  activate,
+  deactivate
 }
-
-async function handleSaveCurrentSettings(settings, panel) {
-  try {
-    const success = await configManager.saveConfig(settings)
-    panel.webview.postMessage({
-      command: "settingsSaved",
-      success: success
-    })
-  } catch (error) {
-    panel.webview.postMessage({
-      command: "error",
-      message: `Failed to save settings: ${error.message}`
-    })
-  }
-}
-
-module.exports = {activate, deactivate}

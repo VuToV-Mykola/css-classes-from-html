@@ -1,5 +1,6 @@
-### 🌐 Виберіть мову/Choose language/Wählen Sprache:
+# 🎨 CSS Classes from HTML - Figma Integration
 
+### 🌐 Виберіть мову/Choose language/Wählen Sprache:
 [🇺🇦 Українська](README.md) | [🇬🇧 English](README.en.md) | [🇩🇪 Deutsch](README.de.md)
 
 <!-- AUTOGEN:STATS -->
@@ -17,11 +18,29 @@
 <!-- ![Project Screenshot](./assets/screenshot.png) -->
 <!-- END:AUTOGEN -->
 
-# 🎨 CSS Classes from HTML - Figma Integration
+## 📊 Marketplace-Statistik:
+[![Version](https://img.shields.io/badge/version-0.0.6-blue.svg)](https://marketplace.visualstudio.com/items?itemName=vutov-mykola.css-classes-from-html)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/VuToV-Mykola/css-classes-from-html/blob/HEAD/LICENSE.md)
+[![Downloads](https://img.shields.io/visual-studio-marketplace/d/vutov-mykola.css-classes-from-html.svg)](https://marketplace.visualstudio.com/items?itemName=vutov-mykola.css-classes-from-html)
+[![Rating](https://img.shields.io/visual-studio-marketplace/r/vutov-mykola.css-classes-from-html.svg)](https://marketplace.visualstudio.com/items?itemName=vutov-mykola.css-classes-from-html)
+[![GitHub Stars](https://img.shields.io/github/stars/VuToV-Mykola/css-classes-from-html.svg)](https://github.com/VuToV-Mykola/css-classes-from-html)
 
-![Version](https://img.shields.io/badge/version-2.0.0-blue)
-![VSCode](https://img.shields.io/badge/VSCode-^1.85.0-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
+## 📹 Video-Anleitung
+
+[![Video-Anleitung zur Verwendung](https://img.youtube.com/vi/xl46PGWNB3A/maxresdefault.jpg)](https://youtu.be/xl46PGWNB3A)
+
+**[🎬 Vollständige Anleitung auf YouTube ansehen](https://youtu.be/xl46PGWNB3A)**
+
+## 💖 Unterstützen Sie den Autor
+
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate/?hosted_button_id=D5U6TQ3Q9CVLS)
+[![Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-orange.svg)](https://www.paypal.com/donate/?hosted_button_id=D5U6TQ3Q9CVLS)
+
+> Wenn diese Erweiterung Ihnen bei der Arbeit geholfen hat, unterstützen Sie den Autor mit einem Kaffee! ☕
+
+
+🎨 **Leistungsstarke VS Code-Erweiterung zur automatischen CSS-Generierung aus HTML-Klassen und Integration mit Figma-Designs**
+
 
 ## 📌 Beschreibung
 

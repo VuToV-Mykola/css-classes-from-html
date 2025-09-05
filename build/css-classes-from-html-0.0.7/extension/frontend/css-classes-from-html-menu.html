@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Classes from HTML - Configuration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #007ACC;
+            --primary-dark: #005a9e;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+            --bg: #1e1e1e;
+            --bg-secondary: #252526;
+            --bg-tertiary: #2d2d30;
+            --text: #cccccc;
+            --text-secondary: #8c8c8c;
+            --border: #3c3c3c;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-size: 14px;
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-secondary);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.6rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Container */
+        .container {
+            flex: 1;
+            padding: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Mode selector */
+        .mode-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .mode-card {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .mode-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .mode-card.selected {
+            border-color: var(--success);
+            background: var(--bg-tertiary);
+        }
+
+        .mode-card.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--success);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .mode-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .mode-title {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        .mode-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Sections */
+        .section {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        /* Form elements */
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Checkboxes */
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.75rem;
+            margin: 1rem 0;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .checkbox-item:hover {
+            background: var(--bg);
+        }
+
+        .checkbox-item.selected {
+            background: var(--bg);
+            border-color: var(--primary);
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            margin-right: 0.5rem;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            cursor: pointer;
+            user-select: none;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Actions */
+        .actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            padding: 2rem;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            position: sticky;
+            bottom: 0;
+        }
+
+        .btn {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: var(--bg);
+            border-color: var(--primary);
+        }
+
+        /* Status messages */
+        .status {
+            text-align: center;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .status.show {
+            display: block;
+        }
+
+        .status.success {
+            background: rgba(76, 175, 80, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .status.error {
+            background: rgba(244, 67, 54, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+
+        .status.warning {
+            background: rgba(255, 152, 0, 0.1);
+            border: 1px solid var(--warning);
+            color: var(--warning);
+        }
+
+        /* Loading spinner */
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--text-secondary);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .mode-selector {
+                grid-template-columns: 1fr;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎨 CSS Classes from HTML</h1>
+        <p>Автоматична генерація CSS з HTML файлів та інтеграція з Figma</p>
+    </div>
+
+    <div class="container">
+        <!-- Mode Selection -->
+        <div class="mode-selector" id="modeSelector">
+            <div class="mode-card" data-mode="minimal">
+                <div class="mode-icon">⚡</div>
+                <div class="mode-title">Мінімальний</div>
+                <div class="mode-description">Базова генерація CSS класів без додаткових опцій</div>
+            </div>
+            
+            <div class="mode-card" data-mode="maximum">
+                <div class="mode-icon">🚀</div>
+                <div class="mode-title">Максимальний</div>
+                <div class="mode-description">Повна інтеграція з Figma, всі можливості</div>
+            </div>
+            
+            <div class="mode-card" data-mode="production">
+                <div class="mode-icon">📦</div>
+                <div class="mode-title">Production</div>
+                <div class="mode-description">Оптимізований CSS для продакшену</div>
+            </div>
+        </div>
+
+        <!-- Figma Configuration -->
+        <div class="section" id="figmaSection">
+            <h2 class="section-title">🎨 Налаштування Figma</h2>
+            
+            <div class="input-group">
+                <label for="figmaLink">Посилання на Figma файл</label>
+                <input type="text" id="figmaLink" placeholder="https://www.figma.com/file/...">
+            </div>
+
+            <div class="input-group">
+                <label for="figmaToken">Figma API Token (опціонально)</label>
+                <input type="password" id="figmaToken" placeholder="Ваш Figma API токен">
+            </div>
+
+            <button class="btn btn-secondary" id="loadCanvasBtn">
+                📋 Завантажити Canvas
+            </button>
+        </div>
+
+        <!-- Canvas Selection -->
+        <div class="section" id="canvasSection">
+            <h2 class="section-title">📋 Вибір Canvas</h2>
+            <div class="checkbox-group" id="canvasList">
+                <!-- Динамічно заповнюється -->
+            </div>
+        </div>
+
+        <!-- Layers Selection -->
+        <div class="section" id="layersSection">
+            <h2 class="section-title">🎨 Вибір Layers</h2>
+            <div class="checkbox-group" id="layersList">
+                <!-- Динамічно заповнюється -->
+            </div>
+        </div>
+
+        <!-- Options -->
+        <div class="section" id="optionsSection">
+            <h2 class="section-title">⚙️ Додаткові налаштування</h2>
+            
+            <div class="checkbox-group">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="includeReset" checked>
+                    <label for="includeReset">Включити Reset стилі</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="includeComments" checked>
+                    <label for="includeComments">Додати коментарі</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="optimizeCSS" checked>
+                    <label for="optimizeCSS">Оптимізувати CSS</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="generateResponsive" checked>
+                    <label for="generateResponsive">Генерувати адаптивні стилі</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Messages -->
+        <div id="status" class="status"></div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="actions">
+        <button class="btn btn-secondary" id="loadLastBtn">
+            📂 Завантажити останні
+        </button>
+        <button class="btn btn-secondary" id="saveBtn">
+            💾 Зберегти
+        </button>
+        <button class="btn btn-secondary" id="clearBtn">
+            🗑️ Очистити
+        </button>
+        <button class="btn btn-primary" id="generateBtn" disabled>
+            🚀 Згенерувати CSS
+        </button>
+    </div>
+
+    <script>
+        // VS Code API
+        const vscode = acquireVsCodeApi();
+        
+        // Global state
+        let state = {
+            mode: null,
+            figmaLink: '',
+            figmaToken: '',
+            selectedCanvas: [],
+            selectedLayers: [],
+            includeReset: true,
+            includeComments: true,
+            optimizeCSS: true,
+            generateResponsive: true
+        };
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            initializeUI();
+            loadLastSettings();
+        });
+
+        // Initialize UI
+        function initializeUI() {
+            // Mode selection
+            document.querySelectorAll('.mode-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    selectMode(this.dataset.mode);
+                });
+            });
+
+            // Checkbox handling
+            document.querySelectorAll('.checkbox-item input').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const parent = this.closest('.checkbox-item');
+                    if (this.checked) {
+                        parent.classList.add('selected');
+                    } else {
+                        parent.classList.remove('selected');
+                    }
+                    updateState();
+                });
+            });
+
+            // Button handlers
+            document.getElementById('loadLastBtn').addEventListener('click', loadLastSettings);
+            document.getElementById('saveBtn').addEventListener('click', saveSettings);
+            document.getElementById('clearBtn').addEventListener('click', clearSettings);
+            document.getElementById('generateBtn').addEventListener('click', generateCSS);
+            document.getElementById('loadCanvasBtn')?.addEventListener('click', loadFigmaCanvases);
+
+            // Input handlers
+            document.getElementById('figmaLink')?.addEventListener('input', updateState);
+            document.getElementById('figmaToken')?.addEventListener('input', updateState);
+        }
+
+        // Select mode
+        function selectMode(mode) {
+            // Update UI
+            document.querySelectorAll('.mode-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector(`[data-mode="${mode}"]`).classList.add('selected');
+            
+            // Update state
+            state.mode = mode;
+            
+            // Show/hide sections based on mode
+            const showFigma = mode !== 'minimal';
+            document.getElementById('figmaSection').classList.toggle('active', showFigma);
+            document.getElementById('optionsSection').classList.add('active');
+            
+            // Enable generate button if mode selected
+            document.getElementById('generateBtn').disabled = false;
+            
+            showStatus(`Режим "${getModeName(mode)}" вибрано`, 'success');
+            updateState();
+        }
+
+        // Get mode name in Ukrainian
+        function getModeName(mode) {
+            const names = {
+                minimal: 'Мінімальний',
+                maximum: 'Максимальний',
+                production: 'Production'
+            };
+            return names[mode] || mode;
+        }
+
+        // Update state
+        function updateState() {
+            state.figmaLink = document.getElementById('figmaLink')?.value || '';
+            state.figmaToken = document.getElementById('figmaToken')?.value || '';
+            state.includeReset = document.getElementById('includeReset')?.checked || false;
+            state.includeComments = document.getElementById('includeComments')?.checked || false;
+            state.optimizeCSS = document.getElementById('optimizeCSS')?.checked || false;
+            state.generateResponsive = document.getElementById('generateResponsive')?.checked || false;
+            
+            // Update selected canvas/layers
+            state.selectedCanvas = Array.from(document.querySelectorAll('#canvasList input:checked'))
+                .map(el => el.value);
+            state.selectedLayers = Array.from(document.querySelectorAll('#layersList input:checked'))
+                .map(el => el.value);
+        }
+
+        // Load last settings
+        function loadLastSettings() {
+            showStatus('<span class="loading"></span> Завантаження налаштувань...', 'warning');
+            vscode.postMessage({ command: 'loadLastSettings' });
+        }
+
+        // Save settings
+        function saveSettings() {
+            updateState();
+            showStatus('<span class="loading"></span> Збереження налаштувань...', 'warning');
+            vscode.postMessage({
+                command: 'saveCurrentSettings',
+                settings: state
+            });
+        }
+
+        // Clear settings
+        function clearSettings() {
+            // Reset UI
+            document.querySelectorAll('.mode-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                cb.checked = false;
+                cb.closest('.checkbox-item')?.classList.remove('selected');
+            });
+            document.querySelectorAll('input[type="text"], input[type="password"]').forEach(input => {
+                input.value = '';
+            });
+            
+            // Reset state
+            state = {
+                mode: null,
+                figmaLink: '',
+                figmaToken: '',
+                selectedCanvas: [],
+                selectedLayers: [],
+                includeReset: true,
+                includeComments: true,
+                optimizeCSS: true,
+                generateResponsive: true
+            };
+            
+            // Disable generate button
+            document.getElementById('generateBtn').disabled = true;
+            
+            // Hide sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            showStatus('Налаштування очищено', 'success');
+            
+            // Send to extension
+            vscode.postMessage({ command: 'clearSettings' });
+        }
+
+        // Generate CSS
+        function generateCSS() {
+            if (!state.mode) {
+                showStatus('Виберіть режим генерації', 'error');
+                return;
+            }
+            
+            updateState();
+            showStatus('<span class="loading"></span> Генерація CSS...', 'warning');
+            
+            vscode.postMessage({
+                command: 'generateCSS',
+                settings: state
+            });
+        }
+
+        // Load Figma canvases
+        function loadFigmaCanvases() {
+            if (!state.figmaLink) {
+                showStatus('Введіть посилання на Figma файл', 'error');
+                return;
+            }
+            
+            showStatus('<span class="loading"></span> Завантаження Canvas...', 'warning');
+            
+            vscode.postMessage({
+                command: 'getFigmaCanvases',
+                figmaLink: state.figmaLink,
+                figmaToken: state.figmaToken
+            });
+        }
+
+        // Handle messages from VS Code
+        window.addEventListener('message', event => {
+            const message = event.data;
+            
+            switch (message.command) {
+                case 'lastSettingsLoaded':
+                    applySettings(message.settings);
+                    showStatus('Налаштування завантажено', 'success');
+                    break;
+                    
+                case 'settingsSaved':
+                    if (message.success) {
+                        showStatus('Налаштування збережено', 'success');
+                    } else {
+                        showStatus('Помилка збереження', 'error');
+                    }
+                    break;
+                    
+                case 'generationComplete':
+                    if (message.success) {
+                        showStatus(`✅ CSS згенеровано успішно!`, 'success');
+                    } else {
+                        showStatus(`❌ Помилка: ${message.error}`, 'error');
+                    }
+                    break;
+                    
+                case 'figmaCanvases':
+                    displayCanvases(message.canvases);
+                    showStatus('Canvas завантажено', 'success');
+                    break;
+                    
+                case 'figmaLayers':
+                    displayLayers(message.layers);
+                    showStatus('Layers завантажено', 'success');
+                    break;
+                    
+                case 'settingsCleared':
+                    showStatus('Налаштування очищено', 'success');
+                    break;
+                    
+                case 'error':
+                    showStatus(`❌ Помилка: ${message.message}`, 'error');
+                    break;
+            }
+        });
+
+        // Apply settings from storage
+        function applySettings(settings) {
+            if (!settings) return;
+            
+            // Apply mode
+            if (settings.mode) {
+                selectMode(settings.mode);
+            }
+            
+            // Apply inputs
+            if (settings.figmaLink) {
+                document.getElementById('figmaLink').value = settings.figmaLink;
+            }
+            if (settings.figmaToken) {
+                document.getElementById('figmaToken').value = settings.figmaToken;
+            }
+            
+            // Apply checkboxes
+            document.getElementById('includeReset').checked = settings.includeReset !== false;
+            document.getElementById('includeComments').checked = settings.includeComments !== false;
+            document.getElementById('optimizeCSS').checked = settings.optimizeCSS !== false;
+            document.getElementById('generateResponsive').checked = settings.generateResponsive !== false;
+            
+            // Update checkbox UI
+            document.querySelectorAll('.checkbox-item input').forEach(cb => {
+                const parent = cb.closest('.checkbox-item');
+                if (cb.checked) {
+                    parent.classList.add('selected');
+                } else {
+                    parent.classList.remove('selected');
+                }
+            });
+            
+            // Update state
+            state = { ...state, ...settings };
+        }
+
+        // Display canvases
+        function displayCanvases(canvases) {
+            const container = document.getElementById('canvasList');
+            container.innerHTML = '';
+            
+            canvases.forEach(canvas => {
+                const item = document.createElement('div');
+                item.className = 'checkbox-item';
+                item.innerHTML = `
+                    <input type="checkbox" id="canvas-${canvas.id}" value="${canvas.id}">
+                    <label for="canvas-${canvas.id}">
+                        ${canvas.name} (${canvas.childrenCount} елементів)
+                    </label>
+                `;
+                container.appendChild(item);
+                
+                // Add event listener
+                item.querySelector('input').addEventListener('change', function() {
+                    this.closest('.checkbox-item').classList.toggle('selected', this.checked);
+                    updateState();
+                });
+            });
+            
+            // Show section
+            document.getElementById('canvasSection').classList.add('active');
+        }
+
+        // Display layers
+        function displayLayers(layers) {
+            const container = document.getElementById('layersList');
+            container.innerHTML = '';
+            
+            layers.forEach(layer => {
+                const item = document.createElement('div');
+                item.className = 'checkbox-item';
+                item.innerHTML = `
+                    <input type="checkbox" id="layer-${layer.id}" value="${layer.id}">
+                    <label for="layer-${layer.id}">
+                        ${layer.name} (${layer.type})
+                    </label>
+                `;
+                container.appendChild(item);
+                
+                // Add event listener
+                item.querySelector('input').addEventListener('change', function() {
+                    this.closest('.checkbox-item').classList.toggle('selected', this.checked);
+                    updateState();
+                });
+            });
+            
+            // Show section
+            document.getElementById('layersSection').classList.add('active');
+        }
+
+        // Show status message
+        function showStatus(message, type = 'success') {
+            const status = document.getElementById('status');
+            status.className = `status ${type} show`;
+            status.innerHTML = message;
+            
+            // Auto-hide after 5 seconds (except for loading)
+            if (!message.includes('loading')) {
+                setTimeout(() => {
+                    status.classList.remove('show');
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>

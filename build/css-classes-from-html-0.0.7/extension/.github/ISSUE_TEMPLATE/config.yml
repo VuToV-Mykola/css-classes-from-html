@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Discussions
+    url: https://github.com/VuToV-Mykola/css-classes-from-html/discussions
+    about: Ask questions and discuss ideas with the community
+  - name: 📚 Documentation
+    url: https://github.com/VuToV-Mykola/css-classes-from-html/wiki
+    about: Read the full documentation and guides
+  - name: 💖 Support the Project
+    url: https://www.paypal.com/paypalme/vutov_nikola@icloud.com
+    about: Support the development with a donation

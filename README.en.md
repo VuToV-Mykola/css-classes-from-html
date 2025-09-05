@@ -1,5 +1,6 @@
-### 🌐 Виберіть мову/Choose language/Wählen Sprache:
+# 🎨 CSS Classes from HTML
 
+### 🌐 Виберіть мову/Choose language/Wählen Sprache:
 [🇺🇦 Українська](README.md) | [🇬🇧 English](README.en.md) | [🇩🇪 Deutsch](README.de.md)
 
 <!-- AUTOGEN:STATS -->
@@ -16,84 +17,60 @@
 <!-- ## 📸 Latest Screenshot -->
 <!-- ![Project Screenshot](./assets/screenshot.png) -->
 <!-- END:AUTOGEN -->
+## 📊 Marketplace Statistics:
+[![Version](https://img.shields.io/badge/version-0.0.6-blue.svg)](https://marketplace.visualstudio.com/items?itemName=vutov-mykola.css-classes-from-html)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/VuToV-Mykola/css-classes-from-html/blob/HEAD/LICENSE.md)
+[![Downloads](https://img.shields.io/visual-studio-marketplace/d/vutov-mykola.css-classes-from-html.svg)](https://marketplace.visualstudio.com/items?itemName=vutov-mykola.css-classes-from-html)
+[![Rating](https://img.shields.io/visual-studio-marketplace/r/vutov-mykola.css-classes-from-html.svg)](https://marketplace.visualstudio.com/items?itemName=vutov-mykola.css-classes-from-html)
+[![GitHub Stars](https://img.shields.io/github/stars/VuToV-Mykola/css-classes-from-html.svg)](https://github.com/VuToV-Mykola/css-classes-from-html)
 
-# 🎨 CSS Classes from HTML - Figma Integration
+## 📹 Video Tutorial
 
-![Version](https://img.shields.io/badge/version-2.0.0-blue)
-![VSCode](https://img.shields.io/badge/VSCode-^1.85.0-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
+[![Video usage tutorial](https://img.youtube.com/vi/xl46PGWNB3A/maxresdefault.jpg)](https://youtu.be/xl46PGWNB3A)
+
+**[🎬 Watch full tutorial on YouTube](https://youtu.be/xl46PGWNB3A)**
+
+## 💖 Support the Author
+
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate/?hosted_button_id=D5U6TQ3Q9CVLS)
+[![Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-orange.svg)](https://www.paypal.com/donate/?hosted_button_id=D5U6TQ3Q9CVLS)
+
+> If this extension helped you in your work, support the author with a coffee! ☕
 
 ## 📌 Description
 
-**CSS Classes from HTML** is a powerful Visual Studio Code extension that automatically generates CSS classes from HTML files with the ability to integrate with Figma designs.
+Automatic CSS class generation from HTML files with Figma integration. Developed with knowledge gained from GoIT courses and AI assistance.
 
-## ✨ Key Features
+## ✨ Features
 
-- 🚀 **Fast CSS generation** from HTML classes
-- 🎨 **Figma integration** via API
-- 📱 **Responsive styles** with media queries
-- 🎯 **Smart element matching**
-- ⚡ **3 working modes**: minimal, maximum, production
-- 🔧 **Visual configurator** in WebView
-- 💾 **Save settings** for reuse
+- 🚀 **Three generation modes**: Minimal, Maximum, Production
+- 🎨 **Figma integration**: Import styles directly from designs
+- 📱 **Responsive styles**: Automatic media queries generation
+- 🔧 **Optimization**: Minification and production optimization
+- 💾 **Settings persistence**: Automatic configuration saving
 
 ## 📦 Installation
 
-### From VSCode Marketplace
-1. Open VSCode
-2. Go to Extensions (Ctrl+Shift+X)
-3. Search for "CSS Classes from HTML"
-4. Click Install
+### Method 1: From VS Code Marketplace
+```bash
+code --install-extension vutov-mykola.css-classes-from-html
+```
 
-### Manual Installation
+### Method 2: From VSIX file
+1. Download `.vsix` file from [Releases](https://github.com/VuToV-Mykola/css-classes-from-html/releases)
+2. In VS Code: `Ctrl+Shift+P` → `Extensions: Install from VSIX...`
+
+### Method 3: From source code
 ```bash
 git clone https://github.com/VuToV-Mykola/css-classes-from-html.git
 cd css-classes-from-html
 npm install
-npm run compile
 ```
 
 ## 🚀 Usage
 
-### Quick Start
-1. Open HTML file in VSCode
-2. Press `Ctrl+Shift+C` (or `Cmd+Shift+C` on Mac)
-3. Select generation mode
-4. CSS file will be created automatically!
-
-### Hotkeys
-- `Ctrl+Shift+C` - Show menu
-- `Ctrl+Alt+C` - Quick generation
-- `Ctrl+Shift+R` - Repeat last action
-
-### Working Modes
-
-#### ⚡ Minimal Mode
-- Quick HTML parsing
-- Generate empty CSS classes
-- No Figma integration
-
-#### 🚀 Maximum Mode
-- Full Figma integration
-- Element matching
-- Import styles from design
-- Responsive styles
-
-#### 📦 Production Mode
-- Optimized CSS
-- Code minification
-- Remove comments
-- Ready for deployment
-
-## 📝 License
-
-MIT License - see [LICENSE](LICENSE) file
-
-## 👨‍💻 Author
-
-**VuToV Mykola**
-- GitHub: [@VuToV-Mykola](https://github.com/VuToV-Mykola)
-
----
-
-Made with ❤️ in Ukraine 🇺🇦
+1. Open HTML file in VS Code
+2. Press `Ctrl+Shift+P` (Windows/Linux) or `Cmd+Shift+P` (Mac)
+3. Select `CSS Classes: Show Main Menu`
+4. Choose generation mode:
+   - **Minimal**: Basic CSS classes

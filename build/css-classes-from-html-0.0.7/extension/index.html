@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Classes Generator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        /* Меню навігації */
+        .nav-menu {
+            background: #2c3e50;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-brand {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-brand i {
+            color: #3498db;
+        }
+
+        .nav-tabs {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-item {
+            position: relative;
+        }
+
+        .nav-link {
+            color: #ecf0f1;
+            text-decoration: none;
+            padding: 1rem 1.5rem;
+            display: block;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .nav-link:hover {
+            background: #34495e;
+            color: #3498db;
+        }
+
+        .nav-link.active {
+            background: #34495e;
+            color: #3498db;
+            border-bottom-color: #3498db;
+        }
+
+        /* Контент */
+        .content {
+            padding: 2rem;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .editor-container {
+            margin-bottom: 1.5rem;
+        }
+
+        .editor-header {
+            background: #34495e;
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 5px 5px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .editor-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background: #2980b9;
+        }
+
+        .btn-copy {
+            background: #27ae60;
+        }
+
+        .btn-copy:hover {
+            background: #219653;
+        }
+
+        .code-editor {
+            width: 100%;
+            min-height: 300px;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 0 0 5px 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+            background: #f8f9fa;
+        }
+
+        .preview-area {
+            background: #ecf0f1;
+            padding: 1.5rem;
+            border-radius: 5px;
+            min-height: 200px;
+        }
+
+        /* Адаптивність */
+        @media (max-width: 768px) {
+            .nav-menu {
+                flex-direction: column;
+            }
+            
+            .nav-tabs {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+            
+            .nav-link {
+                padding: 0.75rem 1rem;
+                text-align: center;
+            }
+            
+            .content {
+                padding: 1rem;
+            }
+        }
+
+        /* Сповіщення */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem;
+            background: #27ae60;
+            color: white;
+            border-radius: 5px;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Меню навігації -->
+        <nav class="nav-menu">
+            <div class="nav-brand">
+                <i class="fas fa-code"></i>
+                CSS Classes Generator
+            </div>
+            <ul class="nav-tabs">
+                <li class="nav-item">
+                    <a href="#html-editor" class="nav-link active" data-tab="html-editor">
+                        <i class="fas fa-code"></i> HTML Editor
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#css-output" class="nav-link" data-tab="css-output">
+                        <i class="fas fa-css3"></i> CSS Output
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#preview" class="nav-link" data-tab="preview">
+                        <i class="fas fa-eye"></i> Preview
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Контент -->
+        <div class="content">
+            <!-- HTML Editor -->
+            <div id="html-editor" class="tab-content active">
+                <div class="editor-container">
+                    <div class="editor-header">
+                        <span>HTML Input</span>
+                        <div class="editor-actions">
+                            <button class="btn" onclick="generateCSS()">
+                                <i class="fas fa-bolt"></i> Generate CSS
+                            </button>
+                        </div>
+                    </div>
+                    <textarea class="code-editor" id="html-input" placeholder="Вставте ваш HTML код тут..."><!-- Приклад HTML -->
+<div class="container">
+    <header class="main-header">
+        <h1 class="title">Welcome</h1>
+    </header>
+    <section class="content">
+        <div class="card primary-card">
+            <h2 class="card-title">Card Title</h2>
+            <p class="card-text">This is a sample text.</p>
+            <button class="btn btn-primary">Click Me</button>
+        </div>
+    </section>
+</div></textarea>
+                </div>
+            </div>
+
+            <!-- CSS Output -->
+            <div id="css-output" class="tab-content">
+                <div class="editor-container">
+                    <div class="editor-header">
+                        <span>Generated CSS</span>
+                        <div class="editor-actions">
+                            <button class="btn btn-copy" onclick="copyToClipboard('css-output')">
+                                <i class="fas fa-copy"></i> Copy CSS
+                            </button>
+                        </div>
+                    </div>
+                    <textarea class="code-editor" id="css-generated" readonly></textarea>
+                </div>
+            </div>
+
+            <!-- Preview -->
+            <div id="preview" class="tab-content">
+                <div class="editor-container">
+                    <div class="editor-header">
+                        <span>HTML Preview</span>
+                    </div>
+                    <div class="preview-area" id="html-preview"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Сповіщення -->
+    <div class="notification" id="notification">Текст скопійовано!</div>
+
+    <script>
+        // Логування в консоль
+        console.log('🚀 CSS Classes Generator initialized');
+        
+        // Глобальні змінні для логування
+        const appLog = [];
+        
+        // Ініціалізація табів
+        function initTabs() {
+            const tabLinks = document.querySelectorAll('.nav-link');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    const targetTab = link.getAttribute('data-tab');
+                    
+                    // Деактивація всіх табів
+                    tabLinks.forEach(l => l.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    
+                    // Активування обраного табу
+                    link.classList.add('active');
+                    document.getElementById(targetTab).classList.add('active');
+                    
+                    // Логування зміни табу
+                    logAction(`Переключено на вкладку: ${targetTab}`);
+                });
+            });
+            
+            logAction('Ініціалізовано систему вкладок');
+        }
+        
+        // Генерація CSS з HTML
+        function generateCSS() {
+            const htmlInput = document.getElementById('html-input').value;
+            const cssOutput = document.getElementById('css-generated');
+            const previewArea = document.getElementById('html-preview');
+            
+            if (!htmlInput.trim()) {
+                showNotification('Будь ласка, введіть HTML код', 'error');
+                return;
+            }
+            
+            try {
+                // Парсинг HTML та отримання класів
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlInput, 'text/html');
+                const classes = extractClassesFromDocument(doc);
+                
+                // Генерація CSS
+                const cssContent = generateCSSFromClasses(classes);
+                cssOutput.value = cssContent;
+                
+                // Оновлення прев'ю
+                previewArea.innerHTML = htmlInput;
+                
+                // Автоматичне переключення на CSS вкладку
+                document.querySelector('[data-tab="css-output"]').click();
+                
+                logAction('Успішно згенеровано CSS з HTML');
+                showNotification('CSS успішно згенеровано!');
+                
+            } catch (error) {
+                console.error('Помилка генерації CSS:', error);
+                showNotification('Помилка при генерації CSS', 'error');
+                logAction(`Помилка генерації: ${error.message}`, 'error');
+            }
+        }
+        
+        // Витягнення класів з документа
+        function extractClassesFromDocument(doc) {
+            const elements = doc.querySelectorAll('*');
+            const classes = new Set();
+            
+            elements.forEach(element => {
+                if (element.classList.length > 0) {
+                    element.classList.forEach(className => {
+                        if (className.trim()) {
+                            classes.add(className.trim());
+                        }
+                    });
+                }
+            });
+            
+            return Array.from(classes);
+        }
+        
+        // Генерація CSS з масиву класів
+        function generateCSSFromClasses(classes) {
+            let css = '/* Автоматично згенеровані CSS класи */\n';
+            css += '/* Згенеровано за допомогою CSS Classes Generator */\n\n';
+            
+            classes.forEach(className => {
+                css += `.${className} {\n`;
+                css += `    /* Стилі для класу ${className} */\n`;
+                css += `    \n`;
+                css += `}\n\n`;
+            });
+            
+            return css;
+        }
+        
+        // Копіювання в буфер обміну
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            const textarea = element.querySelector('textarea');
+            
+            if (textarea) {
+                textarea.select();
+                document.execCommand('copy');
+                
+                showNotification('CSS скопійовано в буфер обміну!');
+                logAction('CSS скопійовано в буфер обміну');
+            }
+        }
+        
+        // Показ сповіщень
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.background = type === 'error' ? '#e74c3c' : '#27ae60';
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Логування дій
+        function logAction(message, type = 'info') {
+            const timestamp = new Date().toISOString();
+            const logEntry = { timestamp, type, message };
+            appLog.push(logEntry);
+            
+            console.log(`[${type.toUpperCase()}] ${timestamp}: ${message}`);
+        }
+        
+        // Експорт логів
+        function exportLogs() {
+            const logData = JSON.stringify(appLog, null, 2);
+            const blob = new Blob([logData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `css-generator-logs-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            
+            URL.revokeObjectURL(url);
+        }
+        
+        // Ініціалізація при завантаженні
+        document.addEventListener('DOMContentLoaded', () => {
+            initTabs();
+            logAction('Застосунок успішно ініціалізовано');
+            
+            // Автогенерація при наявності HTML
+            const htmlInput = document.getElementById('html-input').value;
+            if (htmlInput.trim()) {
+                setTimeout(generateCSS, 1000);
+            }
+        });
+    </script>
+</body>
+</html>

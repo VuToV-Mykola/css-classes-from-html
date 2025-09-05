@@ -1,1137 +1,225 @@
-:root {
-  --color-style-guide: #ffffff;
-  --color-rectangle-232: #111111;
-  --color-rectangle-231: #1e1823;
-  --color-rectangle-233: #fd9222;
-  --color-rectangle-230: #fcf1e0;
-  --color-rectangle-234: #fafafa;
-  --color--111111: #000000;
-  --color-desktop---tablet: #000000;
-  --color-desktop: #fafafa;
-  --color-desktop-tablet: #000000;
-  --color-mobile: #fafafa;
-  --color-tablet--mobile: #000000;
-  --color-normal-state: #000000;
-  --color-hover-state: #000000;
-  --color-colors: #000000;
-  --color-logo: #000000;
-  --color-buttons: #000000;
-  --color-reviews: #000000;
-  --color-images: #000000;
-  --color-inputs: #000000;
-  --color-typography: #000000;
-  --color-icons: #000000;
-  --color-page-navigation: #000000;
-  --color-home: #ffffff;
-  --color-how-it-s-made-: #ffffff;
-  --color-chocolate-is-loved: #ffffff;
-  --color-simply-chocolate: #111111;
-  --color-vector-14: #fcf1e0;
-  --color--1e1823: #000000;
-  --color--fd9222: #000000;
-  --color--fcf1e0: #000000;
-  --color--fafafa: #000000;
-  --color-twitter: #ffffff;
-  --color-menu-03: #ffffff;
-  --color-fluent-emoji-high-contrast-chocolate-bar: #ffffff;
-  --color-vector: #fd9222;
-  --color-coin: #ffffff;
-  --color-la-utensil-spoon: #ffffff;
-  --color-ellipse-1: #4c4c4c;
-  --color-rectangle-235: #1e1823;
-  --color-scroll-down: #ffffff;
-  --color-property-1-orange: #fd9222;
-  --color-buy-now: #ffffff;
-  --color-property-1-rectangle-236: #ffffff;
-  --color-rectangle-236: #1e1823;
-  --color-how-it-s-made: #ffffff;
-  --color-leave-a-review: #111111;
-  --color-rectangle-229: #ffffff;
-  --color-i-love-this-chocolate-bar--perfect-combination-of-light-crispy-wafer--covered-in-a-thin-layer-chocolate-: rgba(17, 17, 17, 0.699999988079071);
-  --color-victoria-dobrzhanska: #111111;
-  --color-this-chocolate-confection-is-a-delight--a-delight--the-wafer-is-light-and-crisp--the-hazelnut-cream-is-smooth--and-the-chocolate-is-good-: rgba(17, 17, 17, 0.699999988079071);
-  --color-nazar-babenko: #111111;
-  --color-chocolate-is-a-family-favourite-treat--love-the-delicious-smooth-chocolate-and-the-creaminess-inside--the-wafer-is-soft-but-crunchy-: rgba(17, 17, 17, 0.699999988079071);
-  --color-olena-kampusch: #111111;
-  --color-property-1-default: #ffffff;
-  --color-checkmark: #fd9222;
-  --color-icon: #ffffff;
-  --color-headline-1: #000000;
-  --color-28: #000000;
-  --color-20: #000000;
-  --color-24: #000000;
-  --color-14: #000000;
-  --color-18: #000000;
-  --color-1-: #000000;
-  --color-34: #000000;
-  --color--3-: #000000;
-  --color--2-: #000000;
-  --color-subtitle: #000000;
-  --color-headline-2: #111111;
-  --color-text: rgba(64, 64, 64, 0.6000000238418579);
-  --color-text-button: #000000;
-  --color-user: #ffffff;
-  --color-footer: #1e1823;
-  --color-chocolate-a-delicious-cure-for-a-bad-day: #ffffff;
-  --color-contact-us: #ffffff;
-  --color--380--68--443-94-26: #ffffff;
-  --color-simplycth-oc-gmail-com: #ffffff;
-  --color-blocks: #ffffff;
-  --color-try-our-chocolates-today-and-discover-the-perfect-balance-of-flavor: #111111;
-  --color-heat-the-milk-in-a-saucepan-without-bringing-it-to-a-boil--add-sugar-and-cocoa-powder-: #111111;
-  --color-at-the-same-time--prepare-a-water-bath--melt-the-butter-on-it-: #111111;
-  --color--mix--the-milk-mixture-and-already-liquid-butter--mix-thoroughly-with-a-silicone-spatula-so-that-the-mass-becomes-uniform-and-silky-: #111111;
-  --color-heat-the-mixture-over-low-heat--letting-it-barely-boil-: #111111;
-  --color-pour-the-chocolate-into-special-containers--can-be-replaced-with-ice-molds---allow-to-cool-and-harden-: #111111;
-  --color-it-all-adds-up-to-one-exceptional-taste-sensation: #111111;
-  --color-at-simply-chocolate--we-believe-that-the-secret-to-exceptional-chocolate-is-in-the-details--from-the-sourcing-of-the-finest-ingredients-to-the-careful-crafting-of-each-individual-piece--every-step-of-our-process-adds-up-to-one-exceptional-taste-sensation-: #111111;
-  --color-milk-chocolate: #111111;
-  --color-milk: #ffffff;
-  --color-chocolate: #ffffff;
-  --color-semi---sweet-chocolate: #111111;
-  --color-hazelnuts: #1e1823;
-  --color-nuts: #ffffff;
-  --color-benefits: #1e1823;
-  --color-unsurpassed-taste: #ffffff;
-  --color-crafted-with-the-finest-quality-cocoa-beans-and-a-dedication-to-perfection--each-bite-is-a-decadent-experience-that-simply-cannot-be-matched--savor-the-richness-and-complexity-of-our-unsurpassed-taste-and-discover-a-new-level-of-chocolate-bliss-: rgba(255, 255, 255, 0.699999988079071);
-  --color-affordable-price: #ffffff;
-  --color-indulge-in-high-quality-chocolate-without-breaking-the-bank-with-simply-chocolate-s-selection-of-affordable-treats--enjoy-mouth-watering-truffles-and-velvety-chocolate-bars-without-sacrificing-taste-or-quality--browse-our-selection-and-indulge-in-affordable-luxury-today-: rgba(255, 255, 255, 0.699999988079071);
-  --color-own-production: #ffffff;
-  --color-we-take-pride-in-our-own-production-process--ensuring-that-every-step-is-carefully-crafted-to-perfection--from-selecting-the-finest-ingredients-to-handcrafting-each-piece--our-attention-to-detail-is-evident-in-every-bite-: rgba(255, 255, 255, 0.699999988079071);
-  --color-dark-bg: rgba(17, 17, 17, 0.4000000059604645);
-  --color-treat-yourself-or-a-loved-one-to-our-finest-ingredients-for-a-moment-of-pure-delight-: #ffffff;
-  --color-button---orange: #fd9222;
-  --color-simplycthoc-gmail-com: #ffffff;
-  --color-bg-overlay: rgba(30, 24, 35, 0.4000000059604645);
-  --color-milk-chocolate-overlay: #ffffff;
-  --color-1: #fd9222;
-  --color-2: #ffffff;
-  --color-the-benefits: #111111;
-  --color-milk-chocolate-is-a-solid-chocolate-confectionery-containing-cocoa--sugar-and-milk--it-is-the-most-consumed-type-of-chocolate--chocolate-was-originally-sold-and-consumed-as-a-beverage-in-pre-columbian-times--although-four-fifths-of-all-milk-chocolate-is-sold-in-the-united-states-and-europe-: #111111;
-  --color-milk-overlay: #ffffff;
-  --color-milk-is-a-white-liquid-food-produced-by-the-mammary-glands-of-mammals--it-is-the-primary-source-of-nutrition-for-young-mammals--including-breastfed-human-infants--before-they-are-able-to-digest-solid-food-early-lactation-milk--which-is-called-colostrum--contains-antibodies-that-strengthen-the-immune-system-: #111111;
-  --color-nuts-overlay: #ffffff;
-  --color-almonds--pistachios--and-walnuts-are-some-types-of-nuts-that-contain-healthy-nutrients--when-eaten-as-part-of-a-nutrient-dense-diet--these-9-nuts-may-offer-benefits-such-as-reducing-your-risk-of-heart-disease--they-re-a-good-source-of-fiber--healthy-fats--and-plant-protein--plus--they-re-great-on-their-own-: #111111;
-  --color-semi-sweet-chocolate-overlay: #ffffff;
-  --color-semi-sweet-chocolate: #111111;
-  --color-sweet-chocolate: #ffffff;
-  --color-semi-sweet-chocolate-has-a-cocoa-solid-content-of-35-to-65---one-of-the-best-ways-to-gain-an-understanding-of-this-type-of-chocolate-is-to-compare-it-to-a-different-type-of-chocolate--semisweet-is-darker-than-milk-chocolate--in-a-taste-comparison--it-has-a-slightly-bitter-taste-whereas-milk-chocolate-is-sweeter-and-more-mellow-: #111111;
-  --color-subscribe: #ffffff;
-  --color-ellipse-2: #4c4c4c;
-  --color-modal: #fafafa;
-  --color-leave-a-review-about-our-chocolate: #fd9222;
-  --color-send: #ffffff;
-  --color-x-close: #ffffff;
-  --color-mail: #ffffff;
-  --color-phone: #ffffff;
-  --color-tablet: #fafafa;
-  --color-chocolate-is-love: #fd9222;
-  --color-rectangle-5: #fd9222;
-  --color-ellipse-3: rgba(17, 17, 17, 0.10000000149011612);
-  --color-ellipse-4: rgba(17, 17, 17, 0.10000000149011612);
-  --color-simplychoc-gmail-com: #ffffff;
-  --color-semi-sweet-chocolate-has-a-cocoa-solid-content-of-35-to-65---one-of-the-best-ways-to-gain-an-understanding-of-this-type-of-chocolate-is-to-compare-it-to-a-different-type-of-chocolate--semisweet-is-darker-than-milk-chocolate--in-a-taste-comparison--it-has-a-slightly-bitter-taste-whereas-milk-chocolate-is-sweeter-: #111111;
-  --color-our-products: #ffffff;
-  --color-top-sellers: #ffffff;
-  --color-menu: #1e1823;
-  --color-5: #ffffff;
-  --color-x: #ffffff;
-  --font-family-1: Montserrat;
+/* Generated CSS */
+.page {
+  /* mapped to figma layers: TBD */
 }
 
-*,
-*::before,
-*::after { box-sizing: border-box; }
-* { margin: 0; }
-body { line-height: 1.5; -webkit-font-smoothing: antialiased; }
-img, picture, video, canvas, svg { display: block; max-width: 100%; height: auto; }
-input, button, textarea, select { font: inherit; }
-p, h1, h2, h3, h4, h5, h6 { overflow-wrap: break-word; }
-#root, #__next { isolation: isolate; }
+.header {
+  /* mapped to figma layers: TBD */
+}
 
 .container {
-  width: min(100%, 319px);
-  height: min(100%, 168px);
-}
-
-.hero-link {
-  font-family: Montserrat;
-  font-size: 12px;
-  font-weight: 500;
-  font-style: normal;
-  line-height: 14px;
-  text-align: left;
-  text-decoration: none;
-  text-transform: none;
-  background-color: var(--color-style-guide);
-  width: 67px;
-  height: 14px;
-}
-
-.address-list-link {
-  font-family: Montserrat;
-  font-size: 14px;
-  font-weight: 400;
-  font-style: normal;
-  line-height: 18px;
-  text-align: center;
-  text-decoration: none;
-  text-transform: none;
-  background-color: var(--color-style-guide);
-  width: min(100%, 177px);
-  height: 18px;
-}
-
-.nav-list-link {
-  font-family: Montserrat;
-  font-size: 36px;
-  font-weight: 500;
-  font-style: normal;
-  line-height: 39.60000228881836px;
-  text-align: left;
-  text-decoration: none;
-  text-transform: none;
-  background-color: var(--color-style-guide);
-  width: min(100%, 319px);
-  height: 40px;
-}
-
-.main {
-}
-
-.loved {
-  width: 11.666668891906738px;
-  height: 11.666668891906738px;
-  border: 2px solid #ffffff;
-  border-radius: 0;
-}
-
-.section-title {
-  width: 11.666668891906738px;
-  height: 11.666668891906738px;
-  border: 2px solid #ffffff;
-  border-radius: 0;
-}
-
-.feature-title {
-  background-color: var(--color-rectangle-234);
-  width: 93px;
-  height: 24px;
-  border: 1px solid #fd9222;
-  border-radius: 35px;
-}
-
-.visually-hidden {
-  background-color: var(--color-rectangle-234);
-  width: 93px;
-  height: 24px;
-  border: 1px solid #fd9222;
-  border-radius: 35px;
-}
-
-.contacts {
-  background-color: var(--color-style-guide);
-  width: 17px;
-  height: 17px;
-}
-
-.hero {
-  background-color: var(--color-style-guide);
-  width: 28px;
-  height: 28px;
-}
-
-.section {
-  background-color: var(--color-style-guide);
-  width: 28px;
-  height: 28px;
+  /* mapped to figma layers: TBD */
 }
 
 .nav {
-  width: min(100%, 335px);
-  height: 45px;
-}
-
-.nav-list {
-  width: min(100%, 335px);
-  height: min(100%, 242px);
-}
-
-.feature-item {
-  width: min(100%, 213px);
-  height: 24px;
-}
-
-.footer-text {
-  width: 14.087852478027344px;
-  height: 14.115818977355957px;
-  border: 1.5px solid #404040;
-  border-radius: 0;
-}
-
-.made-image {
-  background-color: var(--color-rectangle-233);
-  width: min(100%, 114px);
-  height: 24px;
-}
-
-.nav-item {
-  width: 26.666667938232422px;
-  height: 26.666667938232422px;
+  /* mapped to figma layers: TBD */
 }
 
 .logo {
-  background-color: var(--color-rectangle-233);
-  width: 11.199999809265137px;
-  height: 17.866668701171875px;
+  /* mapped to figma layers: TBD */
 }
 
-.page {
-  background-color: var(--color-rectangle-231);
-  width: min(100%, 375px);
-  height: min(100%, 812px);
+.nav-list {
+  /* mapped to figma layers: TBD */
+}
+
+.nav-item {
+  /* mapped to figma layers: TBD */
+}
+
+.nav-link {
+  /* mapped to figma layers: TBD */
+}
+
+.contacts {
+  /* mapped to figma layers: TBD */
 }
 
 .contacts-list {
-  width: min(100%, 241px);
-  height: 54px;
+  /* mapped to figma layers: TBD */
+}
+
+.contacts-item {
+  /* mapped to figma layers: TBD */
+}
+
+.contacts-link {
+  /* mapped to figma layers: TBD */
+}
+
+.main {
+  /* mapped to figma layers: TBD */
+}
+
+.hero {
+  /* mapped to figma layers: TBD */
+}
+
+.section {
+  /* mapped to figma layers: TBD */
+}
+
+.hero-title {
+  /* mapped to figma layers: TBD */
+}
+
+.hero-btn {
+  /* mapped to figma layers: TBD */
+}
+
+.hero-link {
+  /* mapped to figma layers: TBD */
+}
+
+.feature {
+  /* mapped to figma layers: TBD */
+}
+
+.feature-title {
+  /* mapped to figma layers: TBD */
+}
+
+.visually-hidden {
+  /* mapped to figma layers: TBD */
+}
+
+.feature-list {
+  /* mapped to figma layers: TBD */
+}
+
+.feature-item {
+  /* mapped to figma layers: TBD */
+}
+
+.feature-subtitle {
+  /* mapped to figma layers: TBD */
+}
+
+.feature-text {
+  /* mapped to figma layers: TBD */
+}
+
+.taste {
+  /* mapped to figma layers: TBD */
+}
+
+.taste-title {
+  /* mapped to figma layers: TBD */
+}
+
+.page-text {
+  /* mapped to figma layers: TBD */
 }
 
 .taste-list {
-  width: min(100%, 307px);
-  height: min(100%, 324px);
+  /* mapped to figma layers: TBD */
 }
 
-.taste-descr {
-  width: 27.99500274658203px;
-  height: 28.00499725341797px;
+.taste-item {
+  /* mapped to figma layers: TBD */
 }
 
 .taste-img {
-  width: min(100%, 185px);
-  height: 17px;
+  /* mapped to figma layers: TBD */
 }
 
-@media (max-width: 767px) {
-  .nav-list-link {
-    font-size: 29px;
-}
+.taste-descr {
+  /* mapped to figma layers: TBD */
 }
 
-@media (min-width: 768px) and (max-width: 1199px) {
-  .nav-list-link {
-    font-size: 32px;
-}
+.taste-subtitle {
+  /* mapped to figma layers: TBD */
 }
 
-/* Modern CSS Features */
-contain: layout style;
-
-@supports selector(:has(*)) {
-  &:has(> .active): [object Object];
-  &:has(img): [object Object];
+.made {
+  /* mapped to figma layers: TBD */
 }
 
-.container {
-  container-type: inline-size;
-  container-name: component;
+.made-title {
+  /* mapped to figma layers: TBD */
 }
 
-@container component (min-width: 300px) {
-  font-size: 14px;
-  padding: 8px;
+.made-image {
+  /* mapped to figma layers: TBD */
 }
 
-@container component (min-width: 500px) {
-  font-size: 16px;
-  padding: 12px;
+.made-subtitle {
+  /* mapped to figma layers: TBD */
 }
 
-@container component (min-width: 700px) {
-  font-size: 18px;
-  padding: 16px;
+.made-list {
+  /* mapped to figma layers: TBD */
 }
 
-
-/* Container System */
-:root {
-  --container-max-width: 1200px;
-  --container-padding: 1rem;
-  --container-padding-mobile: 1rem;
-  --container-padding-tablet: 1.5rem;
-  --container-padding-desktop: 2rem;
-  --spacing-xs: 0.25rem;
-  --spacing-sm: 0.5rem;
-  --spacing-md: 1rem;
-  --spacing-lg: 1.5rem;
-  --spacing-xl: 2rem;
-  --spacing-2xl: 3rem;
-  --spacing-3xl: 4rem;
-  --section-spacing-y: 4rem;
-  --section-spacing-x: 2rem;
-  --card-padding: 1.5rem;
-  --card-radius: 0.5rem;
-  --card-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  --grid-gap: 1rem;
-  --stack-gap: 1rem;
-  --cluster-gap: 0.5rem;
+.made-item {
+  /* mapped to figma layers: TBD */
 }
 
-.container {
-  width: 100%;
-  max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 20px;
-  padding-right: 20px;
-  box-sizing: border-box;
+.made-text {
+  /* mapped to figma layers: TBD */
 }
 
-.container-fluid {
-  width: 100%;
-  padding-left: var(--container-padding, 1rem);
-  padding-right: var(--container-padding, 1rem);
-  box-sizing: border-box;
+.loved {
+  /* mapped to figma layers: TBD */
 }
 
-.container-responsive {
-  width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: clamp(1rem, 4vw, 3rem);
-  padding-right: clamp(1rem, 4vw, 3rem);
-  box-sizing: border-box;
+.section-title {
+  /* mapped to figma layers: TBD */
 }
 
-.query-container {
-  container-type: inline-size;
-  container-name: main;
-  width: 100%;
-  position: relative;
+.loved-list {
+  /* mapped to figma layers: TBD */
 }
 
-.container-section {
-  width: 100%;
-  padding-top: var(--section-spacing-y, 4rem);
-  padding-bottom: var(--section-spacing-y, 4rem);
-  padding-left: var(--section-spacing-x, 2rem);
-  padding-right: var(--section-spacing-x, 2rem);
+.loved-list-item {
+  /* mapped to figma layers: TBD */
 }
 
-.container-content {
-  width: 100%;
-  max-width: 65ch;
-  margin-left: auto;
-  margin-right: auto;
-  padding: 1rem;
+.loved-list-image {
+  /* mapped to figma layers: TBD */
 }
 
-.container-hero {
-  width: 100%;
-  min-height: min(100vh, 800px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: clamp(2rem, 8vw, 6rem);
-  position: relative;
-  overflow: hidden;
+.loved-list-subtitle {
+  /* mapped to figma layers: TBD */
 }
 
-.container-card {
-  width: 100%;
-  padding: var(--card-padding, 1.5rem);
-  border-radius: var(--card-radius, 0.5rem);
-  background-color: var(--card-bg, white);
-  box-shadow: var(--card-shadow, 0 2px 8px rgba(0,0,0,0.1));
-  position: relative;
-  overflow: hidden;
+.loved-list-text {
+  /* mapped to figma layers: TBD */
 }
 
-.container-modal {
-  width: 90%;
-  max-width: 600px;
-  max-height: 90vh;
-  margin: auto;
-  padding: 2rem;
-  border-radius: 0.5rem;
-  background-color: white;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-  position: relative;
-  overflow: auto;
+.footer {
+  /* mapped to figma layers: TBD */
 }
 
-
-/* Utility Classes */
-
-/* spacing */
-.p-0 {
-  padding: 0rem;
-}
-.px-0 {
-  padding-left: 0rem;
-  padding-right: 0rem;
-}
-.py-0 {
-  padding-top: 0rem;
-  padding-bottom: 0rem;
-}
-.pt-0 {
-  padding-top: 0rem;
-}
-.pr-0 {
-  padding-right: 0rem;
-}
-.pb-0 {
-  padding-bottom: 0rem;
-}
-.pl-0 {
-  padding-left: 0rem;
-}
-.m-0 {
-  margin: 0rem;
-}
-.mx-0 {
-  margin-left: 0rem;
-  margin-right: 0rem;
-}
-.my-0 {
-  margin-top: 0rem;
-  margin-bottom: 0rem;
-}
-.mt-0 {
-  margin-top: 0rem;
-}
-.mr-0 {
-  margin-right: 0rem;
-}
-.mb-0 {
-  margin-bottom: 0rem;
-}
-.ml-0 {
-  margin-left: 0rem;
-}
-.p-0_25 {
-  padding: 0.25rem;
-}
-.px-0_25 {
-  padding-left: 0.25rem;
-  padding-right: 0.25rem;
-}
-.py-0_25 {
-  padding-top: 0.25rem;
-  padding-bottom: 0.25rem;
-}
-.pt-0_25 {
-  padding-top: 0.25rem;
-}
-.pr-0_25 {
-  padding-right: 0.25rem;
-}
-.pb-0_25 {
-  padding-bottom: 0.25rem;
-}
-.pl-0_25 {
-  padding-left: 0.25rem;
-}
-.m-0_25 {
-  margin: 0.25rem;
-}
-.mx-0_25 {
-  margin-left: 0.25rem;
-  margin-right: 0.25rem;
-}
-.my-0_25 {
-  margin-top: 0.25rem;
-  margin-bottom: 0.25rem;
-}
-.mt-0_25 {
-  margin-top: 0.25rem;
-}
-.mr-0_25 {
-  margin-right: 0.25rem;
-}
-.mb-0_25 {
-  margin-bottom: 0.25rem;
-}
-.ml-0_25 {
-  margin-left: 0.25rem;
-}
-.p-0_5 {
-  padding: 0.5rem;
-}
-.px-0_5 {
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
-}
-.py-0_5 {
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
-}
-.pt-0_5 {
-  padding-top: 0.5rem;
-}
-.pr-0_5 {
-  padding-right: 0.5rem;
-}
-.pb-0_5 {
-  padding-bottom: 0.5rem;
-}
-.pl-0_5 {
-  padding-left: 0.5rem;
-}
-.m-0_5 {
-  margin: 0.5rem;
-}
-.mx-0_5 {
-  margin-left: 0.5rem;
-  margin-right: 0.5rem;
-}
-.my-0_5 {
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-.mt-0_5 {
-  margin-top: 0.5rem;
-}
-.mr-0_5 {
-  margin-right: 0.5rem;
-}
-.mb-0_5 {
-  margin-bottom: 0.5rem;
-}
-.ml-0_5 {
-  margin-left: 0.5rem;
-}
-.p-1 {
-  padding: 1rem;
-}
-.px-1 {
-  padding-left: 1rem;
-  padding-right: 1rem;
-}
-.py-1 {
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-}
-.pt-1 {
-  padding-top: 1rem;
-}
-.pr-1 {
-  padding-right: 1rem;
-}
-.pb-1 {
-  padding-bottom: 1rem;
-}
-.pl-1 {
-  padding-left: 1rem;
-}
-.m-1 {
-  margin: 1rem;
-}
-.mx-1 {
-  margin-left: 1rem;
-  margin-right: 1rem;
-}
-.my-1 {
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-}
-.mt-1 {
-  margin-top: 1rem;
-}
-.mr-1 {
-  margin-right: 1rem;
-}
-.mb-1 {
-  margin-bottom: 1rem;
-}
-.ml-1 {
-  margin-left: 1rem;
-}
-.p-1_5 {
-  padding: 1.5rem;
-}
-.px-1_5 {
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
-}
-.py-1_5 {
-  padding-top: 1.5rem;
-  padding-bottom: 1.5rem;
-}
-.pt-1_5 {
-  padding-top: 1.5rem;
-}
-.pr-1_5 {
-  padding-right: 1.5rem;
-}
-.pb-1_5 {
-  padding-bottom: 1.5rem;
-}
-.pl-1_5 {
-  padding-left: 1.5rem;
-}
-.m-1_5 {
-  margin: 1.5rem;
-}
-.mx-1_5 {
-  margin-left: 1.5rem;
-  margin-right: 1.5rem;
-}
-.my-1_5 {
-  margin-top: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-.mt-1_5 {
-  margin-top: 1.5rem;
-}
-.mr-1_5 {
-  margin-right: 1.5rem;
-}
-.mb-1_5 {
-  margin-bottom: 1.5rem;
-}
-.ml-1_5 {
-  margin-left: 1.5rem;
-}
-.p-2 {
-  padding: 2rem;
-}
-.px-2 {
-  padding-left: 2rem;
-  padding-right: 2rem;
-}
-.py-2 {
-  padding-top: 2rem;
-  padding-bottom: 2rem;
-}
-.pt-2 {
-  padding-top: 2rem;
-}
-.pr-2 {
-  padding-right: 2rem;
-}
-.pb-2 {
-  padding-bottom: 2rem;
-}
-.pl-2 {
-  padding-left: 2rem;
-}
-.m-2 {
-  margin: 2rem;
-}
-.mx-2 {
-  margin-left: 2rem;
-  margin-right: 2rem;
-}
-.my-2 {
-  margin-top: 2rem;
-  margin-bottom: 2rem;
-}
-.mt-2 {
-  margin-top: 2rem;
-}
-.mr-2 {
-  margin-right: 2rem;
-}
-.mb-2 {
-  margin-bottom: 2rem;
-}
-.ml-2 {
-  margin-left: 2rem;
-}
-.p-3 {
-  padding: 3rem;
-}
-.px-3 {
-  padding-left: 3rem;
-  padding-right: 3rem;
-}
-.py-3 {
-  padding-top: 3rem;
-  padding-bottom: 3rem;
-}
-.pt-3 {
-  padding-top: 3rem;
-}
-.pr-3 {
-  padding-right: 3rem;
-}
-.pb-3 {
-  padding-bottom: 3rem;
-}
-.pl-3 {
-  padding-left: 3rem;
-}
-.m-3 {
-  margin: 3rem;
-}
-.mx-3 {
-  margin-left: 3rem;
-  margin-right: 3rem;
-}
-.my-3 {
-  margin-top: 3rem;
-  margin-bottom: 3rem;
-}
-.mt-3 {
-  margin-top: 3rem;
-}
-.mr-3 {
-  margin-right: 3rem;
-}
-.mb-3 {
-  margin-bottom: 3rem;
-}
-.ml-3 {
-  margin-left: 3rem;
-}
-.p-4 {
-  padding: 4rem;
-}
-.px-4 {
-  padding-left: 4rem;
-  padding-right: 4rem;
-}
-.py-4 {
-  padding-top: 4rem;
-  padding-bottom: 4rem;
-}
-.pt-4 {
-  padding-top: 4rem;
-}
-.pr-4 {
-  padding-right: 4rem;
-}
-.pb-4 {
-  padding-bottom: 4rem;
-}
-.pl-4 {
-  padding-left: 4rem;
-}
-.m-4 {
-  margin: 4rem;
-}
-.mx-4 {
-  margin-left: 4rem;
-  margin-right: 4rem;
-}
-.my-4 {
-  margin-top: 4rem;
-  margin-bottom: 4rem;
-}
-.mt-4 {
-  margin-top: 4rem;
-}
-.mr-4 {
-  margin-right: 4rem;
-}
-.mb-4 {
-  margin-bottom: 4rem;
-}
-.ml-4 {
-  margin-left: 4rem;
-}
-.p-5 {
-  padding: 5rem;
-}
-.px-5 {
-  padding-left: 5rem;
-  padding-right: 5rem;
-}
-.py-5 {
-  padding-top: 5rem;
-  padding-bottom: 5rem;
-}
-.pt-5 {
-  padding-top: 5rem;
-}
-.pr-5 {
-  padding-right: 5rem;
-}
-.pb-5 {
-  padding-bottom: 5rem;
-}
-.pl-5 {
-  padding-left: 5rem;
-}
-.m-5 {
-  margin: 5rem;
-}
-.mx-5 {
-  margin-left: 5rem;
-  margin-right: 5rem;
-}
-.my-5 {
-  margin-top: 5rem;
-  margin-bottom: 5rem;
-}
-.mt-5 {
-  margin-top: 5rem;
-}
-.mr-5 {
-  margin-right: 5rem;
-}
-.mb-5 {
-  margin-bottom: 5rem;
-}
-.ml-5 {
-  margin-left: 5rem;
-}
-.p-6 {
-  padding: 6rem;
-}
-.px-6 {
-  padding-left: 6rem;
-  padding-right: 6rem;
-}
-.py-6 {
-  padding-top: 6rem;
-  padding-bottom: 6rem;
-}
-.pt-6 {
-  padding-top: 6rem;
-}
-.pr-6 {
-  padding-right: 6rem;
-}
-.pb-6 {
-  padding-bottom: 6rem;
-}
-.pl-6 {
-  padding-left: 6rem;
-}
-.m-6 {
-  margin: 6rem;
-}
-.mx-6 {
-  margin-left: 6rem;
-  margin-right: 6rem;
-}
-.my-6 {
-  margin-top: 6rem;
-  margin-bottom: 6rem;
-}
-.mt-6 {
-  margin-top: 6rem;
-}
-.mr-6 {
-  margin-right: 6rem;
-}
-.mb-6 {
-  margin-bottom: 6rem;
-}
-.ml-6 {
-  margin-left: 6rem;
-}
-.p-8 {
-  padding: 8rem;
-}
-.px-8 {
-  padding-left: 8rem;
-  padding-right: 8rem;
-}
-.py-8 {
-  padding-top: 8rem;
-  padding-bottom: 8rem;
-}
-.pt-8 {
-  padding-top: 8rem;
-}
-.pr-8 {
-  padding-right: 8rem;
-}
-.pb-8 {
-  padding-bottom: 8rem;
-}
-.pl-8 {
-  padding-left: 8rem;
-}
-.m-8 {
-  margin: 8rem;
-}
-.mx-8 {
-  margin-left: 8rem;
-  margin-right: 8rem;
-}
-.my-8 {
-  margin-top: 8rem;
-  margin-bottom: 8rem;
-}
-.mt-8 {
-  margin-top: 8rem;
-}
-.mr-8 {
-  margin-right: 8rem;
-}
-.mb-8 {
-  margin-bottom: 8rem;
-}
-.ml-8 {
-  margin-left: 8rem;
-}
-.mx-auto {
-  margin-left: auto;
-  margin-right: auto;
-}
-.my-auto {
-  margin-top: auto;
-  margin-bottom: auto;
-}
-.m-auto {
-  margin: auto;
+.footer-text {
+  /* mapped to figma layers: TBD */
 }
 
-/* sizing */
-.w-full {
-  width: 100%;
-}
-.w-screen {
-  width: 100vw;
-}
-.w-min {
-  width: min-content;
-}
-.w-max {
-  width: max-content;
-}
-.w-fit {
-  width: fit-content;
-}
-.h-full {
-  height: 100%;
-}
-.h-screen {
-  height: 100vh;
-}
-.h-min {
-  height: min-content;
-}
-.h-max {
-  height: max-content;
-}
-.h-fit {
-  height: fit-content;
-}
-.min-w-0 {
-  min-width: 0;
-}
-.min-w-full {
-  min-width: 100%;
-}
-.max-w-none {
-  max-width: none;
-}
-.max-w-full {
-  max-width: 100%;
-}
-.max-w-screen {
-  max-width: 100vw;
-}
-.max-w-prose {
-  max-width: 65ch;
+.address {
+  /* mapped to figma layers: TBD */
 }
 
-/* display */
-.block {
-  display: block;
-}
-.inline {
-  display: inline;
-}
-.inlineBlock {
-  display: inline-block;
-}
-.flex {
-  display: flex;
-}
-.inlineFlex {
-  display: inline-flex;
-}
-.grid {
-  display: grid;
-}
-.inlineGrid {
-  display: inline-grid;
-}
-.hidden {
-  display: none;
+.address-list {
+  /* mapped to figma layers: TBD */
 }
 
-/* position */
-.static {
-  position: static;
-}
-.relative {
-  position: relative;
-}
-.absolute {
-  position: absolute;
-}
-.fixed {
-  position: fixed;
-}
-.sticky {
-  position: sticky;
-}
-.top0 {
-  top: 0;
-}
-.right0 {
-  right: 0;
-}
-.bottom0 {
-  bottom: 0;
-}
-.left0 {
-  left: 0;
+.address-list-item {
+  /* mapped to figma layers: TBD */
 }
 
-/* overflow */
-.overflowAuto {
-  overflow: auto;
-}
-.overflowHidden {
-  overflow: hidden;
-}
-.overflowScroll {
-  overflow: scroll;
-}
-.overflowVisible {
-  overflow: visible;
+.address-list-link {
+  /* mapped to figma layers: TBD */
 }
 
-/* Components */
-.grid-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
-  gap: var(--grid-gap, 1rem);
-  width: 100%;
+.navigation {
+  /* mapped to figma layers: TBD */
 }
 
-.stack {
-  display: flex;
-  flex-direction: column;
-  gap: var(--stack-gap, 1rem);
-  width: 100%;
+.nav-list-item {
+  /* mapped to figma layers: TBD */
 }
 
-.cluster {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--cluster-gap, 0.5rem);
-  align-items: center;
-}
-
-.sidebar-layout {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sidebar-gap, 1rem);
-}
-
-.switcher {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--switcher-gap, 1rem);
+.nav-list-link {
+  /* mapped to figma layers: TBD */
 }
 

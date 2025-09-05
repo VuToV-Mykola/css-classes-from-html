@@ -1,0 +1,42 @@
+{
+  "type": "object",
+  "properties": {
+    "mode": {
+      "type": "string",
+      "enum": ["minimal", "maximum", "production"]
+    },
+    "includeGlobal": {
+      "type": "boolean"
+    },
+    "includeReset": {
+      "type": "boolean"
+    },
+    "includeComments": {
+      "type": "boolean"
+    },
+    "optimizeCSS": {
+      "type": "boolean"
+    },
+    "minify": {
+      "type": "boolean"
+    },
+    "selectedCanvas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "selectedLayers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "confidenceThreshold": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    }
+  },
+  "required": ["mode"]
+}
