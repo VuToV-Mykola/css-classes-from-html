@@ -1,28 +1,160 @@
 {
   "name": "css-classes-from-html",
-  "displayName": "CSS Classes from HTML - Figma Integration",
+  "displayName": "CSS Classes from HTML",
+  "description": "Generate CSS classes from HTML with Figma integration",
   "version": "0.0.8",
   "publisher": "vutov-mykola",
-  "main": "./extension.js",
-  "engines": { "vscode": "^1.85.0" },
+  "author": {
+    "name": "VuToV-Mykola",
+    "email": "vutov.mykola@gmail.com",
+    "url": "https://github.com/VuToV-Mykola"
+  },
+  "license": "MIT",
+  "icon": "media/icon.png",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other",
+    "Snippets",
+    "Formatters"
+  ],
+  "keywords": [
+    "css",
+    "html",
+    "figma",
+    "generator",
+    "classes",
+    "styles"
+  ],
   "activationEvents": [
     "onCommand:css-classes.showMenu",
     "onCommand:css-classes.openCanvasSelector",
     "onLanguage:html"
   ],
+  "main": "./extension.js",
   "contributes": {
     "commands": [
-      { "command": "css-classes.showMenu", "title": "CSS Classes: Show Menu" },
-      { "command": "css-classes.openCanvasSelector", "title": "CSS Classes: Open Canvas Selector" }
-    ]
+      {
+        "command": "css-classes.showMenu",
+        "title": "CSS Classes: Show Main Menu",
+        "category": "CSS Classes",
+        "icon": {
+          "light": "media/icon-light.svg",
+          "dark": "media/icon-dark.svg"
+        }
+      },
+      {
+        "command": "css-classes.openCanvasSelector",
+        "title": "CSS Classes: Open Canvas Selector (Legacy)",
+        "category": "CSS Classes"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "css-classes.showMenu",
+          "when": "resourceExtname == .html",
+          "group": "navigation@1"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "css-classes.showMenu",
+          "when": "resourceExtname == .html",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "css-classes.showMenu",
+          "when": "true"
+        },
+        {
+          "command": "css-classes.openCanvasSelector",
+          "when": "true"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "CSS Classes from HTML",
+      "properties": {
+        "css-classes.figmaToken": {
+          "type": "string",
+          "default": "",
+          "description": "Figma personal access token for API integration",
+          "scope": "application"
+        },
+        "css-classes.defaultMode": {
+          "type": "string",
+          "enum": [
+            "minimal",
+            "maximum",
+            "production"
+          ],
+          "default": "maximum",
+          "description": "Default generation mode",
+          "scope": "window"
+        },
+        "css-classes.autoSaveConfig": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically save configuration settings",
+          "scope": "window"
+        },
+        "css-classes.cssOutputDirectory": {
+          "type": "string",
+          "default": "css",
+          "description": "Directory for generated CSS files",
+          "scope": "window"
+        },
+        "css-classes.lastFigmaLink": {
+          "type": "string",
+          "default": "",
+          "description": "Last used Figma file link"
+        },
+        "css-classes.lastSelectedCanvases": {
+          "type": "array",
+          "default": [],
+          "description": "Last selected Canvas names"
+        },
+        "css-classes.lastSelectedLayers": {
+          "type": "array",
+          "default": [],
+          "description": "Last selected Layers names"
+        },
+        "css-classes.mode": {
+          "type": "string",
+          "enum": [
+            "minimal",
+            "maximum",
+            "production"
+          ],
+          "default": "maximum",
+          "description": "Режим роботи розширення"
+        }
+      }
+    }
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/VuToV-Mykola/css-classes-from-html.git"
+  },
+  "bugs": {
+    "url": "https://github.com/VuToV-Mykola/css-classes-from-html/issues"
+  },
+  "homepage": "https://github.com/VuToV-Mykola/css-classes-from-html#readme",
   "scripts": {
-    "start": "node main.js",
-    "dev": "node main.js",
-    "test": "node ./test/runTest.js"
+    "build": "node build-vsix.js",
+    "package": "vsce package",
+    "publish": "vsce publish",
+    "lint": "eslint . --ext .js",
+    "test": "node test/run-all-tests.js",
+    "prepackage": "npm run lint && npm run test",
+    "prepublish": "npm run build"
   },
-  "dependencies": {
-    "node-fetch": "^3.3.2",
-    "dotenv": "^17.2.2"
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "@vscode/vsce": "^2.22.0"
   }
 }

@@ -765,6 +765,7 @@ fi
 
 echo "$(TIMESTAMP) | SETUP COMPLETE" >> "$LOG_FILE"
 echo "Setup finished. Check $LOG_FILE for details."
+
 ~~~text
 
 Короткі вказівки (як використовувати)
