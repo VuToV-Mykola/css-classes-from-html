@@ -3,7 +3,7 @@
 */
 const fs = require("fs")
 const path = require("path")
-const vscode = require("vscode")
+import * as vscode from "vscode"
 
 class ConfigurationManager {
   constructor() {

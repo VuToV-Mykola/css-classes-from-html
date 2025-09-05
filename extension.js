@@ -4,15 +4,17 @@ const path = require("path")
 const fs = require("fs")
 const FigmaAPIClient = require("./core/FigmaAPIClient")
 const ConfigLoader = require("./core/configLoader")
-const {saveConfig, loadConfig} = require("./frontend/configurationManager")
+const ConfigurationManager = require("./frontend/configurationManager")
 
 let panel = null
 let outputChannel = null
 let configLoader = null
+let configManager = null
 
 function activate(context) {
   console.log("✅ CSS Classes from HTML Extension activated")
   configLoader = new ConfigLoader()
+  configManager = new ConfigurationManager()
 
   // Створюємо output channel для логування
   outputChannel = vscode.window.createOutputChannel("CSS Classes from HTML")
@@ -120,7 +122,7 @@ function processWebviewResources(htmlContent, context, panel) {
     return `<link rel="stylesheet" href="${styleUri}">`
   })
 
-  // Обробляємо зображення
+  // Обробляємо зображені
   htmlContent = htmlContent.replace(/<img src="([^"]+)"([^>]*)>/g, (match, src, attrs) => {
     const imgPath = vscode.Uri.file(path.join(context.extensionPath, "media", src))
     const imgUri = panel.webview.asWebviewUri(imgPath)
@@ -161,6 +163,14 @@ function setupMessageHandlers(panel, context) {
 
         case "getFigmaLayers":
           await handleGetFigmaLayers(message, panel)
+          break
+
+        case "loadLastSettings":
+          await handleLoadLastSettings(panel)
+          break
+
+        case "saveCurrentSettings":
+          await handleSaveCurrentSettings(message.settings, panel)
           break
 
         default:
@@ -585,6 +595,37 @@ h2 { color: #0ea5e9; margin-bottom: 1rem; }
 <button class="btn" onclick="vscode.postMessage({command: 'generateCSS', settings: {mode: 'minimal'}})">Мінімальна генерація</button>
 </body>
 </html>`
+}
+
+// Нові функції обробки повідомлень
+async function handleLoadLastSettings(panel) {
+  try {
+    const settings = await configManager.loadConfig()
+    panel.webview.postMessage({
+      command: "lastSettingsLoaded",
+      settings: settings || {}
+    })
+  } catch (error) {
+    panel.webview.postMessage({
+      command: "error",
+      message: `Failed to load last settings: ${error.message}`
+    })
+  }
+}
+
+async function handleSaveCurrentSettings(settings, panel) {
+  try {
+    const success = await configManager.saveConfig(settings)
+    panel.webview.postMessage({
+      command: "settingsSaved",
+      success: success
+    })
+  } catch (error) {
+    panel.webview.postMessage({
+      command: "error",
+      message: `Failed to save settings: ${error.message}`
+    })
+  }
 }
 
 module.exports = {activate, deactivate}

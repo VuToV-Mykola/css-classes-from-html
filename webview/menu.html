@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <title>CSS Classes Menu</title>
+</head>
+<body>
+  <div class="menu-container">
+    <h2>CSS Classes Menu</h2>
+    <button id="loadConfigBtn">Load Config</button>
+    <button id="toggleThemeBtn">Toggle Theme</button>
+    <pre id="config">Config will appear here...</pre>
+  </div>
+
+  <script>
+    const vscode = acquireVsCodeApi();
+
+    function sendMessage(type, payload) {
+      vscode.postMessage({ type, payload });
+    }
+
+    window.addEventListener('message', event => {
+      const message = event.data;
+      switch (message.type) {
+        case 'configData':
+          document.getElementById('config').innerText = JSON.stringify(message.payload, null, 2);
+          break;
+        case 'log':
+          console.log('Extension log:', message.payload);
+          break;
+        default:
+          console.warn('Unknown message type', message.type);
+      }
+    });
+
+    document.getElementById('loadConfigBtn').addEventListener('click', () => {
+      sendMessage('requestConfig', {});
+    });
+
+    document.getElementById('toggleThemeBtn').addEventListener('click', () => {
+      sendMessage('updateConfig', { theme: document.body.dataset.theme === 'light' ? 'dark' : 'light' });
+      document.body.dataset.theme = document.body.dataset.theme === 'light' ? 'dark' : 'light';
+    });
+  </script>
+</body>
+</html>

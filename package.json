@@ -12,7 +12,7 @@
   "license": "MIT",
   "icon": "media/icon.png",
   "engines": {
-    "vscode": "^1.85.0"
+    "vscode": "^1.103.0"
   },
   "categories": [
     "Other",
@@ -114,7 +114,7 @@
           "description": "Last used Figma file link"
         },
         "css-classes.lastSelectedCanvases": {
-          "type": "array",
+          "Type": "array",
           "default": [],
           "description": "Last selected Canvas names"
         },
@@ -151,10 +151,20 @@
     "lint": "eslint . --ext .js",
     "test": "node test/run-all-tests.js",
     "prepackage": "npm run lint && npm run test",
-    "prepublish": "npm run build"
+    "prepublish": "npm run build",
+    "clean": "rm -rf node_modules package-lock.json && npm install",
+    "fix-deps": "npm prune && npm install --production"
   },
   "devDependencies": {
-    "eslint": "^8.0.0",
-    "@vscode/vsce": "^2.22.0"
+    "@types/vscode": "^1.103.0",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^2.22.0",
+    "eslint": "^8.0.0"
+  },
+  "dependencies": {
+    "glob": "^9.3.5",
+    "jsdom": "^22.1.0",
+    "mkdirp": "^3.0.1",
+    "node-fetch": "^3.3.2"
   }
 }

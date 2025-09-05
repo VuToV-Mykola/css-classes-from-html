@@ -436,6 +436,9 @@
         <button class="btn btn-secondary" id="loadLastBtn">
             📂 Завантажити останні
         </button>
+        <button class="btn btn-secondary" id="saveBtn">
+            💾 Зберегти
+        </button>
         <button class="btn btn-secondary" id="clearBtn">
             🗑️ Очистити
         </button>
@@ -445,11 +448,18 @@
     </div>
 
     <script>
+        const vscode = acquireVsCodeApi();
+        
         // Global state
         let selectedMode = null;
         let selectedCanvas = [];
         let selectedLayers = [];
         let config = {};
+
+        // Завантажити налаштування при ініціалізації
+        window.addEventListener('load', () => {
+            vscode.postMessage({ command: 'loadLastSettings' });
+        });
 
         // Mode selection
         document.querySelectorAll('.mode-card').forEach(card => {
@@ -458,7 +468,6 @@
                 this.classList.add('selected');
                 selectedMode = this.dataset.mode;
                 
-                // Show/hide Figma sections based on mode
                 const showFigma = selectedMode !== 'minimal';
                 document.getElementById('figmaSection').style.display = showFigma ? 'block' : 'none';
                 document.getElementById('canvasSection').style.display = showFigma ? 'block' : 'none';
@@ -489,45 +498,96 @@
             selectedLayers = Array.from(document.querySelectorAll('#layersList input:checked')).map(el => el.value);
         }
 
-        // Load last settings
-        document.getElementById('loadLastBtn').addEventListener('click', async () => {
-            try {
-                const response = await fetch('/api/load-settings');
-                const settings = await response.json();
-                
-                if (settings) {
-                    // Apply settings
-                    if (settings.mode) {
-                        document.querySelector(`[data-mode="${settings.mode}"]`)?.click();
+        // Обробник повідомлень від VS Code
+        window.addEventListener('message', event => {
+            const message = event.data;
+            
+            switch (message.command) {
+                case 'lastSettingsLoaded':
+                    if (message.settings) {
+                        applySettings(message.settings);
+                        showStatus('Останні налаштування завантажено', 'success');
                     }
+                    break;
                     
-                    if (settings.selectedCanvas) {
-                        settings.selectedCanvas.forEach(canvas => {
-                            const checkbox = document.querySelector(`#canvas-${canvas}`);
-                            if (checkbox) {
-                                checkbox.checked = true;
-                                checkbox.closest('.checkbox-item').classList.add('selected');
-                            }
-                        });
+                case 'settingsSaved':
+                    if (message.success) {
+                        showStatus('Налаштування збережено', 'success');
+                    } else {
+                        showStatus('Помилка збереження', 'error');
                     }
+                    break;
                     
-                    if (settings.selectedLayers) {
-                        settings.selectedLayers.forEach(layer => {
-                            const checkbox = document.querySelector(`#layer-${layer}`);
-                            if (checkbox) {
-                                checkbox.checked = true;
-                                checkbox.closest('.checkbox-item').classList.add('selected');
-                            }
-                        });
+                case 'generationComplete':
+                    if (message.success) {
+                        showStatus(`✅ CSS згенеровано! Файл: ${message.cssPath}`, 'success');
+                    } else {
+                        showStatus(`❌ Помилка: ${message.error}`, 'error');
                     }
+                    break;
                     
-                    showStatus('Останні налаштування завантажено', 'success');
-                } else {
-                    showStatus('Немає збережених налаштувань', 'error');
-                }
-            } catch (error) {
-                showStatus('Помилка завантаження налаштувань', 'error');
+                case 'error':
+                    showStatus(`❌ Помилка: ${message.message}`, 'error');
+                    break;
             }
+        });
+
+        // Застосування налаштувань
+        function applySettings(settings) {
+            if (settings.mode) {
+                document.querySelector(`[data-mode="${settings.mode}"]`)?.click();
+            }
+            
+            if (settings.figmaLink) {
+                document.getElementById('figmaLink').value = settings.figmaLink;
+            }
+            
+            if (settings.figmaToken) {
+                document.getElementById('figmaToken').value = settings.figmaToken;
+            }
+            
+            if (settings.selectedCanvas) {
+                settings.selectedCanvas.forEach(canvas => {
+                    const checkbox = document.querySelector(`#canvas-${canvas}`);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                        checkbox.closest('.checkbox-item').classList.add('selected');
+                    }
+                });
+            }
+            
+            if (settings.selectedLayers) {
+                settings.selectedLayers.forEach(layer => {
+                    const checkbox = document.querySelector(`#layer-${layer}`);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                        checkbox.closest('.checkbox-item').classList.add('selected');
+                    }
+                });
+            }
+            
+            updateSelections();
+        }
+
+        // Load last settings
+        document.getElementById('loadLastBtn').addEventListener('click', () => {
+            vscode.postMessage({ command: 'loadLastSettings' });
+        });
+
+        // Save settings
+        document.getElementById('saveBtn').addEventListener('click', () => {
+            const settings = {
+                mode: selectedMode,
+                figmaLink: document.getElementById('figmaLink').value,
+                figmaToken: document.getElementById('figmaToken').value,
+                selectedCanvas: selectedCanvas,
+                selectedLayers: selectedLayers
+            };
+            
+            vscode.postMessage({
+                command: 'saveCurrentSettings',
+                settings: settings
+            });
         });
 
         // Clear settings
@@ -550,7 +610,7 @@
         });
 
         // Generate CSS
-        document.getElementById('generateBtn').addEventListener('click', async () => {
+        document.getElementById('generateBtn').addEventListener('click', () => {
             if (!selectedMode) {
                 showStatus('Виберіть режим генерації', 'error');
                 return;
@@ -576,25 +636,11 @@
             
             showStatus('<span class="loading"></span> Генерація CSS...', 'success');
             
-            try {
-                const response = await fetch('/api/generate', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    showStatus(`✅ CSS успішно згенеровано! Файл: ${result.outputFile}`, 'success');
-                } else {
-                    showStatus(`❌ Помилка: ${result.error}`, 'error');
-                }
-            } catch (error) {
-                showStatus(`❌ Помилка: ${error.message}`, 'error');
-            }
+            // Відправляємо повідомлення в VS Code
+            vscode.postMessage({
+                command: 'generateCSS',
+                settings: payload
+            });
         });
 
         // Show status message
@@ -613,4 +659,3 @@
     </script>
 </body>
 </html>
-

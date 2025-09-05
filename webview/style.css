@@ -1,0 +1,24 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: var(--bg-color, #fff);
+  color: var(--text-color, #000);
+  padding: 20px;
+}
+
+body[data-theme="dark"] {
+  --bg-color: #1e1e1e;
+  --text-color: #ddd;
+}
+
+.menu-container {
+  border: 1px solid #ccc;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+button {
+  margin: 5px;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 5px;
+}
