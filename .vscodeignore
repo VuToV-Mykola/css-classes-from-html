@@ -58,3 +58,4 @@ jsconfig.json
 .codeclimate.yml
 .coveralls.yml
 .nyc_output
+.build/*
