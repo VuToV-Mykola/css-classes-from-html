@@ -10,555 +10,349 @@ class CSSGenerator {
       optimizeForPerformance: true,
       includeContainerQueries: true,
       useCascadeLayers: false,
-      ...options,
-    };
+      ...options
+    }
 
-    this.cssRules = new Map();
-    this.mediaQueries = new Map();
-    this.containerQueries = new Map();
-    this.customProperties = new Map();
+    this.cssRules = new Map()
+    this.mediaQueries = new Map()
+    this.containerQueries = new Map()
+    this.customProperties = new Map()
   }
 
   /**
    * Головний метод генерації CSS
    */
-  generateCSS(matchedStyles, figmaData, htmlData) {
+  generateCSS(matchedStyles, figmaData = {}, htmlData = {}) {
     // Очищення попередніх правил
-    this.cssRules.clear();
-    this.mediaQueries.clear();
-    this.containerQueries.clear();
-    this.customProperties.clear();
+    this.cssRules.clear()
+    this.mediaQueries.clear()
+    this.containerQueries.clear()
+    this.customProperties.clear()
+
+    const hierarchyFigma = figmaData?.hierarchy ?? new Map()
+    const hierarchyHTML = htmlData?.hierarchy ?? new Map()
 
     // Генерація CSS змінних з Figma токенів
-    this.generateCSSVariables(figmaData);
+    this.generateCSSVariables({hierarchy: hierarchyFigma})
 
-    // Генерація базових стилів
+    // Reset стилі
     if (this.options.includeReset) {
-      this.generateResetStyles();
+      this.generateResetStyles()
     }
 
-    // Генерація контейнера
-    this.generateContainerStyles();
+    // Контейнер
+    this.generateContainerStyles()
 
-    // Генерація стилів для кожного співставленого елемента
-    matchedStyles.matches.forEach((match, figmaId) => {
-      const figmaElement = figmaData.hierarchy.get(figmaId);
-      const htmlElement = htmlData.hierarchy.get(match.htmlElement);
+    // Стилі для співставлених елементів
+    if (matchedStyles?.matches) {
+      matchedStyles.matches.forEach((match, figmaId) => {
+        const figmaElement = hierarchyFigma.get(figmaId)
+        const htmlElement = hierarchyHTML.get(match.htmlElement)
 
-      this.generateElementStyles(figmaElement, htmlElement);
-    });
+        if (figmaElement && htmlElement) {
+          this.generateElementStyles(figmaElement, htmlElement)
+        }
+      })
+    }
 
-    // Генерація адаптивних стилів
+    // Адаптив
     if (this.options.generateResponsive) {
-      this.generateResponsiveStyles(figmaData);
+      this.generateResponsiveStyles({hierarchy: hierarchyFigma})
     }
 
-    // Компіляція фінального CSS
-    return this.compileCSS();
+    return this.compileCSS()
   }
 
   /**
-   * Генерація CSS змінних з Figma токенів
+   * CSS змінні
    */
   generateCSSVariables(figmaData) {
-    const variables = new Map();
+    const variables = new Map()
 
-    // Збір кольорів
-    figmaData.hierarchy.forEach((element) => {
-      if (element.styles?.visual?.["background-color"]) {
-        const color = element.styles.visual["background-color"];
-        const varName = this.generateColorVariable(element.name);
-        variables.set(varName, color);
+    figmaData.hierarchy?.forEach(element => {
+      if (element?.styles?.visual?.["background-color"]) {
+        const color = element.styles.visual["background-color"]
+        const varName = this.generateColorVariable(element.name)
+        variables.set(varName, color)
       }
 
-      if (element.styles?.typography?.color) {
-        const color = element.styles.typography.color;
-        const varName = this.generateColorVariable(element.name + "-text");
-        variables.set(varName, color);
+      if (element?.styles?.typography?.color) {
+        const color = element.styles.typography.color
+        const varName = this.generateColorVariable(element.name + "-text")
+        variables.set(varName, color)
       }
-    });
+    })
 
-    // Збір шрифтів
-    const fonts = new Set();
-    figmaData.hierarchy.forEach((element) => {
-      if (element.styles?.typography?.["font-family"]) {
-        fonts.add(element.styles.typography["font-family"]);
+    // Шрифти
+    const fonts = new Set()
+    figmaData.hierarchy?.forEach(el => {
+      if (el?.styles?.typography?.["font-family"]) {
+        fonts.add(el.styles.typography["font-family"])
       }
-    });
+    })
+    Array.from(fonts).forEach((font, i) => {
+      variables.set(`--font-family-${i + 1}`, font)
+    })
 
-    fonts.forEach((font, index) => {
-      variables.set(`--font-family-${index + 1}`, font);
-    });
-
-    // Збір spacing значень
-    const spacings = new Set();
-    figmaData.hierarchy.forEach((element) => {
-      if (element.styles?.layout?.gap) {
-        spacings.add(element.styles.layout.gap);
-      }
-      if (element.styles?.layout?.padding) {
-        spacings.add(element.styles.layout.padding);
-      }
-    });
-
+    // Відступи
+    const spacings = new Set()
+    figmaData.hierarchy?.forEach(el => {
+      if (el?.styles?.layout?.gap) spacings.add(el.styles.layout.gap)
+      if (el?.styles?.layout?.padding) spacings.add(el.styles.layout.padding)
+    })
     Array.from(spacings)
-      .sort((a, b) => {
-        return parseInt(a) - parseInt(b);
+      .sort((a, b) => parseInt(a) - parseInt(b))
+      .forEach((spacing, i) => {
+        variables.set(`--spacing-${i + 1}`, spacing)
       })
-      .forEach((spacing, index) => {
-        variables.set(`--spacing-${index + 1}`, spacing);
-      });
 
-    this.customProperties = variables;
+    this.customProperties = variables
   }
 
   /**
-   * Генерація reset стилів
+   * Reset стилі
    */
   generateResetStyles() {
-    const resetCSS = `
-/* CSS Reset з современними підходами */
+    this.cssRules.set("reset", {
+      selector: "/* reset */",
+      styles: `
 *,
 *::before,
-*::after {
-    box-sizing: border-box;
-}
-
-* {
-    margin: 0;
-}
-
-body {
-    line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
-}
-
-img,
-picture,
-video,
-canvas,
-svg {
-    display: block;
-    max-width: 100%;
-    height: auto;
-}
-
-input,
-button,
-textarea,
-select {
-    font: inherit;
-}
-
-p,
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-    overflow-wrap: break-word;
-}
-
-#root,
-#__next {
-    isolation: isolate;
-}
-`;
-
-    this.cssRules.set("reset", resetCSS);
+*::after { box-sizing: border-box; }
+* { margin: 0; }
+body { line-height: 1.5; -webkit-font-smoothing: antialiased; }
+img, picture, video, canvas, svg { display: block; max-width: 100%; height: auto; }
+input, button, textarea, select { font: inherit; }
+p, h1, h2, h3, h4, h5, h6 { overflow-wrap: break-word; }
+#root, #__next { isolation: isolate; }`
+    })
   }
 
   /**
-   * Генерація стилів контейнера
+   * Контейнер
    */
   generateContainerStyles() {
-    const containerCSS = `
-/* Контейнер з адаптивною шириною */
+    this.cssRules.set("container", {
+      selector: ".container, .section",
+      styles: `
 .container {
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 16px;
-    container-type: inline-size;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+  container-type: inline-size;
 }
-
-/* Секції з універсальним падінгом */
-.section {
-    padding: 60px 0;
-}
-
+.section { padding: 60px 0; }
 @media (min-width: 768px) {
-    .container {
-        padding: 0 32px;
-    }
-    
-    .section {
-        padding: 80px 0;
-    }
+  .container { padding: 0 32px; }
+  .section { padding: 80px 0; }
 }
-
 @media (min-width: 1200px) {
-    .container {
-        padding: 0 15px;
-    }
-    
-    .section {
-        padding: 120px 0;
-    }
-}
-`;
-
-    this.cssRules.set("container", containerCSS);
+  .container { padding: 0 15px; }
+  .section { padding: 120px 0; }
+}`
+    })
   }
 
   /**
-   * Генерація стилів для окремого елемента
+   * Генерація стилів елементів
    */
   generateElementStyles(figmaElement, htmlElement) {
-    if (!htmlElement.classes.length) return;
+    if (!htmlElement?.classes?.length) return
 
-    htmlElement.classes.forEach((className) => {
-      const styles = this.convertFigmaStylesToCSS(figmaElement.styles);
-      const optimizedStyles = this.optimizeStyles(
-        styles,
-        figmaElement,
-        htmlElement
-      );
-
-      // Додавання логічних властивостей замість фізичних
-      const modernStyles = this.convertToLogicalProperties(optimizedStyles);
+    htmlElement.classes.forEach(className => {
+      const styles = this.convertFigmaStylesToCSS(figmaElement.styles)
+      const optimized = this.optimizeStyles(styles, figmaElement, htmlElement)
+      const logical = this.convertToLogicalProperties(optimized)
 
       this.cssRules.set(className, {
         selector: `.${className}`,
-        styles: modernStyles,
-        element: htmlElement,
-        figmaSource: figmaElement,
-      });
-    });
+        styles: logical
+      })
+    })
   }
 
-  /**
-   * Конвертація стилів Figma в CSS
-   */
-  convertFigmaStylesToCSS(figmaStyles) {
-    const cssStyles = {};
-
-    // Typography стилі
-    if (figmaStyles?.typography) {
-      Object.entries(figmaStyles.typography).forEach(([prop, value]) => {
-        if (value && value !== "") {
-          cssStyles[prop] = value;
-        }
-      });
-    }
-
-    // Visual стилі
-    if (figmaStyles?.visual) {
-      Object.entries(figmaStyles.visual).forEach(([prop, value]) => {
-        if (value && value !== "") {
-          cssStyles[prop] = value;
-        }
-      });
-    }
-
-    // Layout стилі
-    if (figmaStyles?.layout) {
-      Object.entries(figmaStyles.layout).forEach(([prop, value]) => {
-        if (value && value !== "") {
-          cssStyles[prop] = value;
-        }
-      });
-    }
-
-    // Box model стилі
-    if (figmaStyles?.boxModel) {
-      Object.entries(figmaStyles.boxModel).forEach(([prop, value]) => {
-        if (value && value !== "") {
-          // Конвертуємо фіксовані розміри в адаптивні
-          if (prop === "width" || prop === "height") {
-            cssStyles[prop] = this.makeResponsive(value);
-          } else {
-            cssStyles[prop] = value;
+  convertFigmaStylesToCSS(figmaStyles = {}) {
+    const cssStyles = {}
+    ;["typography", "visual", "layout", "boxModel", "border", "effects"].forEach(group => {
+      if (figmaStyles[group]) {
+        Object.entries(figmaStyles[group]).forEach(([prop, val]) => {
+          if (val) {
+            cssStyles[prop] =
+              group === "boxModel" && ["width", "height"].includes(prop)
+                ? this.makeResponsive(val)
+                : val
           }
-        }
-      });
-    }
-
-    // Border та effects стилі
-    if (figmaStyles?.border) {
-      Object.entries(figmaStyles.border).forEach(([prop, value]) => {
-        if (value && value !== "") {
-          cssStyles[prop] = value;
-        }
-      });
-    }
-
-    if (figmaStyles?.effects) {
-      Object.entries(figmaStyles.effects).forEach(([prop, value]) => {
-        if (value && value !== "") {
-          cssStyles[prop] = value;
-        }
-      });
-    }
-
-    return cssStyles;
+        })
+      }
+    })
+    return cssStyles
   }
 
-  /**
-   * Оптимізація стилів для кращої продуктивності
-   */
   optimizeStyles(styles, figmaElement, htmlElement) {
-    const optimized = { ...styles };
+    const optimized = {...styles}
+    Object.entries(optimized).forEach(([prop, val]) => {
+      const variable = this.findMatchingVariable(prop, val)
+      if (variable) optimized[prop] = `var(${variable})`
+    })
 
-    // Використання CSS змінних для повторюваних значень
-    Object.entries(optimized).forEach(([prop, value]) => {
-      const variable = this.findMatchingVariable(prop, value);
-      if (variable) {
-        optimized[prop] = `var(${variable})`;
-      }
-    });
-
-    // Оптимізація Flexbox властивостей
-    if (optimized.display === "flex") {
-      // Додавання gap замість margin де можливо
-      if (!optimized.gap && htmlElement.children.length > 1) {
-        optimized.gap = "var(--spacing-2, 16px)";
+    if (optimized.display === "flex" || optimized.display === "grid") {
+      if (!optimized.gap && htmlElement.children?.length > 1) {
+        optimized.gap = "var(--spacing-2, 16px)"
       }
     }
 
-    // Видалення зайвих властивостей
-    if (optimized.width === "100%" && optimized["max-width"]) {
-      delete optimized.width;
-    }
-
-    return optimized;
+    if (optimized.width === "100%" && optimized["max-width"]) delete optimized.width
+    return optimized
   }
 
-  /**
-   * Конвертація в логічні властивості CSS
-   */
   convertToLogicalProperties(styles) {
-    const logical = { ...styles };
-
-    // Конвертація margin та padding
-    if (logical["margin-left"]) {
-      logical["margin-inline-start"] = logical["margin-left"];
-      delete logical["margin-left"];
-    }
-    if (logical["margin-right"]) {
-      logical["margin-inline-end"] = logical["margin-right"];
-      delete logical["margin-right"];
-    }
-    if (logical["margin-top"]) {
-      logical["margin-block-start"] = logical["margin-top"];
-      delete logical["margin-top"];
-    }
-    if (logical["margin-bottom"]) {
-      logical["margin-block-end"] = logical["margin-bottom"];
-      delete logical["margin-bottom"];
-    }
-
-    // Аналогічно для padding
-    if (logical["padding-left"]) {
-      logical["padding-inline-start"] = logical["padding-left"];
-      delete logical["padding-left"];
-    }
-    if (logical["padding-right"]) {
-      logical["padding-inline-end"] = logical["padding-right"];
-      delete logical["padding-right"];
-    }
-    if (logical["padding-top"]) {
-      logical["padding-block-start"] = logical["padding-top"];
-      delete logical["padding-top"];
-    }
-    if (logical["padding-bottom"]) {
-      logical["padding-block-end"] = logical["padding-bottom"];
-      delete logical["padding-bottom"];
-    }
-
-    return logical;
+    const logical = {...styles}
+    const map = [
+      ["margin-left", "margin-inline-start"],
+      ["margin-right", "margin-inline-end"],
+      ["margin-top", "margin-block-start"],
+      ["margin-bottom", "margin-block-end"],
+      ["padding-left", "padding-inline-start"],
+      ["padding-right", "padding-inline-end"],
+      ["padding-top", "padding-block-start"],
+      ["padding-bottom", "padding-block-end"]
+    ]
+    map.forEach(([oldProp, newProp]) => {
+      if (logical[oldProp]) {
+        logical[newProp] = logical[oldProp]
+        delete logical[oldProp]
+      }
+    })
+    return logical
   }
 
-  /**
-   * Генерація адаптивних стилів
-   */
   generateResponsiveStyles(figmaData) {
-    const breakpoints = {
-      mobile: "(max-width: 767px)",
-      tablet: "(min-width: 768px) and (max-width: 1199px)",
-      desktop: "(min-width: 1200px)",
-    };
+    this.cssRules.forEach(rule => {
+      if (!rule?.styles || typeof rule.styles !== "object") return
+      const base = rule.styles
 
-    // Аналіз елементів для створення адаптивних варіантів
-    this.cssRules.forEach((rule, className) => {
-      if (rule.figmaSource) {
-        // Генерація мобільних стилів
-        const mobileStyles = this.generateMobileStyles(rule.styles);
-        if (Object.keys(mobileStyles).length > 0) {
-          this.addMediaQuery("mobile", rule.selector, mobileStyles);
-        }
+      const mobile = this.generateMobileStyles(base)
+      if (Object.keys(mobile).length) this.addMediaQuery("mobile", rule.selector, mobile)
 
-        // Генерація планшетних стилів
-        const tabletStyles = this.generateTabletStyles(rule.styles);
-        if (Object.keys(tabletStyles).length > 0) {
-          this.addMediaQuery("tablet", rule.selector, tabletStyles);
-        }
-      }
-    });
+      const tablet = this.generateTabletStyles(base)
+      if (Object.keys(tablet).length) this.addMediaQuery("tablet", rule.selector, tablet)
+    })
 
-    // Container queries для сучасної адаптивності
-    if (this.options.includeContainerQueries) {
-      this.generateContainerQueries();
-    }
+    if (this.options.includeContainerQueries) this.generateContainerQueries()
   }
 
-  /**
-   * Генерація container queries
-   */
   generateContainerQueries() {
-    this.cssRules.forEach((rule, className) => {
-      if (rule.styles.display === "flex" || rule.styles.display === "grid") {
-        const containerQuery = `
+    this.cssRules.forEach(rule => {
+      if (rule?.styles?.display === "flex" || rule?.styles?.display === "grid") {
+        this.containerQueries.set(
+          rule.selector,
+          `
 @container (max-width: 600px) {
-    ${rule.selector} {
-        flex-direction: column;
-        gap: var(--spacing-1, 8px);
-    }
+  ${rule.selector} { flex-direction: column; gap: var(--spacing-1, 8px); }
 }
-
 @container (min-width: 900px) {
-    ${rule.selector} {
-        gap: var(--spacing-3, 24px);
-    }
-}
-`;
-        this.containerQueries.set(className, containerQuery);
+  ${rule.selector} { gap: var(--spacing-3, 24px); }
+}`
+        )
       }
-    });
+    })
   }
 
-  /**
-   * Компіляція фінального CSS
-   */
   compileCSS() {
-    let css = "";
+    let css = ""
 
-    // CSS змінні
     if (this.customProperties.size > 0) {
-      css += ":root {\n";
-      this.customProperties.forEach((value, name) => {
-        css += `  ${name}: ${value};\n`;
-      });
-      css += "}\n\n";
+      css += ":root {\n"
+      this.customProperties.forEach((val, name) => {
+        css += `  ${name}: ${val};\n`
+      })
+      css += "}\n\n"
     }
 
-    // Основні стилі
-    this.cssRules.forEach((rule, name) => {
-      if (typeof rule === "string") {
-        css += rule + "\n";
+    this.cssRules.forEach(rule => {
+      if (!rule) return
+      if (typeof rule.styles === "string") {
+        css += rule.styles + "\n\n"
       } else {
-        css += `${rule.selector} {\n`;
-        Object.entries(rule.styles).forEach(([prop, value]) => {
-          css += `  ${prop}: ${value};\n`;
-        });
-        css += "}\n\n";
+        css += `${rule.selector} {\n`
+        Object.entries(rule.styles).forEach(([prop, val]) => {
+          css += `  ${prop}: ${val};\n`
+        })
+        css += "}\n\n"
       }
-    });
+    })
 
-    // Media queries
-    this.mediaQueries.forEach((queries, mediaQuery) => {
-      css += `@media ${mediaQuery} {\n`;
+    this.mediaQueries.forEach((queries, mq) => {
+      css += `@media ${mq} {\n`
       queries.forEach((styles, selector) => {
-        css += `  ${selector} {\n`;
-        Object.entries(styles).forEach(([prop, value]) => {
-          css += `    ${prop}: ${value};\n`;
-        });
-        css += "  }\n\n";
-      });
-      css += "}\n\n";
-    });
+        css += `  ${selector} {\n`
+        Object.entries(styles).forEach(([p, v]) => {
+          css += `    ${p}: ${v};\n`
+        })
+        css += "  }\n\n"
+      })
+      css += "}\n\n"
+    })
 
-    // Container queries
-    this.containerQueries.forEach((query) => {
-      css += query + "\n";
-    });
+    this.containerQueries.forEach(q => {
+      css += q + "\n"
+    })
 
-    return this.beautifyCSS(css);
+    return this.beautifyCSS(css)
   }
 
-  /**
-   * Допоміжні методи
-   */
+  /* Helpers */
   makeResponsive(value) {
-    const numericValue = parseInt(value);
-    if (numericValue > 100) {
-      return "min(100%, " + value + ")";
-    }
-    return value;
+    const n = parseInt(value)
+    if (n > 100) return `min(100%, ${value})`
+    return value
   }
 
-  findMatchingVariable(prop, value) {
+  findMatchingVariable(prop, val) {
     if (prop.includes("color")) {
-      for (let [varName, varValue] of this.customProperties) {
-        if (varValue === value && varName.includes("color")) {
-          return varName;
-        }
+      for (let [vName, vVal] of this.customProperties) {
+        if (vVal === val && vName.includes("color")) return vName
       }
     }
-    return null;
+    return null
   }
 
   generateColorVariable(name) {
-    return "--color-" + name.toLowerCase().replace(/[^a-z0-9]/g, "-");
+    return "--color-" + name.toLowerCase().replace(/[^a-z0-9]/g, "-")
   }
 
-  generateMobileStyles(baseStyles) {
-    const mobile = {};
-
-    if (baseStyles["font-size"]) {
-      const fontSize = parseInt(baseStyles["font-size"]);
-      if (fontSize > 24) {
-        mobile["font-size"] = Math.round(fontSize * 0.8) + "px";
-      }
+  generateMobileStyles(base) {
+    const m = {}
+    if (base["font-size"]) {
+      const fs = parseInt(base["font-size"])
+      if (fs > 24) m["font-size"] = Math.round(fs * 0.8) + "px"
     }
-
-    if (baseStyles.padding) {
-      const padding = parseInt(baseStyles.padding);
-      if (padding > 20) {
-        mobile.padding = Math.round(padding * 0.7) + "px";
-      }
+    if (base.padding) {
+      const p = parseInt(base.padding)
+      if (p > 20) m.padding = Math.round(p * 0.7) + "px"
     }
-
-    return mobile;
+    return m
   }
 
-  generateTabletStyles(baseStyles) {
-    const tablet = {};
-
-    if (baseStyles["font-size"]) {
-      const fontSize = parseInt(baseStyles["font-size"]);
-      if (fontSize > 18) {
-        tablet["font-size"] = Math.round(fontSize * 0.9) + "px";
-      }
+  generateTabletStyles(base) {
+    const t = {}
+    if (base["font-size"]) {
+      const fs = parseInt(base["font-size"])
+      if (fs > 18) t["font-size"] = Math.round(fs * 0.9) + "px"
     }
-
-    return tablet;
+    return t
   }
 
-  addMediaQuery(breakpoint, selector, styles) {
+  addMediaQuery(bp, selector, styles) {
     const breakpoints = {
       mobile: "(max-width: 767px)",
       tablet: "(min-width: 768px) and (max-width: 1199px)",
-      desktop: "(min-width: 1200px)",
-    };
-
-    const mediaQuery = breakpoints[breakpoint];
-    if (!this.mediaQueries.has(mediaQuery)) {
-      this.mediaQueries.set(mediaQuery, new Map());
+      desktop: "(min-width: 1200px)"
     }
-
-    this.mediaQueries.get(mediaQuery).set(selector, styles);
+    const mq = breakpoints[bp]
+    if (!this.mediaQueries.has(mq)) this.mediaQueries.set(mq, new Map())
+    this.mediaQueries.get(mq).set(selector, styles)
   }
 
   beautifyCSS(css) {
@@ -566,9 +360,10 @@ h6 {
       .replace(/\n\n\n+/g, "\n\n")
       .replace(/{\s*\n/g, "{\n")
       .replace(/\n\s*}/g, "\n}")
-      .trim();
+      .trim()
   }
 }
+
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = CSSGenerator;
+  module.exports = CSSGenerator
 }

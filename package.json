@@ -1,61 +1,82 @@
 {
   "name": "css-classes-from-html",
   "displayName": "CSS Classes from HTML - Figma Integration",
-  "description": "🎨 Автоматична генерація CSS з HTML та інтеграція з Figma дизайнами",
+  "description": "Generate CSS classes from HTML with Figma design import. Fast, smart, and customizable.",
   "version": "0.0.7",
-  "publisher": "VuToV-Mykola",
+  "publisher": "vutov-mykola",
   "author": {
     "name": "VuToV Mykola",
     "email": "vutov_nikola@icloud.com"
   },
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/VuToV-Mykola/css-classes-from-html"
+  },
+  "bugs": {
+    "url": "https://github.com/VuToV-Mykola/css-classes-from-html/issues"
+  },
+  "homepage": "https://github.com/VuToV-Mykola/css-classes-from-html#readme",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
   "categories": [
     "Programming Languages",
-    "Snippets",
+    "Formatters",
     "Other"
   ],
   "keywords": [
     "css",
     "html",
     "figma",
-    "style-generation",
-    "design-to-code",
+    "generator",
+    "classes",
+    "styles",
     "automation",
-    "web-development"
+    "web",
+    "frontend",
+    "design"
   ],
-  "icon": "media/icon.png",
-  "galleryBanner": {
-    "color": "#007ACC",
-    "theme": "dark"
-  },
-  "engines": {
-    "vscode": "^1.85.0"
-  },
+  "activationEvents": [
+    "onLanguage:html",
+    "onCommand:css-classes.showMenu"
+  ],
   "main": "./extension.js",
   "contributes": {
     "commands": [
       {
         "command": "css-classes.showMenu",
         "title": "CSS Classes: Show Menu",
+        "category": "CSS Classes",
         "icon": "$(symbol-color)"
       },
       {
         "command": "css-classes.quickGenerate",
-        "title": "CSS Classes: Quick Generate",
+        "title": "CSS Classes: Quick Generate (Minimal)",
+        "category": "CSS Classes",
         "icon": "$(zap)"
       },
       {
         "command": "css-classes.fullGenerate",
         "title": "CSS Classes: Full Generate with Figma",
+        "category": "CSS Classes",
         "icon": "$(rocket)"
       },
       {
         "command": "css-classes.openConfig",
         "title": "CSS Classes: Open Configuration",
+        "category": "CSS Classes",
         "icon": "$(gear)"
       },
       {
         "command": "css-classes.repeatLast",
         "title": "CSS Classes: Repeat Last Generation",
+        "category": "CSS Classes",
         "icon": "$(history)"
       }
     ],
@@ -84,7 +105,12 @@
         {
           "when": "resourceExtname == .html",
           "command": "css-classes.showMenu",
-          "group": "cssClasses"
+          "group": "1_cssClasses@1"
+        },
+        {
+          "when": "resourceExtname == .html",
+          "command": "css-classes.quickGenerate",
+          "group": "1_cssClasses@2"
         }
       ],
       "editor/title": [
@@ -92,6 +118,20 @@
           "when": "resourceExtname == .html",
           "command": "css-classes.showMenu",
           "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "css-classes.showMenu",
+          "when": "resourceExtname == .html"
+        },
+        {
+          "command": "css-classes.quickGenerate",
+          "when": "resourceExtname == .html"
+        },
+        {
+          "command": "css-classes.fullGenerate",
+          "when": "resourceExtname == .html"
         }
       ]
     },
@@ -101,22 +141,26 @@
         "cssClasses.includeReset": {
           "type": "boolean",
           "default": true,
-          "description": "Включити CSS reset стилі"
+          "description": "Include CSS reset styles in generated output",
+          "order": 1
         },
         "cssClasses.includeComments": {
           "type": "boolean",
           "default": true,
-          "description": "Додавати коментарі в згенерований CSS"
+          "description": "Add descriptive comments to generated CSS",
+          "order": 2
         },
         "cssClasses.optimizeCSS": {
           "type": "boolean",
           "default": true,
-          "description": "Оптимізувати згенерований CSS"
+          "description": "Optimize and minify generated CSS",
+          "order": 3
         },
         "cssClasses.generateResponsive": {
           "type": "boolean",
           "default": true,
-          "description": "Генерувати адаптивні стилі"
+          "description": "Generate responsive media queries",
+          "order": 4
         },
         "cssClasses.defaultMode": {
           "type": "string",
@@ -126,13 +170,41 @@
             "maximum",
             "production"
           ],
-          "description": "Режим генерації за замовчуванням"
+          "enumDescriptions": [
+            "Quick generation without external dependencies",
+            "Full-featured generation with Figma integration",
+            "Optimized for production deployment"
+          ],
+          "description": "Default generation mode",
+          "order": 5
         },
         "cssClasses.figmaToken": {
           "type": "string",
           "default": "",
-          "description": "Figma API Token (зберігається безпечно)",
+          "description": "Your Figma Personal Access Token (stored securely)",
+          "order": 6,
           "scope": "application"
+        },
+        "cssClasses.breakpoints": {
+          "type": "object",
+          "default": {
+            "mobile": 768,
+            "tablet": 1024,
+            "desktop": 1440
+          },
+          "description": "Custom breakpoint values for responsive design",
+          "order": 7
+        },
+        "cssClasses.colorFormat": {
+          "type": "string",
+          "default": "hex",
+          "enum": [
+            "hex",
+            "rgb",
+            "hsl"
+          ],
+          "description": "Preferred color format in generated CSS",
+          "order": 8
         }
       }
     },
@@ -146,35 +218,83 @@
           "highContrast": "#007ACC44"
         }
       }
+    ],
+    "walkthroughs": [
+      {
+        "id": "cssClassesGetStarted",
+        "title": "Get Started with CSS Classes Generator",
+        "description": "Learn how to generate CSS from your HTML files",
+        "steps": [
+          {
+            "id": "openHTML",
+            "title": "Open an HTML file",
+            "description": "Start by opening any HTML file in your editor.\n[Open HTML file](command:vscode.openFolder)",
+            "media": {
+              "image": "images/step-1.png",
+              "altText": "Opening HTML file"
+            }
+          },
+          {
+            "id": "runCommand",
+            "title": "Run the generator",
+            "description": "Press `Ctrl+Shift+C` to open the generation menu.\n[Try it now](command:css-classes.showMenu)",
+            "media": {
+              "image": "images/step-2.png",
+              "altText": "Running generator"
+            }
+          },
+          {
+            "id": "selectMode",
+            "title": "Choose generation mode",
+            "description": "Select between Minimal, Maximum, or Production mode based on your needs.",
+            "media": {
+              "image": "images/step-3.png",
+              "altText": "Selecting mode"
+            }
+          },
+          {
+            "id": "figmaIntegration",
+            "title": "Optional: Connect Figma",
+            "description": "For Maximum mode, add your Figma API token to import designs.\n[Configure Figma](command:workbench.action.openSettings?%5B%22cssClasses.figmaToken%22%5D)",
+            "media": {
+              "image": "images/step-4.png",
+              "altText": "Figma integration"
+            }
+          }
+        ]
+      }
     ]
   },
-  "activationEvents": [
-    "onLanguage:html",
-    "onCommand:css-classes.showMenu"
-  ],
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "node build.js",
-    "watch": "node build.js --watch",
-    "test": "node ./test/run-tests.js",
+    "compile": "node ./build.js",
+    "watch": "node ./build.js --watch",
+    "pretest": "npm run compile",
+    "test": "node ./test/runTest.js",
     "package": "vsce package",
-    "publish": "vsce publish"
-  },
-  "dependencies": {
-    "node-fetch": "^3.3.2"
+    "publish": "vsce publish",
+    "validate": "node utils/ValidationUtils.js",
+    "optimize": "node utils/OptimizationUtils.js",
+    "dev": "node main.js",
+    "start": "node main.js"
   },
   "devDependencies": {
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.1",
     "@types/node": "20.x",
     "@types/vscode": "^1.85.0",
-    "@vscode/vsce": "^3.6.0"
+    "@vscode/test-electron": "^2.3.4",
+    "eslint": "^8.47.0",
+    "glob": "^10.3.3",
+    "jest": "^29.5.0",
+    "mocha": "^10.2.0",
+    "prettier": "^2.8.8",
+    "typescript": "^5.1.6",
+    "vsce": "^1.97.0"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/VuToV-Mykola/css-classes-from-html"
-  },
-  "bugs": {
-    "url": "https://github.com/VuToV-Mykola/css-classes-from-html/issues"
-  },
-  "homepage": "https://github.com/VuToV-Mykola/css-classes-from-html#readme",
-  "license": "MIT"
+  "dependencies": {
+    "dotenv": "^17.2.2",
+    "jsdom": "^26.1.0",
+    "node-fetch": "^3.3.2"
+  }
 }

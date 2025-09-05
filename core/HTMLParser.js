@@ -1,232 +1,158 @@
 /**
- * Розширений парсер HTML з детальним аналізом ієрархії та контенту
+ * HTMLParser.js
+ * Модуль парсингу HTML для інтеграції з Figma
+ * @version 2.0.0
  */
+
+const fs = require("fs")
+const {JSDOM} = require("jsdom")
+
 class HTMLParser {
   constructor() {
-    this.hierarchy = new Map();
-    this.classMap = new Map();
-    this.contentMap = new Map();
+    // Map елементів по ID для швидкого доступу
+    this.hierarchy = new Map()
+    this.contentMap = new Map()
   }
 
   /**
-   * Парсинг HTML з створенням детальної ієрархічної структури
+   * Основний метод парсингу HTML
+   * @param {string} htmlContent - HTML як рядок
+   * @returns {Object} { hierarchy, contentMap }
    */
   parseHTML(htmlContent) {
-    // Використовуємо DOMParser для безпечного парсингу
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlContent, "text/html");
+    if (!htmlContent || typeof htmlContent !== "string") {
+      throw new Error("Невірний HTML контент для парсингу")
+    }
 
-    this.hierarchy.clear();
-    this.classMap.clear();
-    this.contentMap.clear();
+    // Створюємо DOM
+    const dom = new JSDOM(htmlContent)
+    const document = dom.window.document
 
-    // Рекурсивний обхід DOM дерева
-    this.traverseDOM(doc.body, null, "");
+    // Ініціалізація
+    this.hierarchy.clear()
+    this.contentMap.clear()
+
+    // Рекурсивний обхід DOM
+    this._traverseElement(document.body, null, "")
 
     return {
       hierarchy: this.hierarchy,
-      classMap: this.classMap,
-      contentMap: this.contentMap,
-    };
+      contentMap: this.contentMap
+    }
   }
 
   /**
-   * Рекурсивний обхід DOM з детальним аналізом
+   * Рекурсивне обходження елементів
+   * @param {HTMLElement} element
+   * @param {string|null} parentId
+   * @param {string} path
    */
-  traverseDOM(element, parent, path) {
-    if (!element || element.nodeType !== Node.ELEMENT_NODE) return;
+  _traverseElement(element, parentId = null, path = "") {
+    if (!element) return
 
-    const elementId = this.generateElementId(element, path);
-    const currentPath = path
-      ? `${path}/${element.tagName.toLowerCase()}`
-      : element.tagName.toLowerCase();
+    const elId = element.getAttribute("id") || this._generateId()
+    const children = Array.from(element.children || [])
 
-    // Детальний аналіз елемента
-    const elementData = {
-      id: elementId,
+    // Рівень вкладеності
+    const level = path ? path.split("/").length : 0
+
+    // Семантична роль
+    const semanticRole = this._getSemanticRole(element)
+
+    // Створення об’єкта елементу
+    const elObj = {
+      id: elId,
       tagName: element.tagName.toLowerCase(),
-      classes: Array.from(element.classList),
-      attributes: this.getAttributes(element),
-      content: this.extractElementContent(element),
-      path: currentPath,
-      parent: parent,
+      textContent: (element.textContent || "").trim(),
+      classes: Array.from(element.classList || []),
       children: [],
-      level: this.calculateNestingLevel(path),
-      semanticRole: this.determineSemanticRole(element),
-      textContent: this.getDirectTextContent(element),
-      position: this.getElementPosition(element, parent),
-    };
+      parent: parentId,
+      path: path ? `${path}/${elId}` : elId,
+      level,
+      semanticRole,
+      matchedChildren: new Set(),
+      matchedClasses: new Set()
+    }
 
-    // Збереження в maps
-    this.hierarchy.set(elementId, elementData);
+    // Додаємо до hierarchy
+    this.hierarchy.set(elId, elObj)
 
-    // Мапінг класів
-    elementData.classes.forEach((className) => {
-      if (!this.classMap.has(className)) {
-        this.classMap.set(className, []);
+    // Додаємо до contentMap, якщо є текст
+    if (elObj.textContent) {
+      this.contentMap.set(elObj.textContent, elObj)
+    }
+
+    // Рекурсивно додаємо дітей
+    children.forEach(child => {
+      const childObj = this._traverseElement(child, elId, elObj.path)
+      if (childObj) {
+        elObj.children.push(childObj.id)
       }
-      this.classMap.get(className).push(elementData);
-    });
+    })
 
-    // Мапінг контенту
-    if (elementData.textContent.trim()) {
-      const normalizedContent = this.normalizeContent(elementData.textContent);
-      this.contentMap.set(normalizedContent, elementData);
+    return elObj
+  }
+
+  /**
+   * Генератор унікального ID
+   */
+  _generateId() {
+    return "el_" + Math.random().toString(36).substring(2, 10)
+  }
+
+  /**
+   * Визначає семантичну роль HTML елементу
+   * @param {HTMLElement} element
+   */
+  _getSemanticRole(element) {
+    const tag = element.tagName.toLowerCase()
+    const roleAttr = element.getAttribute("role")
+
+    if (roleAttr) return roleAttr
+
+    switch (tag) {
+      case "button":
+        return "interactive"
+      case "h1":
+      case "h2":
+      case "h3":
+      case "h4":
+      case "h5":
+      case "h6":
+        return "heading"
+      case "nav":
+      case "ul":
+      case "ol":
+        return "navigation"
+      case "img":
+        return "image"
+      case "section":
+      case "article":
+      case "aside":
+      case "main":
+        return "content-section"
+      default:
+        return "generic"
+    }
+  }
+
+  /**
+   * Завантаження HTML з файлу
+   * @param {string} filePath
+   */
+  loadHTML(filePath) {
+    if (!filePath || typeof filePath !== "string") {
+      throw new Error("Невірний шлях до HTML файлу")
     }
 
-    // Обхід дочірніх елементів
-    Array.from(element.children).forEach((child, index) => {
-      const childData = this.traverseDOM(child, elementId, currentPath);
-      if (childData) {
-        elementData.children.push(childData);
-      }
-    });
-
-    return elementData;
-  }
-
-  /**
-   * Генерація унікального ID для елемента
-   */
-  generateElementId(element, path) {
-    const classes = Array.from(element.classList).join("-");
-    const tag = element.tagName.toLowerCase();
-    const pathHash = this.hashString(path);
-
-    return `${tag}-${classes || "no-class"}-${pathHash}`;
-  }
-
-  /**
-   * Отримання всіх атрибутів елемента
-   */
-  getAttributes(element) {
-    const attributes = {};
-    for (let attr of element.attributes) {
-      attributes[attr.name] = attr.value;
-    }
-    return attributes;
-  }
-
-  /**
-   * Витягування контенту елемента (включаючи вкладені текстові вузли)
-   */
-  extractElementContent(element) {
-    // Отримуємо всі текстові вузли
-    const textNodes = [];
-    const walker = document.createTreeWalker(
-      element,
-      NodeFilter.SHOW_TEXT,
-      null,
-      false
-    );
-
-    let node;
-    while ((node = walker.nextNode())) {
-      const text = node.textContent.trim();
-      if (text) {
-        textNodes.push(text);
-      }
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`Файл не знайдено: ${filePath}`)
     }
 
-    return textNodes.join(" ");
-  }
-
-  /**
-   * Отримання прямого текстового контенту (без вкладених елементів)
-   */
-  getDirectTextContent(element) {
-    let text = "";
-    for (let child of element.childNodes) {
-      if (child.nodeType === Node.TEXT_NODE) {
-        text += child.textContent.trim() + " ";
-      }
-    }
-    return text.trim();
-  }
-
-  /**
-   * Визначення семантичної ролі елемента
-   */
-  determineSemanticRole(element) {
-    const tag = element.tagName.toLowerCase();
-    const classes = Array.from(element.classList).join(" ").toLowerCase();
-
-    // Семантичні HTML5 теги
-    const semanticTags = {
-      header: "header",
-      nav: "navigation",
-      main: "main-content",
-      section: "section",
-      article: "article",
-      aside: "sidebar",
-      footer: "footer",
-      h1: "main-heading",
-      h2: "section-heading",
-      h3: "subsection-heading",
-      button: "interactive",
-      a: "link",
-      form: "form",
-      img: "image",
-    };
-
-    if (semanticTags[tag]) {
-      return semanticTags[tag];
-    }
-
-    // Аналіз на основі класів
-    if (classes.includes("hero")) return "hero-section";
-    if (classes.includes("btn") || classes.includes("button"))
-      return "interactive";
-    if (classes.includes("card")) return "content-card";
-    if (classes.includes("list")) return "list";
-    if (classes.includes("menu")) return "navigation";
-
-    return "generic";
-  }
-
-  /**
-   * Розрахунок рівня вкладеності
-   */
-  calculateNestingLevel(path) {
-    return path ? path.split("/").length : 0;
-  }
-
-  /**
-   * Отримання позиції елемента серед сіблінгів
-   */
-  getElementPosition(element, parent) {
-    if (!element.parentElement) return 0;
-
-    return Array.from(element.parentElement.children).indexOf(element);
-  }
-
-  /**
-   * Нормалізація контенту для співставлення
-   */
-  normalizeContent(content) {
-    return content
-      .toLowerCase()
-      .replace(/\s+/g, " ")
-      .replace(/[^\w\s]/g, "")
-      .trim();
-  }
-
-  /**
-   * Простий хеш для рядків
-   */
-  hashString(str) {
-    let hash = 0;
-    if (str.length === 0) return hash;
-    for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i);
-      hash = (hash << 5) - hash + char;
-      hash = hash & hash; // Перетворення в 32bit integer
-    }
-    return Math.abs(hash).toString(36);
+    return fs.readFileSync(filePath, "utf8")
   }
 }
+
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = HTMLParser;
+  module.exports = HTMLParser
 }
-
-

@@ -13,8 +13,8 @@
 [![👥 Contributors](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/css-classes-from-html/main/assets/db/contributors-badge.json)](https://github.com/VuToV-Mykola/css-classes-from-html/graphs/contributors)
 [![⬇️ Downloads](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/css-classes-from-html/main/assets/db/downloads-badge.json)](https://github.com/VuToV-Mykola/css-classes-from-html/releases)
 
-## 📸 Projekt Screenshot
-![Project Screenshot](./assets/screenshot.png)
+<!-- ## 📸 Projekt Screenshot -->
+<!-- ![Project Screenshot](./assets/screenshot.png) -->
 <!-- END:AUTOGEN -->
 
 # 🎨 CSS Classes from HTML - Figma Integration
