@@ -1,125 +1,79 @@
-/* !!! Головний інтегратор системи Figma → HTML/CSS !!! */
-const FigmaAPIClient = require("./core/FigmaAPIClient")
-const StyleMatcher = require("./core/StyleMatcher")
-const CSSGenerator = require("./core/CSSGenerator")
-const ModernCSSGenerator = require("./generators/ModernCSSGenerator")
-const ContainerGenerator = require("./generators/ContainerGenerator")
-const ValidationUtils = require("./utils/ValidationUtils")
-const TestingUtils = require("./utils/TestingUtils")
+#!/usr/bin/env node
+/* main.js — CLI інтегратор Figma → HTML/CSS
+   Підтримує фільтрацію по selectedCanvases / selectedLayers
+*/
+require('dotenv').config();
+const FigmaAPIClient = require('./core/FigmaAPIClient');
+const fs = require('fs').promises;
+const path = require('path');
 
-class FigmaHTMLIntegration {
-  constructor(config = {}) {
-    this.config = config
-    this.figmaClient = new FigmaAPIClient(config.token || process.env.FIGMA_TOKEN)
-    this.styleMatcher = new StyleMatcher()
-    this.cssGenerator = new CSSGenerator()
-    this.modernCSSGenerator = new ModernCSSGenerator()
-    this.containerGenerator = new ContainerGenerator({
-      maxWidth: config.maxWidth || 1200,
-      padding: config.padding || 20
-    })
-    this.validationUtils = new ValidationUtils()
-    this.testingUtils = new TestingUtils()
+async function run() {
+  const args = process.argv.slice(2);
+  if (args.length < 2) {
+    console.log('Usage: node main.js <FIGMA_KEY|FIGMA_LINK> <HTML_PATH> [--canvases=id1,id2] [--layers=idA,idB]');
+    process.exit(1);
   }
+  const fileKeyOrLink = args[0];
+  const htmlPath = args[1];
+  const fileKeyMatch = fileKeyOrLink.match(/file\/([a-zA-Z0-9_-]+)/);
+  const fileKey = fileKeyMatch ? fileKeyMatch[1] : fileKeyOrLink;
 
-  /* --- Основний процес інтеграції --- */
-  async integrate(fileKey) {
-    try {
-      console.log("📥 Завантаження даних з Figma...")
-      const figmaData = await this.figmaClient.fetchFile(fileKey)
+  const opts = {};
+  args.slice(2).forEach(a=>{
+    if (a.startsWith('--canvases=')) opts.canvases = a.split('=')[1].split(',').filter(Boolean);
+    if (a.startsWith('--layers=')) opts.layers = a.split('=')[1].split(',').filter(Boolean);
+  });
 
-      console.log("🔍 Пошук відповідних стилів...")
-      const matchedStyles = this.styleMatcher.matchStyles(figmaData)
+  const token = process.env.FIGMA_API_TOKEN;
+  if (!token) console.warn('⚠️ FIGMA_API_TOKEN not set — Figma integration may fail');
 
-      console.log("🎨 Генерація HTML...")
-      const htmlData = this.generateHTML(figmaData)
-
-      console.log("🎨 Генерація CSS...")
-      const css = await this.generateCSS(matchedStyles, figmaData, htmlData)
-
-      console.log("🔧 Валідація та оптимізація...")
-      this.validationUtils.validateSystem(css, htmlData)
-
-      console.log("🧪 Запуск повного тестування...")
-      await this.testingUtils.runFullTestSuite(this, figmaData, htmlData)
-
-      console.log("✅ Інтеграція завершена успішно!")
-      return {html: htmlData, css}
-    } catch (error) {
-      console.error("❌ Помилка під час інтеграції:", error)
-      throw error
+  const client = new FigmaAPIClient(token);
+  try {
+    const file = await client.fetchFile(fileKey);
+    console.log('Loaded Figma file:', file.name);
+    // If canvases selected, filter children
+    let targetNodes = [];
+    const pages = (file.document && file.document.children) || [];
+    if (opts.canvases && opts.canvases.length>0) {
+      pages.forEach(p=>{
+        if (opts.canvases.includes(p.id)) {
+          targetNodes.push(...(p.children||[]));
+        }
+      });
+    } else {
+      // default: take all children from all pages
+      pages.forEach(p=> targetNodes.push(...(p.children||[])));
     }
-  }
 
-  /* --- Генерація HTML (спрощена) --- */
-  generateHTML(figmaData) {
-    return `<div class="app-root">Figma project ${figmaData.name}</div>`
-  }
-
-  /* --- Єдиний виправлений метод generateCSS --- */
-  async generateCSS(matchedStyles, figmaData, htmlData) {
-    try {
-      if (!matchedStyles || !figmaData || !htmlData) {
-        throw new Error("Некоректні вхідні дані у generateCSS")
-      }
-
-      // ✅ fallback для hierarchy
-      if (!figmaData.hierarchy) {
-        console.warn("⚠️ У figmaData немає поля hierarchy. Використовую порожній об’єкт.")
-        figmaData.hierarchy = new Map()
-      }
-
-      // Базова генерація CSS
-      let css = this.cssGenerator.generateCSS(matchedStyles, figmaData, htmlData)
-
-      // Додаткові сучасні стилі
-      if (figmaData.hierarchy.size > 0) {
-        const firstElement = figmaData.hierarchy.values().next().value
-        const modernStyles = this.modernCSSGenerator.generateModernStyles(firstElement, {})
-        css += "\n\n" + this.modernCSSGenerator.compileToCSS(modernStyles)
-      }
-
-      // Генерація контейнерної системи
-      const containerSystem = this.containerGenerator.generateContainerSystem({
-        maxWidth: this.config.maxWidth || 1200,
-        padding: this.config.padding || 20
-      })
-
-      // Додаємо mixins автоматично
-      if (containerSystem.mixins) {
-        let mixinsCSS = "\n/* Container Mixins */\n"
-        Object.entries(containerSystem.mixins).forEach(([name, styles]) => {
-          mixinsCSS += `.${name} {\n`
-          Object.entries(styles).forEach(([prop, value]) => {
-            const cssProp = prop.replace(/([A-Z])/g, "-$1").toLowerCase()
-            mixinsCSS += `  ${cssProp}: ${value};\n`
-          })
-          mixinsCSS += "}\n\n"
-        })
-        css += mixinsCSS
-      }
-
-      // Додаємо іншу CSS систему
-      css += "\n\n" + this.containerGenerator.compileToCSS(containerSystem)
-
-      return css
-    } catch (error) {
-      console.error("❌ Помилка у generateCSS:", error.message)
-      throw error
+    // If layers filter present — filter targetNodes by id
+    if (opts.layers && opts.layers.length>0) {
+      targetNodes = targetNodes.filter(n => opts.layers.includes(n.id));
     }
+
+    // For demo: print summary and create basic CSS output
+    console.log(`Found ${targetNodes.length} target layers for CSS mapping`);
+    const html = await fs.readFile(htmlPath, 'utf8');
+    // Простий генератор — створює CSS placeholder для кожного .class у html
+    const matches = html.match(/class\s*=\s*"(.*?)"/g) || [];
+    const classes = new Set();
+    matches.forEach(m=>{
+      const inner = m.replace(/class\s*=\s*"/,'').replace(/"$/,'');
+      inner.split(/\s+/).forEach(c=>classes.add(c));
+    });
+    let css = '/* Generated CSS */\n';
+    classes.forEach(c=>{
+      css += `.${c} {\n  /* mapped to figma layers: TBD */\n}\n\n`;
+    });
+    const outDir = path.join(process.cwd(),'output');
+    await fs.mkdir(outDir,{recursive:true});
+    const cssPath = path.join(outDir,'styles.css');
+    await fs.writeFile(cssPath, css,'utf8');
+    console.log('CSS written to', cssPath);
+  } catch (e) {
+    console.error('Error:', e.message);
+    process.exit(1);
   }
 }
 
-module.exports = FigmaHTMLIntegration
-
-// --- Тестовий запуск ---
-if (require.main === module) {
-  const integration = new FigmaHTMLIntegration({maxWidth: 1400})
-  integration
-    .integrate("FILE_KEY")
-    .then(res => {
-      console.log("✅ HTML:", res.html)
-      console.log("✅ CSS:", res.css.substring(0, 300) + "...")
-    })
-    .catch(err => console.error("❌ Помилка:", err))
-}
+if (require.main === module) run();
+module.exports = { run };

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Canvas & Layers Selector — CSS Classes from HTML</title>
+  <style>
+    /* UI для вибору режиму, Canvas та Layers */
+    :root{--bg:#1f1f1f;--surface:#2b2b2b;--muted:#9aa3ad;--accent:#0ea5e9;--card:#333}
+    *{box-sizing:border-box}
+    body{font-family:Inter,Segoe UI,Roboto,-apple-system,system-ui,sans-serif;background:var(--bg);color:#fff;padding:18px}
+    .wrap{max-width:1100px;margin:0 auto}
+    .modes{display:flex;gap:12px;margin-bottom:18px}
+    .mode{flex:1;padding:14px;border-radius:10px;background:var(--surface);cursor:pointer;border:2px solid transparent}
+    .mode.selected{border-color:var(--accent);box-shadow:0 6px 20px rgba(0,0,0,.6)}
+    .mode h3{margin:0 0 6px;font-size:16px}
+    .mode p{margin:0;color:var(--muted);font-size:13px}
+    .section{margin-top:18px;background:var(--card);padding:16px;border-radius:10px}
+    .row{display:flex;gap:12px;align-items:center}
+    .col{flex:1}
+    .list{max-height:360px;overflow:auto;padding:8px;border-radius:8px;background:linear-gradient(180deg,rgba(255,255,255,.02),transparent)}
+    label.item{display:flex;align-items:center;gap:10px;padding:8px;border-radius:6px;margin-bottom:6px;cursor:pointer}
+    input[type="checkbox"]{width:18px;height:18px}
+    .muted{color:var(--muted);font-size:13px}
+    .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:12px}
+    button{padding:10px 14px;border-radius:8px;border:none;cursor:pointer;font-weight:600}
+    button.primary{background:var(--accent);color:#fff}
+    button.secondary{background:#454545;color:#fff}
+    .hint{font-size:13px;color:var(--muted);margin-top:6px}
+    .small{font-size:12px;color:var(--muted)}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h2>🎨 CSS Classes from HTML — Canvas & Layers Selector</h2>
+
+  <!-- Режими (залишити 3: minimal, maximum, production) -->
+  <div class="modes" id="modes">
+    <div class="mode" data-mode="minimal" onclick="selectMode('minimal')" id="mode-minimal">
+      <h3>⚡ Мінімальний</h3>
+      <p>Швидка генерація без Figma</p>
+    </div>
+    <div class="mode" data-mode="maximum" onclick="selectMode('maximum')" id="mode-maximum">
+      <h3>🚀 Максимальний</h3>
+      <p>Повна інтеграція з Figma — вибір Canvas та Layers</p>
+    </div>
+    <div class="mode" data-mode="production" onclick="selectMode('production')" id="mode-production">
+      <h3>📦 Продакшн</h3>
+      <p>Мінімізований CSS для продакшну</p>
+    </div>
+  </div>
+
+  <!-- Figma settings -->
+  <div class="section">
+    <div class="row">
+      <div class="col">
+        <label class="small">Figma file link</label>
+        <input type="text" id="figmaLink" style="width:100%;padding:8px;border-radius:6px;background:#222;border:1px solid #333;color:#fff" placeholder="https://www.figma.com/file/..." />
+      </div>
+      <div style="width:260px">
+        <label class="small">Figma API token (опціонально)</label>
+        <input type="password" id="figmaToken" style="width:100%;padding:8px;border-radius:6px;background:#222;border:1px solid #333;color:#fff" placeholder="figma token" />
+      </div>
+    </div>
+    <div class="hint">Після введення link/token натисніть "Load canvases" — дані завантажуються динамічно з Figma API.</div>
+    <div class="actions" style="margin-top:12px">
+      <button class="secondary" onclick="loadCanvases()">Load canvases</button>
+      <button class="primary" onclick="applyDefaults()">Save defaults</button>
+    </div>
+  </div>
+
+  <!-- Canvas selector -->
+  <div class="section" id="canvasSection" style="display:none;margin-top:14px">
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <div><strong>🖼 Canvas (виберіть один або кілька)</strong><div class="small muted" id="canvasCount"></div></div>
+      <div class="small muted">Ctrl/Cmd — мультивибір, Shift — діапазон</div>
+    </div>
+    <div class="list" id="canvasList" style="margin-top:10px"></div>
+    <div class="hint">При виборі Canvas автоматично підвантажуються Layers (для вибраних Canvas).</div>
+  </div>
+
+  <!-- Layers selector -->
+  <div class="section" id="layersSection" style="display:none;margin-top:14px">
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <div><strong>📑 Layers (виберіть один або кілька)</strong><div class="small muted" id="layerCount"></div></div>
+      <div class="small muted">Ctrl/Cmd — мультивибір, Shift — діапазон</div>
+    </div>
+    <div class="list" id="layersList" style="margin-top:10px"></div>
+    <div class="hint">Вибирайте Layers, які реально хочете використовувати для мапінгу стилів.</div>
+  </div>
+
+  <!-- Підсумок та дія -->
+  <div class="section" style="display:flex;justify-content:space-between;align-items:center;margin-top:16px">
+    <div>
+      <div class="small">Selected mode: <strong id="selMode">—</strong></div>
+      <div class="small">Selected canvases: <span id="selCanvases">0</span>, layers: <span id="selLayers">0</span></div>
+    </div>
+    <div>
+      <button class="secondary" onclick="restoreDefaults()">Restore defaults</button>
+      <button class="primary" onclick="generate()" id="generateBtn">Generate CSS</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // UI + messaging with extension (VSCode) via acquireVsCodeApi
+  const vscode = (typeof acquireVsCodeApi === 'function') ? acquireVsCodeApi() : null;
+
+  let selectedMode = null;
+  let canvases = []; // {id,name,children}
+  let layers = [];   // {id,name,canvasId}
+  let selectedCanvasIds = [];
+  let selectedLayerIds = [];
+  let lastConfig = {}; // defaults
+
+  // Helpers: render modes
+  function selectMode(mode){
+    selectedMode = mode;
+    document.querySelectorAll('.mode').forEach(el=>el.classList.toggle('selected', el.dataset.mode===mode));
+    document.getElementById('selMode').textContent = mode;
+    // show/hide canvas section only for maximum
+    document.getElementById('canvasSection').style.display = mode==='maximum' ? 'block' : 'none';
+    document.getElementById('layersSection').style.display = (mode==='maximum' && selectedCanvasIds.length>0) ? 'block' : 'none';
+  }
+
+  // Load canvases from extension (Figma)
+  function loadCanvases(){
+    const figmaLink = document.getElementById('figmaLink').value.trim();
+    const figmaToken = document.getElementById('figmaToken').value.trim();
+    if(!figmaLink){
+      alert('Вкажіть посилання на Figma файл');
+      return;
+    }
+    if(vscode) vscode.postMessage({command:'getFigmaCanvases', figmaLink, figmaToken});
+    else console.warn('No vscode API — running outside VSCode');
+  }
+
+  // Render canvases list
+  function renderCanvases(list){
+    canvases = list || [];
+    const container = document.getElementById('canvasList');
+    container.innerHTML = '';
+    document.getElementById('canvasCount').textContent = 'Found: ' + canvases.length;
+    canvases.forEach((c, idx) => {
+      const label = document.createElement('label');
+      label.className = 'item';
+      label.dataset.index = idx;
+      const cb = document.createElement('input');
+      cb.type='checkbox'; cb.value=c.id;
+      cb.addEventListener('change', onCanvasChange);
+      // restore defaults if present
+      if(lastConfig.selectedCanvases && lastConfig.selectedCanvases.includes(c.id)) cb.checked = true;
+      label.appendChild(cb);
+      const txt = document.createElement('div');
+      txt.innerHTML = `<div style="font-weight:600">${c.name}</div><div class="small" style="color:var(--muted)">${c.childrenCount || 0} layers</div>`;
+      label.appendChild(txt);
+      container.appendChild(label);
+    });
+    // update selection state
+    updateSelectedCanvases();
+  }
+
+  // Canvas change handler
+  function onCanvasChange(){
+    const checkboxes = Array.from(document.querySelectorAll('#canvasList input[type=checkbox]'));
+    selectedCanvasIds = checkboxes.filter(cb=>cb.checked).map(cb=>cb.value);
+    document.getElementById('selCanvases').textContent = selectedCanvasIds.length;
+    // request layers for selected canvases
+    if(vscode) vscode.postMessage({command:'getFigmaLayers', canvasIds:selectedCanvasIds});
+    document.getElementById('layersSection').style.display = selectedCanvasIds.length>0 ? 'block':'none';
+  }
+
+  // Render layers received from extension
+  function renderLayers(list){
+    layers = list || [];
+    const container = document.getElementById('layersList');
+    container.innerHTML = '';
+    document.getElementById('layerCount').textContent = 'Found: ' + layers.length;
+    layers.forEach((l,idx)=>{
+      const label = document.createElement('label');
+      label.className='item';
+      const cb = document.createElement('input');
+      cb.type='checkbox'; cb.value=l.id;
+      // restore defaults
+      if(lastConfig.selectedLayers && lastConfig.selectedLayers.includes(l.id)) cb.checked = true;
+      cb.addEventListener('change', onLayerChange);
+      label.appendChild(cb);
+      const txt = document.createElement('div');
+      txt.innerHTML = `<div style="font-weight:600">${l.name}</div><div class="small" style="color:var(--muted)">Canvas: ${l.canvasName}</div>`;
+      label.appendChild(txt);
+      container.appendChild(label);
+    });
+    updateSelectedLayers();
+  }
+
+  function onLayerChange(){
+    const checkboxes = Array.from(document.querySelectorAll('#layersList input[type=checkbox]'));
+    selectedLayerIds = checkboxes.filter(cb=>cb.checked).map(cb=>cb.value);
+    document.getElementById('selLayers').textContent = selectedLayerIds.length;
+  }
+
+  function updateSelectedCanvases(){
+    const checkboxes = Array.from(document.querySelectorAll('#canvasList input[type=checkbox]'));
+    selectedCanvasIds = checkboxes.filter(cb=>cb.checked).map(cb=>cb.value);
+    document.getElementById('selCanvases').textContent = selectedCanvasIds.length;
+  }
+  function updateSelectedLayers(){
+    const checkboxes = Array.from(document.querySelectorAll('#layersList input[type=checkbox]'));
+    selectedLayerIds = checkboxes.filter(cb=>cb.checked).map(cb=>cb.value);
+    document.getElementById('selLayers').textContent = selectedLayerIds.length;
+  }
+
+  // Generate action — send selection to extension
+  function generate(){
+    // prepare payload
+    const payload = {
+      command:'generateFromSelection',
+      mode:selectedMode || document.getElementById('selMode').textContent,
+      figmaLink: document.getElementById('figmaLink').value.trim(),
+      figmaToken: document.getElementById('figmaToken').value.trim(),
+      selectedCanvases,
+      selectedLayers
+    };
+    if(vscode) vscode.postMessage(payload);
+    else console.log('Payload',payload);
+    // also save defaults locally
+    saveDefaultsLocally();
+    alert('✅ Sent selection to extension — check output channel');
+  }
+
+  // Defaults: save/load via extension (globalState/file)
+  function applyDefaults(){
+    lastConfig = {
+      mode:selectedMode,
+      figmaLink: document.getElementById('figmaLink').value.trim(),
+      figmaToken: document.getElementById('figmaToken').value.trim(),
+      selectedCanvases,
+      selectedLayers
+    };
+    if(vscode) vscode.postMessage({command:'saveLastConfig', config:lastConfig});
+    alert('Defaults saved');
+  }
+
+  function restoreDefaults(){
+    if(vscode) vscode.postMessage({command:'loadLastConfig'});
+    else alert('No VSCode API');
+  }
+
+  function saveDefaultsLocally(){
+    // keep a copy for in-page persistence between reloads
+    try{ localStorage.setItem('cssClasses.lastConfig', JSON.stringify({
+      mode:selectedMode,
+      figmaLink: document.getElementById('figmaLink').value.trim(),
+      selectedCanvases,
+      selectedLayers
+    })) }catch(e){}
+  }
+
+  // Handle messages from extension side
+  window.addEventListener('message', event=>{
+    const msg = event.data;
+    if(!msg || !msg.command) return;
+    switch(msg.command){
+      case 'figmaCanvases':
+        renderCanvases(msg.canvases || []);
+        break;
+      case 'figmaLayers':
+        renderLayers(msg.layers || []);
+        break;
+      case 'lastConfigLoaded':
+        lastConfig = msg.config || {};
+        // restore UI fields
+        if(lastConfig.figmaLink) document.getElementById('figmaLink').value = lastConfig.figmaLink;
+        if(lastConfig.figmaToken) document.getElementById('figmaToken').value = lastConfig.figmaToken;
+        if(lastConfig.mode) selectMode(lastConfig.mode);
+        // request canvases if link present
+        if(lastConfig.figmaLink) {
+          if(vscode) vscode.postMessage({command:'getFigmaCanvases', figmaLink:lastConfig.figmaLink, figmaToken:lastConfig.figmaToken});
+        }
+        break;
+      case 'error':
+        alert('Error: ' + (msg.message || ''));
+        break;
+    }
+  });
+
+  // Init: try to load local saved config
+  (function init(){
+    try{
+      const raw = localStorage.getItem('cssClasses.lastConfig');
+      if(raw){
+        lastConfig = JSON.parse(raw);
+        if(lastConfig.mode) selectMode(lastConfig.mode);
+        if(lastConfig.figmaLink) document.getElementById('figmaLink').value = lastConfig.figmaLink;
+      }
+    }catch(e){}
+  })();
+
+  // Default selected mode
+  selectMode('minimum'); // fallback (bug-safe)
+</script>
+</body>
+</html>
