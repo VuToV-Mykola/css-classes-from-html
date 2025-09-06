@@ -1,0 +1,55 @@
+:root {
+  --primary-color: #007ACC;
+  --text-color: #212529;
+  --background-color: #FFFFFF;
+}
+
+/* Figma: Canvas="Root", Layer="Container Component", Type="FRAME", Confidence=85% */
+.body {
+  width: 1200px; /* from Figma Layer: Container Component */
+  height: 800px; /* from Figma Layer: Container Component */
+  display: flex; /* from Figma Layer: Container Component */
+  flex-direction: column; /* from Figma Layer: Container Component */
+}
+
+/* Figma: Canvas="Root", Layer="Header Section", Type="FRAME", Confidence=92% */
+.container {
+  font-size: 24px; /* from Figma Layer: Header Section */
+  font-weight: bold; /* from Figma Layer: Header Section */
+  color: #007ACC; /* from Figma Layer: Header Section */
+}
+
+/* Figma: Canvas="N/A", Layer="Not matched", Type="N/A", Confidence=0% */
+.header {
+  /* No styles - not matched with Figma */
+}
+
+/* Figma: Canvas="N/A", Layer="Not matched", Type="N/A", Confidence=0% */
+.title {
+  /* No styles - not matched with Figma */
+}
+
+/* Figma: Canvas="N/A", Layer="Not matched", Type="N/A", Confidence=0% */
+.content {
+  /* No styles - not matched with Figma */
+}
+
+/* Figma: Canvas="N/A", Layer="Not matched", Type="N/A", Confidence=0% */
+.hero {
+  /* No styles - not matched with Figma */
+}
+
+/* Figma: Canvas="N/A", Layer="Not matched", Type="N/A", Confidence=0% */
+.hero-title {
+  /* No styles - not matched with Figma */
+}
+
+/* Figma: Canvas="N/A", Layer="Not matched", Type="N/A", Confidence=0% */
+.btn {
+  /* No styles - not matched with Figma */
+}
+
+/* Figma: Canvas="N/A", Layer="Not matched", Type="N/A", Confidence=0% */
+.btn-primary {
+  /* No styles - not matched with Figma */
+}

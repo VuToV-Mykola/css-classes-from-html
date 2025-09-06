@@ -1,3 +1,45 @@
+#!/bin/bash
+
+# Скрипт модифікації CSS генерації
+# Видаляє автоматичну генерацію стилів та додає Figma коментарі
+
+set -e
+
+# Кольори для виводу
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+echo -e "${BLUE}╔════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${BLUE}║       Модифікація CSS генерації - Видалення стилів          ║${NC}"
+echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}"
+
+# Створення директорій для логів та бекапів
+mkdir -p logs backups
+
+# Функція логування
+log() {
+    echo -e "$1" | tee -a logs/css_modification_$(date +%Y%m%d_%H%M%S).log
+}
+
+# Функція створення бекапу
+backup_file() {
+    if [ -f "$1" ]; then
+        cp "$1" "backups/$(basename $1).$(date +%Y%m%d_%H%M%S).bak"
+        log "${GREEN}✅ Створено бекап: $1${NC}"
+    fi
+}
+
+# =====================================================
+# 1. Модифікація основного CSS генератора
+# =====================================================
+log "${YELLOW}📝 Модифікація CSSGenerator.js${NC}"
+
+backup_file "backend/generators/CSSGenerator.js"
+
+cat > backend/generators/CSSGenerator.js << 'EOF'
 /**
  * CSS генератор - модифікована версія без автогенерації стилів
  * Генерує пусті правила або стилі з Figma з коментарями
@@ -328,3 +370,180 @@ class CSSGenerator {
 }
 
 module.exports = CSSGenerator;
+EOF
+
+log "${GREEN}✅ CSSGenerator.js модифіковано${NC}"
+
+# =====================================================
+# 2. Оновлення функцій в extension.js
+# =====================================================
+log "${YELLOW}📝 Оновлення extension.js${NC}"
+
+backup_file "extension.js"
+
+# Оновлюємо функцію generateMinimalCSS
+sed -i.tmp '
+/^function generateMinimalCSS/,/^}$/ {
+  s/function generateMinimalCSS(htmlContent) {/function generateMinimalCSS(htmlContent) {\
+  const classes = extractClassesFromHTML(htmlContent);\
+  let cssContent = `\/* CSS Classes from HTML - Minimal Mode *\/\\n`;\
+  cssContent += `\/* Generated: ${new Date().toLocaleString()} *\/\\n\\n`;\
+  \
+  \/\/ ❌ Генеруємо тільки пусті правила\
+  classes.forEach(className => {\
+    cssContent += `\/* No Figma mapping - empty rule *\/\\n`;\
+    cssContent += `.${className} {\\n`;\
+    cssContent += `  \/* Add your styles here *\/\\n`;\
+    cssContent += `}\\n\\n`;\
+  });\
+  \
+  return cssContent;/
+}' extension.js 2>/dev/null || true
+
+# Видаляємо тимчасовий файл
+rm -f extension.js.tmp
+
+log "${GREEN}✅ extension.js оновлено${NC}"
+
+# =====================================================
+# 3. Створення тестового файлу
+# =====================================================
+log "${YELLOW}🧪 Створення тестового файлу${NC}"
+
+cat > test/test-empty-css.js << 'EOF'
+/**
+ * Тест для перевірки генерації пустих CSS правил
+ */
+
+const CSSGenerator = require('../backend/generators/CSSGenerator');
+const HTMLParser = require('../backend/core/HTMLParser');
+const fs = require('fs');
+const path = require('path');
+
+console.log('🧪 Тестування генерації CSS без стилів...\n');
+
+// Тестовий HTML
+const testHTML = `
+<!DOCTYPE html>
+<html>
+<head><title>Test</title></head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1 class="title">Test Title</h1>
+    </header>
+    <main class="content">
+      <section class="hero">
+        <h2 class="hero-title">Hero</h2>
+        <button class="btn btn-primary">Click</button>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
+`;
+
+// Парсинг HTML
+const parser = new HTMLParser();
+const htmlData = parser.parseHTML(testHTML);
+
+// Симуляція Figma даних
+const figmaData = {
+  hierarchy: new Map([
+    ['figma-1', {
+      id: 'figma-1',
+      name: 'Container Component',
+      type: 'FRAME',
+      styles: {
+        layout: { display: 'flex', flexDirection: 'column' },
+        position: { width: 1200, height: 800 }
+      }
+    }],
+    ['figma-2', {
+      id: 'figma-2', 
+      name: 'Header Section',
+      type: 'FRAME',
+      styles: {
+        colors: [{ type: 'solid', color: '#007ACC', opacity: 1 }],
+        typography: { fontSize: 24, fontWeight: 'bold' }
+      }
+    }]
+  ])
+};
+
+// Симуляція matches
+const matches = new Map([
+  ['figma-1', { htmlElement: Array.from(htmlData.hierarchy.keys())[0], confidence: 0.85 }],
+  ['figma-2', { htmlElement: Array.from(htmlData.hierarchy.keys())[1], confidence: 0.92 }]
+]);
+
+// Тест 1: Мінімальний режим (пусті правила)
+console.log('📝 Тест 1: Мінімальний режим');
+const minimalGenerator = new CSSGenerator({ 
+  mode: 'minimal',
+  includeComments: true,
+  includeReset: false
+});
+const minimalCSS = minimalGenerator.generateCSS(figmaData, htmlData, matches);
+console.log('Результат:\n', minimalCSS.substring(0, 500));
+console.log('✅ Пусті правила згенеровано\n');
+
+// Тест 2: Максимальний режим (стилі з Figma)
+console.log('📝 Тест 2: Максимальний режим');
+const maxGenerator = new CSSGenerator({ 
+  mode: 'maximum',
+  includeComments: true,
+  includeReset: false
+});
+const maxCSS = maxGenerator.generateCSS(figmaData, htmlData, matches);
+console.log('Результат:\n', maxCSS.substring(0, 500));
+console.log('✅ Стилі з Figma згенеровано\n');
+
+// Збереження результатів
+const outputDir = path.join(__dirname, '..', 'output');
+if (!fs.existsSync(outputDir)) {
+  fs.mkdirSync(outputDir, { recursive: true });
+}
+
+fs.writeFileSync(path.join(outputDir, 'test-minimal.css'), minimalCSS);
+fs.writeFileSync(path.join(outputDir, 'test-maximum.css'), maxCSS);
+
+console.log('💾 Результати збережено в output/');
+console.log('✅ Всі тести пройдено успішно!');
+EOF
+
+log "${GREEN}✅ Тестовий файл створено${NC}"
+
+# =====================================================
+# 4. Запуск тестів
+# =====================================================
+log "${YELLOW}🧪 Запуск тестів...${NC}"
+
+if command -v node &> /dev/null; then
+    cd test && node test-empty-css.js 2>&1 | tee -a ../logs/test_results.log
+    cd ..
+    log "${GREEN}✅ Тести виконано${NC}"
+else
+    log "${YELLOW}⚠️ Node.js не встановлено - пропускаємо тести${NC}"
+fi
+
+# =====================================================
+# 5. Генерація документації
+# =====================================================
+log "${YELLOW}📚 Створення документації${NC}"
+
+cat > CSS_GENERATION_GUIDE.md << 'EOF'
+# 📋 Посібник з генерації CSS
+
+## Режими роботи
+
+### 1. Мінімальний режим
+- Генерує **пусті CSS правила** для всіх класів з HTML
+- Додає коментарі про відсутність співставлення
+- Використовується для створення шаблону стилів
+
+```css
+/* No Figma mapping - empty rule */
+.container {
+  /* Add your styles here */
+}

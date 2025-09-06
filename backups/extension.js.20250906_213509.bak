@@ -1167,19 +1167,6 @@ function generateMinimalCSS(htmlContent) {
   });
   
   return cssContent;
-  const classes = extractClassesFromHTML(htmlContent);
-  let cssContent = `/* CSS Classes from HTML - Minimal Mode */\n`;
-  cssContent += `/* Generated: ${new Date().toLocaleString()} */\n\n`;
-  
-  // ❌ Генеруємо тільки пусті правила
-  classes.forEach(className => {
-    cssContent += `/* No Figma mapping - empty rule */\n`;
-    cssContent += `.${className} {\n`;
-    cssContent += `  /* Add your styles here */\n`;
-    cssContent += `}\n\n`;
-  });
-  
-  return cssContent;
   const classes = extractClassesFromHTML(htmlContent)
   let cssContent = `/* CSS Classes from HTML - Minimal Mode */\n`
   cssContent += `/* Generated: ${new Date().toLocaleString()} */\n\n`
