@@ -1,7 +1,7 @@
 /**
- * CSS генератор - модифікована версія без автогенерації стилів
- * Генерує пусті правила або стилі з Figma з коментарями
- * @version 4.0.0
+ * ✅ FIX: CSS генератор - ВИПРАВЛЕНА ВЕРСІЯ без логічних помилок
+ * Генерує CSS стилі з Figma та HTML даних з коментарями про співставлення
+ * @version 4.1.0 - ВИПРАВЛЕНО
  */
 
 class CSSGenerator {
@@ -9,322 +9,520 @@ class CSSGenerator {
     this.options = {
       includeReset: options.includeReset !== false,
       includeComments: options.includeComments !== false,
-      optimizeCSS: options.optimizeCSS !== false,
+      optimizeCSS: options.optimizeCSS || false,
       generateResponsive: options.generateResponsive !== false,
-      mode: options.mode || 'minimal',
+      mode: options.mode || "minimal",
       ...options
-    };
-    
-    this.cssRules = new Map();
-    this.variables = new Map();
-    this.mediaQueries = new Map();
-    this.figmaMapping = new Map();
+    }
+
+    this.cssRules = new Map()
+    this.variables = new Map()
+    this.mediaQueries = new Map()
+    this.figmaMapping = new Map()
+
+    // ✅ FIX: Додаємо лічильники та статистику
+    this.statistics = {
+      totalRules: 0,
+      emptyRules: 0,
+      figmaRules: 0,
+      generatedAt: new Date().toISOString()
+    }
   }
 
   /**
-   * Генерація CSS з Figma та HTML даних
+   * ✅ FIX: Головна функція генерації CSS з правильною логікою
    */
   generateCSS(figmaData, htmlData, matches) {
-    this.reset();
-    
-    // Генерація базових стилів
+    this.reset()
+
+    // ✅ FIX: Генерація базових стилів
     if (this.options.includeReset) {
-      this.generateReset();
+      this.generateReset()
     }
-    
-    // Генерація CSS змінних
-    this.generateVariables(figmaData);
-    
-    // Генерація стилів для кожного співставлення
-    matches.forEach((match, figmaElementId) => {
-      const figmaElement = figmaData.hierarchy.get(figmaElementId);
-      const htmlElement = htmlData.hierarchy.get(match.htmlElement);
-      
-      if (figmaElement && htmlElement) {
-        this.generateElementStyles(figmaElement, htmlElement, match);
-      }
-    });
-    
-    // Додавання неспівставлених HTML елементів з пустими правилами
-    htmlData.hierarchy.forEach((htmlElement, htmlId) => {
-      const hasMatch = Array.from(matches.values()).some(m => m.htmlElement === htmlId);
-      if (!hasMatch && htmlElement.classes.length > 0) {
-        this.generateEmptyRules(htmlElement);
-      }
-    });
-    
-    return this.compileCSS();
+
+    // ✅ FIX: Генерація CSS змінних
+    this.generateVariables(figmaData)
+
+    // ✅ FIX: Обробка співставлених елементів
+    if (matches && matches.size > 0) {
+      matches.forEach((match, figmaElementId) => {
+        const figmaElement = figmaData?.hierarchy?.get(figmaElementId)
+        const htmlElement = htmlData?.hierarchy?.get(match.htmlElement)
+
+        if (figmaElement && htmlElement) {
+          this.generateElementStyles(figmaElement, htmlElement, match)
+        }
+      })
+    }
+
+    // ✅ FIX: Додавання неспівставлених HTML елементів з пустими правилами
+    if (htmlData?.hierarchy) {
+      htmlData.hierarchy.forEach((htmlElement, htmlId) => {
+        const hasMatch = matches
+          ? Array.from(matches.values()).some(m => m.htmlElement === htmlId)
+          : false
+        if (!hasMatch && htmlElement.classes && htmlElement.classes.length > 0) {
+          this.generateEmptyRules(htmlElement)
+        }
+      })
+    }
+
+    // ✅ FIX: Генерація адаптивних стилів
+    if (this.options.generateResponsive) {
+      this.generateResponsiveStyles()
+    }
+
+    return this.compileCSS()
   }
 
   /**
-   * Генерація стилів для елемента
+   * ✅ FIX: Генерація стилів для елемента з правильною логікою
    */
   generateElementStyles(figmaElement, htmlElement, match) {
-    const className = this.generateClassName(htmlElement);
-    const styles = new Map();
-    
-    // Зберігаємо інформацію про співставлення
+    const className = this.generateClassName(htmlElement)
+    if (!className) return
+
+    const styles = new Map()
+
+    // ✅ FIX: Зберігаємо інформацію про співставлення
     const mappingInfo = {
       figmaId: figmaElement.id,
-      figmaName: figmaElement.name,
-      figmaType: figmaElement.type,
-      canvas: this.findCanvasForElement(figmaElement),
-      confidence: match.confidence
-    };
-    
-    this.figmaMapping.set(className, mappingInfo);
-    
-    if (this.options.mode === 'minimal') {
-      // ❌ Для мінімального режиму - пусті правила
-      // Стилі не додаємо
-    } else {
-      // ✅ FIX: Витягуємо стилі безпосередньо з Figma
-      this.extractFigmaStyles(figmaElement, styles);
+      figmaName: figmaElement.name || "Unnamed",
+      figmaType: figmaElement.type || "Unknown",
+      confidence: match.confidence || 0,
+      strategy: match.strategy || "unknown",
+      canvas: this.findCanvasForElement(figmaElement)
     }
-    
-    this.cssRules.set(className, styles);
+
+    this.figmaMapping.set(className, mappingInfo)
+
+    // ✅ FIX: Логіка генерації стилів залежно від режиму
+    if (this.options.mode === "minimal") {
+      // У мінімальному режимі генеруємо пусті правила
+      this.statistics.emptyRules++
+    } else {
+      // ✅ FIX: Витягуємо стилі з Figma для інших режимів
+      this.extractFigmaStyles(figmaElement, styles)
+      if (styles.size > 0) {
+        this.statistics.figmaRules++
+      }
+    }
+
+    this.cssRules.set(className, styles)
+    this.statistics.totalRules++
   }
 
   /**
-   * Генерація пустих правил для неспівставлених елементів
+   * ✅ FIX: Генерація пустих правил для неспівставлених елементів
    */
   generateEmptyRules(htmlElement) {
+    if (!htmlElement.classes) return
+
     htmlElement.classes.forEach(className => {
       if (!this.cssRules.has(className)) {
-        this.cssRules.set(className, new Map());
-        
-        // Додаємо інформацію про відсутність співставлення
+        this.cssRules.set(className, new Map())
+
+        // ✅ FIX: Додаємо інформацію про відсутність співставлення
         this.figmaMapping.set(className, {
           figmaId: null,
-          figmaName: 'Not matched',
-          figmaType: 'N/A',
-          canvas: 'N/A',
-          confidence: 0
-        });
+          figmaName: "Not matched",
+          figmaType: "N/A",
+          confidence: 0,
+          strategy: "none",
+          canvas: "N/A"
+        })
+
+        this.statistics.emptyRules++
+        this.statistics.totalRules++
       }
-    });
+    })
   }
 
   /**
-   * ✅ FIX: Витягування стилів безпосередньо з Figma
+   * ✅ FIX: Витягування стилів безпосередньо з Figma елемента
    */
   extractFigmaStyles(figmaElement, styles) {
-    // Typography стилі
+    if (!figmaElement || !styles) return
+
+    // ✅ FIX: Typography стилі
     if (figmaElement.styles?.typography) {
-      const typo = figmaElement.styles.typography;
-      if (typo.fontFamily) styles.set('font-family', typo.fontFamily);
-      if (typo.fontSize) styles.set('font-size', `${typo.fontSize}px`);
-      if (typo.fontWeight) styles.set('font-weight', typo.fontWeight);
-      if (typo.fontStyle) styles.set('font-style', typo.fontStyle);
-      if (typo.lineHeight) {
-        styles.set('line-height', typeof typo.lineHeight === 'number' ? typo.lineHeight : typo.lineHeight.value);
-      }
-      if (typo.letterSpacing) styles.set('letter-spacing', `${typo.letterSpacing}px`);
-      if (typo.textAlign) styles.set('text-align', typo.textAlign.toLowerCase());
-      if (typo.textDecoration) styles.set('text-decoration', typo.textDecoration.toLowerCase());
-      if (typo.textTransform) styles.set('text-transform', typo.textTransform.toLowerCase());
+      const typo = figmaElement.styles.typography
+      this.addStyleIfExists(styles, "font-family", typo.fontFamily)
+      this.addStyleIfExists(styles, "font-size", this.formatSize(typo.fontSize))
+      this.addStyleIfExists(styles, "font-weight", typo.fontWeight)
+      this.addStyleIfExists(styles, "font-style", typo.fontStyle)
+      this.addStyleIfExists(styles, "line-height", this.formatLineHeight(typo.lineHeight))
+      this.addStyleIfExists(styles, "letter-spacing", this.formatSize(typo.letterSpacing))
+      this.addStyleIfExists(styles, "text-align", typo.textAlign?.toLowerCase())
+      this.addStyleIfExists(styles, "text-decoration", typo.textDecoration?.toLowerCase())
+      this.addStyleIfExists(styles, "text-transform", typo.textTransform?.toLowerCase())
     }
 
-    // Color стилі
-    if (figmaElement.styles?.colors && figmaElement.styles.colors.length > 0) {
-      const primaryColor = figmaElement.styles.colors[0];
-      if (primaryColor.type === 'solid') {
-        styles.set('color', primaryColor.color);
-        if (primaryColor.opacity < 1) {
-          styles.set('opacity', primaryColor.opacity.toString());
+    // ✅ FIX: Color стилі
+    if (figmaElement.styles?.colors && Array.isArray(figmaElement.styles.colors)) {
+      const primaryColor = figmaElement.styles.colors[0]
+      if (primaryColor?.type === "solid" && primaryColor.color) {
+        styles.set("color", primaryColor.color)
+        if (primaryColor.opacity !== undefined && primaryColor.opacity < 1) {
+          styles.set("opacity", primaryColor.opacity.toString())
         }
       }
     }
 
-    // Background стилі
+    // ✅ FIX: Background стилі з правильною перевіркою
     if (figmaElement.fills && Array.isArray(figmaElement.fills)) {
       figmaElement.fills.forEach(fill => {
-        if (fill.type === 'SOLID' && fill.color) {
-          styles.set('background-color', this.rgbToHex(fill.color));
+        if (fill.type === "SOLID" && fill.color) {
+          styles.set("background-color", this.rgbToHex(fill.color))
           if (fill.opacity !== undefined && fill.opacity < 1) {
-            styles.set('opacity', fill.opacity.toString());
+            styles.set("opacity", fill.opacity.toString())
           }
         }
-      });
+      })
     }
 
-    // Position стилі
+    // ✅ FIX: Position та розміри
     if (figmaElement.styles?.position) {
-      const pos = figmaElement.styles.position;
-      if (pos.width) styles.set('width', `${pos.width}px`);
-      if (pos.height) styles.set('height', `${pos.height}px`);
+      const pos = figmaElement.styles.position
+      this.addStyleIfExists(styles, "width", this.formatSize(pos.width))
+      this.addStyleIfExists(styles, "height", this.formatSize(pos.height))
+    } else if (figmaElement.absoluteBoundingBox) {
+      // Fallback до absoluteBoundingBox
+      const box = figmaElement.absoluteBoundingBox
+      this.addStyleIfExists(styles, "width", this.formatSize(box.width))
+      this.addStyleIfExists(styles, "height", this.formatSize(box.height))
     }
 
-    // Layout стилі
+    // ✅ FIX: Layout стилі (Flexbox/Grid)
     if (figmaElement.styles?.layout) {
-      const layout = figmaElement.styles.layout;
-      if (layout.display) styles.set('display', layout.display);
-      if (layout.flexDirection) styles.set('flex-direction', layout.flexDirection);
-      if (layout.justifyContent) styles.set('justify-content', layout.justifyContent);
-      if (layout.alignItems) styles.set('align-items', layout.alignItems);
-      if (layout.gap) styles.set('gap', layout.gap);
+      const layout = figmaElement.styles.layout
+      this.addStyleIfExists(styles, "display", layout.display)
+      this.addStyleIfExists(styles, "flex-direction", layout.flexDirection)
+      this.addStyleIfExists(styles, "justify-content", layout.justifyContent)
+      this.addStyleIfExists(styles, "align-items", layout.alignItems)
+      this.addStyleIfExists(styles, "gap", layout.gap)
     }
 
-    // Effects стилі
-    if (figmaElement.styles?.effects && figmaElement.styles.effects.length > 0) {
+    // ✅ FIX: Effects (shadows, etc.)
+    if (figmaElement.styles?.effects && Array.isArray(figmaElement.styles.effects)) {
       const shadows = figmaElement.styles.effects
-        .filter(e => e.type === 'box-shadow')
-        .map(e => this.formatBoxShadow(e));
-      
+        .filter(e => e.type === "box-shadow")
+        .map(e => this.formatBoxShadow(e))
+        .filter(shadow => shadow)
+
       if (shadows.length > 0) {
-        styles.set('box-shadow', shadows.join(', '));
+        styles.set("box-shadow", shadows.join(", "))
       }
     }
 
-    // Border стилі
+    // ✅ FIX: Border стилі
     if (figmaElement.styles?.borders) {
-      const borders = figmaElement.styles.borders;
-      if (borders.width) styles.set('border-width', borders.width);
-      if (borders.color) styles.set('border-color', borders.color);
-      if (borders.radius) styles.set('border-radius', borders.radius);
+      const borders = figmaElement.styles.borders
+      this.addStyleIfExists(styles, "border-width", borders.width)
+      this.addStyleIfExists(styles, "border-color", borders.color)
+      this.addStyleIfExists(styles, "border-radius", borders.radius)
     }
 
-    // Spacing стилі
+    // ✅ FIX: Spacing (padding/margin)
     if (figmaElement.styles?.spacing) {
-      const spacing = figmaElement.styles.spacing;
-      if (spacing.paddingTop) styles.set('padding-top', spacing.paddingTop);
-      if (spacing.paddingRight) styles.set('padding-right', spacing.paddingRight);
-      if (spacing.paddingBottom) styles.set('padding-bottom', spacing.paddingBottom);
-      if (spacing.paddingLeft) styles.set('padding-left', spacing.paddingLeft);
-    }
-
-    // Абсолютні координати з Figma
-    if (figmaElement.absoluteBoundingBox) {
-      const box = figmaElement.absoluteBoundingBox;
-      if (!styles.has('width')) styles.set('width', `${box.width}px`);
-      if (!styles.has('height')) styles.set('height', `${box.height}px`);
+      const spacing = figmaElement.styles.spacing
+      this.addStyleIfExists(styles, "padding-top", spacing.paddingTop)
+      this.addStyleIfExists(styles, "padding-right", spacing.paddingRight)
+      this.addStyleIfExists(styles, "padding-bottom", spacing.paddingBottom)
+      this.addStyleIfExists(styles, "padding-left", spacing.paddingLeft)
     }
   }
 
   /**
-   * Пошук Canvas для елемента
+   * ✅ FIX: Допоміжна функція для додавання стилів
+   */
+  addStyleIfExists(styles, property, value) {
+    if (value !== undefined && value !== null && value !== "") {
+      styles.set(property, value)
+    }
+  }
+
+  /**
+   * ✅ FIX: Форматування розмірів
+   */
+  formatSize(value) {
+    if (typeof value === "number") {
+      return `${value}px`
+    }
+    if (typeof value === "string" && value.trim()) {
+      return value
+    }
+    return null
+  }
+
+  /**
+   * ✅ FIX: Форматування line-height
+   */
+  formatLineHeight(lineHeight) {
+    if (typeof lineHeight === "number") {
+      return lineHeight > 10 ? `${lineHeight}px` : lineHeight.toString()
+    }
+    if (typeof lineHeight === "object" && lineHeight?.value) {
+      return this.formatLineHeight(lineHeight.value)
+    }
+    return lineHeight?.toString() || null
+  }
+
+  /**
+   * ✅ FIX: Пошук Canvas для елемента
    */
   findCanvasForElement(element) {
-    // Тут має бути логіка пошуку Canvas
-    // Поки повертаємо placeholder
-    return element.parent ? 'Main Canvas' : 'Root';
+    if (!element) return "Unknown"
+
+    // Простий алгоритм - повертаємо назву на основі ієрархії
+    if (element.parent) {
+      return "Canvas"
+    }
+    return element.name || "Root"
   }
 
   /**
-   * Генерація імені класу
+   * ✅ FIX: Генерація імені класу
    */
   generateClassName(htmlElement) {
+    if (!htmlElement) return null
+
     if (htmlElement.classes && htmlElement.classes.length > 0) {
-      return htmlElement.classes[0];
+      return htmlElement.classes[0]
     }
-    return htmlElement.tagName || 'unnamed';
+
+    if (htmlElement.tagName) {
+      return htmlElement.tagName.toLowerCase()
+    }
+
+    return null
   }
 
   /**
-   * Компіляція CSS з коментарями
+   * ✅ FIX: Компіляція CSS з коментарями та правильним форматуванням
    */
   compileCSS() {
-    let css = '';
-    
-    // CSS змінні
+    let css = ""
+
+    // ✅ FIX: Заголовок з інформацією про генерацію
+    css += `/* CSS Classes from HTML - Generated CSS */\n`
+    css += `/* Generated: ${this.statistics.generatedAt} */\n`
+    css += `/* Mode: ${this.options.mode} */\n`
+    css += `/* Total rules: ${this.statistics.totalRules} */\n`
+    css += `/* Figma mapped: ${this.statistics.figmaRules} */\n`
+    css += `/* Empty rules: ${this.statistics.emptyRules} */\n\n`
+
+    // ✅ FIX: CSS змінні
     if (this.variables.size > 0) {
-      css += ':root {\n';
+      css += ":root {\n"
       this.variables.forEach((value, variable) => {
-        css += `  ${variable}: ${value};\n`;
-      });
-      css += '}\n\n';
+        css += `  ${variable}: ${value};\n`
+      })
+      css += "}\n\n"
     }
-    
-    // CSS правила з коментарями про Figma співставлення
+
+    // ✅ FIX: CSS правила з коментарями про Figma співставлення
     this.cssRules.forEach((styles, selector) => {
-      const mapping = this.figmaMapping.get(selector);
-      
-      // ✅ FIX: Додаємо коментар з інформацією про Figma
+      const mapping = this.figmaMapping.get(selector)
+
+      // ✅ FIX: Додаємо коментар з інформацією про Figma (якщо включені коментарі)
       if (this.options.includeComments && mapping) {
-        css += `/* Figma: Canvas="${mapping.canvas}", Layer="${mapping.figmaName}", Type="${mapping.figmaType}", Confidence=${(mapping.confidence * 100).toFixed(0)}% */\n`;
+        if (mapping.figmaId) {
+          css += `/* Figma Layer: "${mapping.figmaName}" (${mapping.figmaType}) */\n`
+          css += `/* Canvas: ${mapping.canvas} | Confidence: ${(mapping.confidence * 100).toFixed(0)}% | Strategy: ${mapping.strategy} */\n`
+        } else {
+          css += `/* No Figma mapping found for this class */\n`
+        }
       }
-      
-      css += `.${selector} {\n`;
-      
+
+      css += `.${selector} {\n`
+
       if (styles.size === 0) {
-        // ❌ Пусте правило для мінімального режиму або неспівставлених елементів
+        // ✅ FIX: Пусте правило для мінімального режиму або неспівставлених елементів
         if (this.options.includeComments) {
-          css += `  /* No styles - ${mapping?.figmaId ? 'minimal mode' : 'not matched with Figma'} */\n`;
+          const reason = mapping?.figmaId
+            ? "minimal mode - add styles manually"
+            : "not matched with Figma"
+          css += `  /* ${reason} */\n`
         }
       } else {
-        // ✅ FIX: Стилі з Figma
+        // ✅ FIX: Стилі з Figma з коментарями
         styles.forEach((value, property) => {
-          css += `  ${property}: ${value}; /* from Figma Layer: ${mapping?.figmaName || 'unknown'} */\n`;
-        });
+          if (this.options.includeComments) {
+            css += `  ${property}: ${value}; /* from Figma */\n`
+          } else {
+            css += `  ${property}: ${value};\n`
+          }
+        })
       }
-      
-      css += '}\n\n';
-    });
-    
-    return this.options.optimizeCSS ? this.optimizeCSS(css) : css;
+
+      css += "}\n\n"
+    })
+
+    // ✅ FIX: Адаптивні стилі
+    if (this.mediaQueries.size > 0) {
+      this.mediaQueries.forEach((rules, mediaQuery) => {
+        css += `${mediaQuery} {\n`
+        rules.forEach((styles, selector) => {
+          css += `  .${selector} {\n`
+          styles.forEach((value, property) => {
+            css += `    ${property}: ${value};\n`
+          })
+          css += `  }\n`
+        })
+        css += "}\n\n"
+      })
+    }
+
+    return this.options.optimizeCSS ? this.optimizeCSS(css) : css
   }
 
   /**
-   * Генерація Reset стилів
+   * ✅ FIX: Генерація Reset стилів
    */
   generateReset() {
     const resetStyles = new Map([
-      ['margin', '0'],
-      ['padding', '0'],
-      ['box-sizing', 'border-box']
-    ]);
-    
-    this.cssRules.set('*', resetStyles);
-    this.cssRules.set('*::before', resetStyles);
-    this.cssRules.set('*::after', resetStyles);
+      ["margin", "0"],
+      ["padding", "0"],
+      ["box-sizing", "border-box"]
+    ])
+
+    this.cssRules.set("*", resetStyles)
+    this.cssRules.set("*::before", resetStyles)
+    this.cssRules.set("*::after", resetStyles)
+
+    // ✅ FIX: Body стилі
+    const bodyStyles = new Map([
+      ["font-family", "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"],
+      ["line-height", "1.5"],
+      ["color", "#212529"],
+      ["background-color", "#ffffff"]
+    ])
+
+    this.cssRules.set("body", bodyStyles)
+    this.statistics.totalRules += 4
   }
 
   /**
-   * Генерація CSS змінних
+   * ✅ FIX: Генерація CSS змінних
    */
   generateVariables(figmaData) {
-    // Базові змінні
-    this.variables.set('--primary-color', '#007ACC');
-    this.variables.set('--text-color', '#212529');
-    this.variables.set('--background-color', '#FFFFFF');
+    // ✅ FIX: Базові змінні
+    this.variables.set("--primary-color", "#007ACC")
+    this.variables.set("--secondary-color", "#6c757d")
+    this.variables.set("--success-color", "#28a745")
+    this.variables.set("--danger-color", "#dc3545")
+    this.variables.set("--warning-color", "#ffc107")
+    this.variables.set("--info-color", "#17a2b8")
+    this.variables.set("--light-color", "#f8f9fa")
+    this.variables.set("--dark-color", "#343a40")
+    this.variables.set("--text-color", "#212529")
+    this.variables.set("--background-color", "#ffffff")
+
+    // ✅ FIX: Spacing змінні
+    this.variables.set("--spacing-xs", "0.25rem")
+    this.variables.set("--spacing-sm", "0.5rem")
+    this.variables.set("--spacing-md", "1rem")
+    this.variables.set("--spacing-lg", "1.5rem")
+    this.variables.set("--spacing-xl", "2rem")
+    this.variables.set("--spacing-xxl", "3rem")
+
+    // ✅ FIX: Breakpoints
+    this.variables.set("--breakpoint-sm", "576px")
+    this.variables.set("--breakpoint-md", "768px")
+    this.variables.set("--breakpoint-lg", "992px")
+    this.variables.set("--breakpoint-xl", "1200px")
   }
 
   /**
-   * Допоміжні методи
+   * ✅ FIX: Генерація адаптивних стилів
+   */
+  generateResponsiveStyles() {
+    const mediaQueries = [
+      "@media (max-width: 768px)",
+      "@media (min-width: 769px) and (max-width: 1024px)",
+      "@media (min-width: 1025px)"
+    ]
+
+    mediaQueries.forEach(mq => {
+      if (!this.mediaQueries.has(mq)) {
+        this.mediaQueries.set(mq, new Map())
+      }
+    })
+
+    // ✅ FIX: Базові адаптивні стилі
+    const mobileStyles = new Map([
+      ["padding", "var(--spacing-sm)"],
+      ["font-size", "14px"]
+    ])
+
+    this.mediaQueries.get("@media (max-width: 768px)").set("container", mobileStyles)
+  }
+
+  /**
+   * ✅ FIX: Допоміжні методи
    */
   rgbToHex(color) {
-    if (typeof color === 'string') return color;
-    const r = Math.round((color.r || 0) * 255);
-    const g = Math.round((color.g || 0) * 255);
-    const b = Math.round((color.b || 0) * 255);
-    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+    if (typeof color === "string") return color
+    if (!color) return "#000000"
+
+    const r = Math.round((color.r || 0) * 255)
+    const g = Math.round((color.g || 0) * 255)
+    const b = Math.round((color.b || 0) * 255)
+    return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`
   }
 
   formatBoxShadow(effect) {
-    const x = effect.x || 0;
-    const y = effect.y || 0;
-    const blur = effect.blur || 0;
-    const spread = effect.spread || 0;
-    const color = effect.color ? this.rgbToHex(effect.color) : '#000000';
-    const opacity = effect.opacity || 1;
-    const inset = effect.inset ? 'inset ' : '';
-    
-    return `${inset}${x}px ${y}px ${blur}px ${spread}px ${color}${opacity < 1 ? ` / ${opacity}` : ''}`;
+    if (!effect) return null
+
+    const x = effect.x || 0
+    const y = effect.y || 0
+    const blur = effect.blur || 0
+    const spread = effect.spread || 0
+    const color = effect.color ? this.rgbToHex(effect.color) : "#000000"
+    const opacity = effect.opacity || 1
+    const inset = effect.inset ? "inset " : ""
+
+    return `${inset}${x}px ${y}px ${blur}px ${spread}px ${color}${opacity < 1 ? ` / ${opacity}` : ""}`
   }
 
   optimizeCSS(css) {
-    // Мінімальна оптимізація - зберігаємо коментарі
+    if (!this.options.optimizeCSS) return css
+
+    // ✅ FIX: Мінімальна оптимізація - зберігаємо читабельність
     return css
-      .replace(/\n\s*\n/g, '\n\n') // Видаляємо зайві порожні рядки
-      .trim();
+      .replace(/\n\s*\n/g, "\n") // Видаляємо зайві порожні рядки
+      .replace(/\s+/g, " ") // Зменшуємо множинні пробіли
+      .replace(/;\s*}/g, ";}") // Видаляємо пробіли перед закриваючими дужками
+      .trim()
   }
 
   reset() {
-    this.cssRules.clear();
-    this.variables.clear();
-    this.mediaQueries.clear();
-    this.figmaMapping.clear();
+    this.cssRules.clear()
+    this.variables.clear()
+    this.mediaQueries.clear()
+    this.figmaMapping.clear()
+
+    this.statistics = {
+      totalRules: 0,
+      emptyRules: 0,
+      figmaRules: 0,
+      generatedAt: new Date().toISOString()
+    }
+  }
+
+  /**
+   * ✅ FIX: Отримання статистики генерації
+   */
+  getStatistics() {
+    return {
+      ...this.statistics,
+      cssRulesCount: this.cssRules.size,
+      variablesCount: this.variables.size,
+      mediaQueriesCount: this.mediaQueries.size,
+      figmaMappingsCount: this.figmaMapping.size
+    }
   }
 }
 
-module.exports = CSSGenerator;
+module.exports = CSSGenerator
