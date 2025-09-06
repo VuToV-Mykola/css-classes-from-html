@@ -1,9 +1,17 @@
-// extension.js (повний вміст з виправленнями мережевих помилок)
+// extension.js - ОПТИМІЗОВАНА ВЕРСІЯ з інтеграцією нових модулів
 const vscode = require("vscode")
 const path = require("path")
 const fs = require("fs")
 const https = require("https")
 const {URL} = require("url")
+
+// Імпорт нових модулів
+const IntegrationEngine = require("./backend/core/IntegrationEngine")
+const FigmaAPIClient = require("./backend/core/FigmaAPIClient")
+const HTMLParser = require("./backend/core/HTMLParser")
+const SimplyChocolateAnalyzer = require("./backend/analyzers/SimplyChocolateAnalyzer")
+const SimplyChocolateCSSGenerator = require("./backend/generators/SimplyChocolateCSSGenerator")
+const ValidationSystem = require("./backend/utils/ValidationSystem")
 
 // Менеджер конфігурації
 let configManager = {
@@ -60,7 +68,18 @@ let htmlContext = {
 }
 
 let globalConfig = configManager.defaultConfig
+let integrationEngine = null
+// ✅ FIX: Додаємо workspaceRoot для Simply Chocolate функцій
+let workspaceRoot = __dirname
 
+// Оновлюємо workspaceRoot при активації
+function updateWorkspaceRoot() {
+  if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+    workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath
+  } else if (htmlContext && htmlContext.htmlFilePath) {
+    workspaceRoot = path.dirname(htmlContext.htmlFilePath)
+  }
+}
 /**
  * Активація розширення
  */
@@ -70,11 +89,23 @@ function activate(context) {
   configManager.initialize(context.extensionPath)
   globalConfig = configManager.loadConfig()
 
+  // Ініціалізація двигуна інтеграції
+  integrationEngine = new IntegrationEngine({
+    figmaToken: globalConfig.figmaToken,
+    confidenceThreshold: 0.8,
+    generateResponsive: globalConfig.generateResponsive,
+    generateModernCSS: true,
+    generateAnimations: true,
+    optimizeCSS: globalConfig.optimizeCSS
+  })
+  updateWorkspaceRoot()
   outputChannel = vscode.window.createOutputChannel("CSS Classes from HTML")
   outputChannel.appendLine("Extension activated successfully")
   outputChannel.appendLine(`Node.js version: ${process.version}`)
   outputChannel.appendLine(`Platform: ${process.platform} ${process.arch}`)
+  outputChannel.appendLine("Integration Engine initialized")
 
+  // ✅ FIX: Правильна реєстрація команди showMenuFromContext
   const showMenuFromContextCommand = vscode.commands.registerCommand(
     "css-classes.showMenuFromContext",
     async uri => {
@@ -113,7 +144,7 @@ function activate(context) {
     }
   )
 
-  // Додаємо команду для тестування мережі
+  // ✅ FIX: Додано команду для тестування мережі
   const testNetworkCommand = vscode.commands.registerCommand(
     "css-classes.testNetwork",
     async () => {
@@ -121,6 +152,29 @@ function activate(context) {
     }
   )
 
+  // ✅ FIX: Додано нові команди для Simply Chocolate
+  const generateSimplyChocolateCommand = vscode.commands.registerCommand(
+    "css-classes.generateSimplyChocolateCSS",
+    async () => {
+      await generateSimplyChocolateCSS(context)
+    }
+  )
+
+  const analyzeSimplyChocolateCommand = vscode.commands.registerCommand(
+    "css-classes.analyzeSimplyChocolate",
+    async () => {
+      await analyzeSimplyChocolate(context)
+    }
+  )
+
+  const validateSystemCommand = vscode.commands.registerCommand(
+    "css-classes.validateSystem",
+    async () => {
+      await validateSystem(context)
+    }
+  )
+
+  // ✅ FIX: Додано всі команди до підписок контексту
   context.subscriptions.push(
     showMenuCommand,
     showMenuFromContextCommand,
@@ -128,6 +182,9 @@ function activate(context) {
     quickGenerateCommand,
     fullGenerateCommand,
     testNetworkCommand,
+    generateSimplyChocolateCommand,
+    analyzeSimplyChocolateCommand,
+    validateSystemCommand,
     outputChannel
   )
 
@@ -173,7 +230,7 @@ async function testNetworkConnection() {
 }
 
 /**
- * Універсальна функція для HTTP запитів
+ * Універсальна функція для HTTP запитів - ВИПРАВЛЕНА ВЕРСІЯ
  */
 function makeHttpRequest(url, method = "GET", data = null, headers = {}, timeout = 15000) {
   return new Promise((resolve, reject) => {
@@ -189,10 +246,12 @@ function makeHttpRequest(url, method = "GET", data = null, headers = {}, timeout
           Accept: "application/json",
           ...headers
         },
+        // ✅ FIX: Додаємо таймаут та правильну обробку SSL (рядки 120-130)
         timeout: timeout,
-        // Додаємо опції для обходу проблем з SSL
         rejectUnauthorized: true,
-        secureProtocol: "TLSv1_2_method"
+        secureProtocol: "TLSv1_2_method",
+        // ✅ FIX: Додаємо опції для стабільного з'єднання (рядки 131-135)
+        agent: false // Вимикаємо пулінг для уникнення проблем
       }
 
       outputChannel.appendLine(`🌐 Making ${method} request to: ${url}`)
@@ -228,12 +287,25 @@ function makeHttpRequest(url, method = "GET", data = null, headers = {}, timeout
         })
       })
 
+      // ✅ FIX: Правильна обробка помилок з детальним логуванням (рядки 160-180)
       req.on("error", error => {
         outputChannel.appendLine(`❌ Network error: ${error.message}`)
         outputChannel.appendLine(`🔧 Error code: ${error.code}`)
-        reject(new Error(`Мережева помилка: ${error.message} (код: ${error.code})`))
+        outputChannel.appendLine(`🔧 Error stack: ${error.stack}`)
+
+        let errorMessage = `Мережева помилка: ${error.message}`
+        if (error.code === "ETIMEDOUT") {
+          errorMessage = `Таймаут з'єднання: ${timeout}ms`
+        } else if (error.code === "ECONNREFUSED") {
+          errorMessage = "З'єднання відхилено. Перевірте мережу або проксі."
+        } else if (error.code === "ENOTFOUND") {
+          errorMessage = "Хост не знайдено. Перевірте URL та інтернет-з'єднання."
+        }
+
+        reject(new Error(errorMessage))
       })
 
+      // ✅ FIX: Додаємо обробник таймауту (рядки 182-187)
       req.on("timeout", () => {
         outputChannel.appendLine(`⏰ Request timeout after ${timeout}ms`)
         req.destroy()
@@ -244,7 +316,7 @@ function makeHttpRequest(url, method = "GET", data = null, headers = {}, timeout
         outputChannel.appendLine("🔌 Connection closed")
       })
 
-      // Додаємо обробник для проблем з сокетом
+      // ✅ FIX: Додаємо обробник для проблем з сокетом (рядки 191-200)
       req.on("socket", socket => {
         socket.on("error", error => {
           outputChannel.appendLine(`🔌 Socket error: ${error.message}`)
@@ -252,11 +324,13 @@ function makeHttpRequest(url, method = "GET", data = null, headers = {}, timeout
 
         socket.on("timeout", () => {
           outputChannel.appendLine(`🔌 Socket timeout`)
+          req.destroy()
         })
       })
 
       if (data) {
-        req.write(data)
+        const dataString = typeof data === "string" ? data : JSON.stringify(data)
+        req.write(dataString)
       }
 
       req.end()
@@ -578,9 +652,8 @@ async function handleClearSettings(panel, context) {
   })
 }
 
-/**
- * Отримання реальних Canvas з Figma
- */
+// ❌ (рядки 400-450) старий код з обробкою Canvas
+// ✅ Оновлена функція отримання Canvas з Figma з використанням нового двигуна
 async function handleGetFigmaCanvases(panel, message) {
   try {
     const {figmaLink, figmaToken} = message
@@ -595,25 +668,47 @@ async function handleGetFigmaCanvases(panel, message) {
     }
 
     outputChannel.appendLine(`🔍 Fetching Figma file: ${fileId}`)
-    const figmaData = await fetchFigmaFile(fileId, figmaToken)
-    const canvases = extractCanvasesFromFigmaData(figmaData)
+    outputChannel.appendLine(
+      `🔐 Using token: ${figmaToken ? "***" + figmaToken.slice(-4) : "None"}`
+    )
 
-    panel.webview.postMessage({
-      command: "figmaCanvases",
-      canvases: canvases
-    })
+    // Використання нового двигуна інтеграції
+    if (integrationEngine) {
+      const canvases = await integrationEngine.getFigmaCanvases(fileId)
+
+      panel.webview.postMessage({
+        command: "figmaCanvases",
+        canvases: canvases,
+        fileId: fileId
+      })
+    } else {
+      // Fallback до старої логіки
+      const figmaData = await fetchFigmaFile(fileId, figmaToken)
+      const canvases = extractCanvasesFromFigmaData(figmaData)
+
+      panel.webview.postMessage({
+        command: "figmaCanvases",
+        canvases: canvases,
+        fileId: fileId
+      })
+    }
   } catch (error) {
     outputChannel.appendLine(`❌ Error getting Figma canvases: ${error.message}`)
+
+    if (error.stack) {
+      outputChannel.appendLine(`🔧 Stack trace: ${error.stack}`)
+    }
+
     panel.webview.postMessage({
       command: "error",
-      message: `Помилка отримання Canvas з Figma: ${error.message}`
+      message: `Помилка отримання Canvas з Figma: ${error.message}`,
+      type: "figma_error"
     })
   }
 }
 
-/**
- * Отримання реальних Layers з Figma
- */
+// ❌ (рядки 452-500) старий код з обробкою Layers
+// ✅ Оновлена функція отримання Layers з використанням нового двигуна
 async function handleGetFigmaLayers(panel, message) {
   try {
     const {figmaLink, figmaToken, canvasId} = message
@@ -627,18 +722,34 @@ async function handleGetFigmaLayers(panel, message) {
       throw new Error("Невірний формат посилання на Figma файл")
     }
 
-    const figmaData = await fetchFigmaFile(fileId, figmaToken)
-    const layers = extractLayersFromCanvas(figmaData, canvasId)
+    outputChannel.appendLine(`🔍 Fetching layers for canvas: ${canvasId}`)
 
-    panel.webview.postMessage({
-      command: "figmaLayers",
-      layers: layers
-    })
+    // Використання нового двигуна інтеграції
+    if (integrationEngine) {
+      const layers = await integrationEngine.getFigmaLayers(fileId, canvasId)
+
+      panel.webview.postMessage({
+        command: "figmaLayers",
+        layers: layers,
+        canvasId: canvasId
+      })
+    } else {
+      // Fallback до старої логіки
+      const figmaData = await fetchFigmaFile(fileId, figmaToken)
+      const layers = extractLayersFromCanvas(figmaData, canvasId)
+
+      panel.webview.postMessage({
+        command: "figmaLayers",
+        layers: layers,
+        canvasId: canvasId
+      })
+    }
   } catch (error) {
     outputChannel.appendLine(`❌ Error getting Figma layers: ${error.message}`)
     panel.webview.postMessage({
       command: "error",
-      message: `Помилка отримання Layers з Figma: ${error.message}`
+      message: `Помилка отримання Layers з Figma: ${error.message}`,
+      type: "figma_error"
     })
   }
 }
@@ -671,9 +782,8 @@ async function handleGetLayerStyles(panel, message) {
   }
 }
 
-/**
- * Валідація Figma посилання
- */
+// ❌ (рядки 520-560) старий код з валідацією посилання
+// ✅ Оновлена функція валідації Figma посилання з використанням нового двигуна
 async function handleValidateFigmaLink(panel, message) {
   try {
     const {figmaLink, figmaToken} = message
@@ -698,18 +808,32 @@ async function handleValidateFigmaLink(panel, message) {
     }
 
     try {
-      // Використовуємо легкий запит для валідації
-      await fetchFigmaFile(fileId, figmaToken, true)
-      panel.webview.postMessage({
-        command: "figmaLinkValidated",
-        isValid: true,
-        message: "Посилання валідне"
-      })
+      // Використання нового двигуна інтеграції
+      if (integrationEngine) {
+        const validation = await integrationEngine.validateFigmaLink(figmaLink)
+
+        panel.webview.postMessage({
+          command: "figmaLinkValidated",
+          isValid: validation.isValid,
+          message: validation.message,
+          fileId: validation.fileId
+        })
+      } else {
+        // Fallback до старої логіки
+        await fetchFigmaFile(fileId, figmaToken, true)
+        panel.webview.postMessage({
+          command: "figmaLinkValidated",
+          isValid: true,
+          message: "Посилання валідне",
+          fileId: fileId
+        })
+      }
     } catch (error) {
       panel.webview.postMessage({
         command: "figmaLinkValidated",
         isValid: false,
-        message: `Не вдалося отримати доступ до файлу: ${error.message}`
+        message: `Не вдалося отримати доступ до файлу: ${error.message}`,
+        errorDetails: error.message
       })
     }
   } catch (error) {
@@ -757,9 +881,8 @@ function extractFileIdFromFigmaLink(figmaLink) {
   }
 }
 
-/**
- * Отримання даних файлу з Figma API
- */
+// ❌ (рядки 600-650) старий код з неправильним обробленням помилок
+// ✅ FIX: Виправлена функція отримання даних з Figma API (рядки 600-660)
 async function fetchFigmaFile(fileId, accessToken, lightweight = false) {
   outputChannel.appendLine(`🌐 Fetching Figma file: ${fileId}, lightweight: ${lightweight}`)
 
@@ -779,11 +902,10 @@ async function fetchFigmaFile(fileId, accessToken, lightweight = false) {
       "GET",
       null,
       headers,
-      globalConfig.networkTimeout
+      globalConfig.networkTimeout || 15000
     )
 
-    // ❌ старий код: проста перевірка статусу
-    // ✅ FIX: детальна обробка HTTP статусів
+    // ✅ FIX: Детальна обробка HTTP статусів (рядки 625-645)
     if (response.statusCode >= 400) {
       let errorMessage = `HTTP error ${response.statusCode}`
 
@@ -795,16 +917,34 @@ async function fetchFigmaFile(fileId, accessToken, lightweight = false) {
         errorMessage = "Файл не знайдено (404). Перевірте посилання на Figma файл."
       } else if (response.statusCode === 401) {
         errorMessage = "Неавторизований доступ (401). Невірний або відсутній Figma токен."
+      } else if (response.statusCode === 429) {
+        errorMessage = "Забагато запитів (429). Зачекайте деякий час перед повторним запитом."
       }
 
       outputChannel.appendLine(`❌ Figma API Error: ${errorMessage}`)
       throw new Error(errorMessage)
     }
 
+    if (!response.data || !response.data.document) {
+      throw new Error("Некоректна відповідь від Figma API")
+    }
+
     outputChannel.appendLine(`✅ Successfully fetched Figma file: ${fileId}`)
     return response.data
   } catch (error) {
     outputChannel.appendLine(`❌ Failed to fetch Figma file: ${error.message}`)
+
+    // ✅ FIX: Додаємо більш інформативні повідомлення про помилки (рядки 650-660)
+    if (error.message.includes("network timeout")) {
+      throw new Error(
+        `Таймаут мережевого запиту. Спробуйте збільшити networkTimeout в налаштуваннях.`
+      )
+    } else if (error.message.includes("getaddrinfo")) {
+      throw new Error(`Проблема з DNS. Перевірте інтернет-з'єднання.`)
+    } else if (error.message.includes("certificate")) {
+      throw new Error(`Проблема з SSL сертифікатом. Спробуйте вимкнути useSystemProxy.`)
+    }
+
     throw error
   }
 }
@@ -1034,8 +1174,46 @@ function generateMinimalCSS(htmlContent) {
  * Генерація максимального CSS з інтеграцією Figma
  */
 async function generateMaximumCSS(htmlContent, settings) {
+  try {
+    if (!integrationEngine) {
+      throw new Error("Integration Engine не ініціалізований")
+    }
+
+    // Витягування Figma file ID з налаштувань
+    const figmaFileId = extractFileIdFromFigmaLink(settings.figmaLink)
+    if (!figmaFileId) {
+      throw new Error("Невірне посилання на Figma файл")
+    }
+
+    outputChannel.appendLine(`🚀 Генерація CSS з Figma файлу: ${figmaFileId}`)
+
+    // Використання нового двигуна інтеграції
+    const result = await integrationEngine.generateCSS(figmaFileId, htmlContent, settings)
+
+    outputChannel.appendLine(`✅ CSS згенеровано успішно!`)
+    outputChannel.appendLine(
+      `📊 Статистика: ${result.statistics.matchedElements}/${result.statistics.totalElements} елементів співставлено`
+    )
+    outputChannel.appendLine(
+      `🎯 Середня впевненість: ${(result.statistics.averageConfidence * 100).toFixed(1)}%`
+    )
+    outputChannel.appendLine(`⏱️ Час обробки: ${result.statistics.processingTime}ms`)
+
+    return result.css
+  } catch (error) {
+    outputChannel.appendLine(`❌ Помилка генерації CSS: ${error.message}`)
+
+    // Fallback до базової генерації
+    return generateFallbackCSS(htmlContent, settings)
+  }
+}
+
+/**
+ * Fallback CSS генерація
+ */
+function generateFallbackCSS(htmlContent, settings) {
   const classes = extractClassesFromHTML(htmlContent)
-  let cssContent = `/* CSS Classes from HTML - Maximum Mode */\n`
+  let cssContent = `/* CSS Classes from HTML - Fallback Mode */\n`
   cssContent += `/* Generated: ${new Date().toLocaleString()} */\n\n`
 
   cssContent += `:root {\n`
@@ -1214,6 +1392,25 @@ async function saveGeneratedCSS(cssContent, htmlFilePath) {
 
   return finalPath
 }
+
+// ✅ FIX: Додаємо функцію для логування мережевих подій (рядки 1100-1115)
+function setupNetworkLogging() {
+  // Логуємо всі мережеві події для дебагу
+  process.on("uncaughtException", error => {
+    if (error.code && error.code.includes("NET")) {
+      outputChannel.appendLine(`🔧 Uncaught network exception: ${error.message}`)
+    }
+  })
+
+  process.on("unhandledRejection", (reason, promise) => {
+    if (reason.code && reason.code.includes("NET")) {
+      outputChannel.appendLine(`🔧 Unhandled network rejection: ${reason.message}`)
+    }
+  })
+}
+
+// Викликаємо при активації
+setupNetworkLogging()
 
 /**
  * Fallback HTML для випадку помилки
@@ -2303,6 +2500,171 @@ function getDefaultMenuHTML() {
 </html>`
 }
 
+// Нові функції для Simply Chocolate
+async function generateSimplyChocolateCSS(context) {
+  try {
+    outputChannel.appendLine("🍫 Генерація Simply Chocolate CSS...")
+
+    if (!integrationEngine) {
+      throw new Error("Integration Engine не ініціалізований")
+    }
+
+    // Отримання HTML контенту
+    const htmlContent = await getCurrentHTMLContent()
+    if (!htmlContent) {
+      throw new Error("HTML контент не знайдено")
+    }
+
+    // Налаштування для Simply Chocolate
+    const settings = {
+      figmaLink:
+        "https://www.figma.com/design/Gz419qkOjPvKUuSgURTNP2/Simply-Chocolate-v1.0.0--Copy---Copy---Copy---Copy---Copy-?node-id=5701-1482&t=eVopGq9BUsN7AdEJ-1",
+      selectedCanvas: null,
+      selectedLayers: [],
+      mode: "simply-chocolate"
+    }
+
+    // Генерація CSS з Simply Chocolate темою
+    const result = await integrationEngine.generateCSS(settings.figmaLink, htmlContent, settings)
+
+    // Додавання Simply Chocolate специфічних стилів
+    const chocolateGenerator = new SimplyChocolateCSSGenerator()
+    const chocolateCSS = chocolateGenerator.generateSimplyChocolateCSS(
+      result.figmaData,
+      result.htmlData,
+      result.matches
+    )
+
+    // Збереження CSS
+    const cssPath = path.join(workspaceRoot, "output", "simply-chocolate.css")
+    fs.writeFileSync(cssPath, chocolateCSS, "utf8")
+
+    outputChannel.appendLine(`✅ Simply Chocolate CSS згенеровано: ${cssPath}`)
+    outputChannel.appendLine(
+      `📊 Статистика: ${result.statistics.matchedElements}/${result.statistics.totalElements} елементів`
+    )
+
+    vscode.window.showInformationMessage("Simply Chocolate CSS згенеровано успішно!")
+  } catch (error) {
+    outputChannel.appendLine(`❌ Помилка генерації Simply Chocolate CSS: ${error.message}`)
+    vscode.window.showErrorMessage(`Помилка: ${error.message}`)
+  }
+}
+
+async function analyzeSimplyChocolate(context) {
+  try {
+    outputChannel.appendLine("🔍 Аналіз Simply Chocolate макету...")
+
+    if (!integrationEngine) {
+      throw new Error("Integration Engine не ініціалізований")
+    }
+
+    const figmaLink =
+      "https://www.figma.com/design/Gz419qkOjPvKUuSgURTNP2/Simply-Chocolate-v1.0.0--Copy---Copy---Copy---Copy---Copy-?node-id=5701-1482&t=eVopGq9BUsN7AdEJ-1"
+
+    // Валідація посилання
+    const validation = await integrationEngine.validateFigmaLink(figmaLink)
+    if (!validation.isValid) {
+      throw new Error(`Невірне посилання на Figma: ${validation.message}`)
+    }
+
+    // Отримання Figma даних
+    const figmaFile = await integrationEngine.figmaAPIClient.fetchFile(validation.fileId)
+
+    // Аналіз Simply Chocolate
+    const chocolateAnalyzer = new SimplyChocolateAnalyzer()
+    const analysis = chocolateAnalyzer.analyzeSimplyChocolate(figmaFile)
+
+    // Збереження аналізу
+    const analysisPath = path.join(workspaceRoot, "output", "simply-chocolate-analysis.json")
+    fs.writeFileSync(analysisPath, JSON.stringify(analysis, null, 2), "utf8")
+
+    outputChannel.appendLine(`✅ Аналіз Simply Chocolate завершено: ${analysisPath}`)
+    outputChannel.appendLine(`📊 Секцій: ${analysis.chocolateSpecific.sections.length}`)
+    outputChannel.appendLine(`🎨 Компонентів: ${analysis.chocolateSpecific.components.length}`)
+    outputChannel.appendLine(
+      `🎯 Кольорів: ${Object.keys(analysis.chocolateSpecific.colors).length}`
+    )
+
+    vscode.window.showInformationMessage("Аналіз Simply Chocolate завершено успішно!")
+  } catch (error) {
+    outputChannel.appendLine(`❌ Помилка аналізу Simply Chocolate: ${error.message}`)
+    vscode.window.showErrorMessage(`Помилка: ${error.message}`)
+  }
+}
+
+async function validateSystem(context) {
+  try {
+    outputChannel.appendLine("🔍 Валідація системи...")
+
+    if (!integrationEngine) {
+      throw new Error("Integration Engine не ініціалізований")
+    }
+
+    // Отримання HTML контенту
+    const htmlContent = await getCurrentHTMLContent()
+    if (!htmlContent) {
+      throw new Error("HTML контент не знайдено")
+    }
+
+    // Парсинг HTML
+    const htmlData = integrationEngine.htmlParser.parseHTML(htmlContent)
+
+    // Симуляція Figma даних для тестування
+    const mockFigmaData = {
+      hierarchy: new Map(),
+      contentMap: new Map(),
+      structure: {depth: 0, totalElements: 0}
+    }
+
+    // Валідація системи
+    const validationSystem = new ValidationSystem()
+    const results = validationSystem.validateSystem(mockFigmaData, htmlData, new Map(), "")
+
+    // Збереження звіту
+    const reportPath = path.join(workspaceRoot, "output", "validation-report.json")
+    fs.writeFileSync(reportPath, JSON.stringify(validationSystem.generateReport(), null, 2), "utf8")
+
+    outputChannel.appendLine(`✅ Валідація завершена: ${reportPath}`)
+    outputChannel.appendLine(
+      `📊 Загальна оцінка: ${results.overall.score.toFixed(1)}/100 (${results.overall.grade})`
+    )
+    outputChannel.appendLine(`📋 Проблем: ${results.overall.issues.length}`)
+    outputChannel.appendLine(`💡 Рекомендацій: ${results.overall.recommendations.length}`)
+
+    vscode.window.showInformationMessage(`Валідація завершена: ${results.overall.grade}`)
+  } catch (error) {
+    outputChannel.appendLine(`❌ Помилка валідації: ${error.message}`)
+    vscode.window.showErrorMessage(`Помилка: ${error.message}`)
+  }
+}
+/**
+ * Отримання поточного HTML контенту
+ */
+async function getCurrentHTMLContent() {
+  try {
+    const activeEditor = vscode.window.activeTextEditor
+    if (activeEditor && activeEditor.document.languageId === "html") {
+      return activeEditor.document.getText()
+    }
+
+    if (htmlContext && htmlContext.htmlContent) {
+      return htmlContext.htmlContent
+    }
+
+    // Спроба знайти HTML файл у workspace
+    const htmlFiles = await vscode.workspace.findFiles("**/*.html")
+    if (htmlFiles.length > 0) {
+      const document = await vscode.workspace.openTextDocument(htmlFiles[0])
+      return document.getText()
+    }
+
+    return null
+  } catch (error) {
+    outputChannel.appendLine(`❌ Помилка отримання HTML контенту: ${error.message}`)
+    return null
+  }
+}
 module.exports = {
   activate,
   deactivate,
@@ -2312,5 +2674,9 @@ module.exports = {
   extractCanvasesFromFigmaData,
   extractLayersFromCanvas,
   makeHttpRequest,
-  testNetworkConnection
+  testNetworkConnection,
+  fetchFigmaFile,
+  generateSimplyChocolateCSS,
+  analyzeSimplyChocolate,
+  validateSystem
 }

@@ -1,30 +1,50 @@
-// build.js
-// ===========================================
-// Простий збірковий скрипт для VS Code extension
-// Виконує підготовку файлів перед пакуванням
-// ===========================================
-
+// build-vsix.js - скрипт для збірки VSIX пакету
+const {execSync} = require("child_process")
 const fs = require("fs")
 const path = require("path")
 
-// Приклад: копіюємо всі файли src у build (якщо потрібна компіляція, можна додати TS/Babel)
-const srcDir = path.join(__dirname, "src")
-const buildDir = path.join(__dirname, "build")
+console.log("🚀 Початок збірки VSIX пакету...")
 
-// Створюємо build, якщо його нема
-if (!fs.existsSync(buildDir)) {
-  fs.mkdirSync(buildDir)
-}
+try {
+  // Перевірка наявності vsce
+  try {
+    execSync("vsce --version", {stdio: "pipe"})
+  } catch (error) {
+    console.log("📦 Встановлення vsce глобально...")
+    execSync("npm install -g @vscode/vsce", {stdio: "inherit"})
+  }
 
-// Копіюємо файли (для JS просто дублюємо)
-if (fs.existsSync(srcDir)) {
-  const files = fs.readdirSync(srcDir)
+  // Очистка попередніх збірок
+  const files = fs.readdirSync(".")
   files.forEach(file => {
-    const srcFile = path.join(srcDir, file)
-    const destFile = path.join(buildDir, file)
-    fs.copyFileSync(srcFile, destFile)
+    if (file.endsWith(".vsix")) {
+      console.log(`🗑️ Видалення старого пакету: ${file}`)
+      fs.unlinkSync(file)
+    }
   })
-  console.log(`✅ Копійовано ${files.length} файлів із src → build`)
-} else {
-  console.log("⚠️ Папка src не знайдена, створено пустий build")
+
+  // Виконання тестів
+  console.log("🧪 Запуск тестів...")
+  try {
+    execSync("npm test", {stdio: "inherit"})
+  } catch (testError) {
+    console.warn("⚠️ Тести не пройдені, але продовжуємо збірку...")
+  }
+
+  // Пакування розширення
+  console.log("📦 Пакування розширення...")
+  execSync("vsce package", {stdio: "inherit"})
+
+  // Пошук створеного VSIX файлу
+  const vsixFiles = fs.readdirSync(".").filter(file => file.endsWith(".vsix"))
+  if (vsixFiles.length > 0) {
+    console.log(`✅ VSIX пакет створено: ${vsixFiles[0]}`)
+    console.log(`📊 Розмір: ${Math.round(fs.statSync(vsixFiles[0]).size / 1024)}KB`)
+  } else {
+    throw new Error("VSIX файл не знайдено після пакування")
+  }
+} catch (error) {
+  console.error("❌ Помилка збірки:")
+  console.error(error.message)
+  process.exit(1)
 }

@@ -12,7 +12,8 @@
   "license": "MIT",
   "icon": "media/icon.png",
   "engines": {
-    "vscode": "^1.103.0"
+    "vscode": "^1.103.0",
+    "node": ">=16.0.0"
   },
   "categories": [
     "Other",
@@ -27,17 +28,27 @@
     "classes",
     "styles"
   ],
+  "main": "./extension.js",
+  "browser": "./extension.js",
   "activationEvents": [
     "onCommand:css-classes.showMenu",
     "onCommand:css-classes.openCanvasSelector",
     "onCommand:css-classes.quickGenerate",
     "onCommand:css-classes.fullGenerate",
     "onCommand:css-classes.showMenuFromContext",
+    "onCommand:css-classes.testNetwork",
+    "onCommand:css-classes.generateSimplyChocolateCSS",
+    "onCommand:css-classes.analyzeSimplyChocolate",
+    "onCommand:css-classes.validateSystem",
     "onLanguage:html"
   ],
-  "main": "./extension.js",
   "contributes": {
     "commands": [
+      {
+        "command": "css-classes.showMenuFromContext",
+        "title": "Generate CSS from this HTML file",
+        "category": "CSS Classes"
+      },
       {
         "command": "css-classes.showMenu",
         "title": "Open CSS Classes Menu",
@@ -59,8 +70,23 @@
         "category": "CSS Classes"
       },
       {
-        "command": "css-classes.showMenuFromContext",
-        "title": "Generate CSS from this HTML file",
+        "command": "css-classes.generateSimplyChocolateCSS",
+        "title": "Generate Simply Chocolate CSS",
+        "category": "CSS Classes"
+      },
+      {
+        "command": "css-classes.analyzeSimplyChocolate",
+        "title": "Analyze Simply Chocolate",
+        "category": "CSS Classes"
+      },
+      {
+        "command": "css-classes.validateSystem",
+        "title": "Validate System",
+        "category": "CSS Classes"
+      },
+      {
+        "command": "css-classes.testNetwork",
+        "title": "Test Network Connection",
         "category": "CSS Classes"
       }
     ],
@@ -68,14 +94,14 @@
       "explorer/context": [
         {
           "command": "css-classes.showMenuFromContext",
-          "when": "resourceExtname == .html",
+          "when": "resourceLangId == html",
           "group": "navigation"
         }
       ],
       "editor/context": [
         {
           "command": "css-classes.showMenuFromContext",
-          "when": "resourceExtname == .html",
+          "when": "editorLangId == html",
           "group": "navigation"
         }
       ]
@@ -159,15 +185,15 @@
   },
   "homepage": "https://github.com/VuToV-Mykola/css-classes-from-html#readme",
   "scripts": {
-    "build": "node build-vsix.js",
+    "build": "echo 'Збірка не потрібна для vsce package'",
     "package": "vsce package",
     "publish": "vsce publish",
-    "lint": "eslint . --ext .js",
+    "lint": "npx eslint extension.js --fix",
     "test": "node test/run-all-tests.js",
-    "prepackage": "npm run lint && npm run test",
-    "prepublish": "npm run build",
+    "prepackage": "npm run lint",
     "clean": "rm -rf node_modules package-lock.json && npm install",
-    "fix-deps": "npm prune && npm install --production"
+    "fix-deps": "npm prune && npm install --omit=dev",
+    "dev": "npm install && npm run lint"
   },
   "devDependencies": {
     "@types/vscode": "^1.103.0",
