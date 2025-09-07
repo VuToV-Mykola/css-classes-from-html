@@ -460,10 +460,10 @@ class HierarchyMatcher {
         matrix[j][i] = str1[i - 1] === str2[j - 1]
           ? matrix[j - 1][i - 1]
           : Math.min(
-              matrix[j - 1][i] + 1,
-              matrix[j][i - 1] + 1,
-              matrix[j - 1][i - 1] + 1
-            );
+            matrix[j - 1][i] + 1,
+            matrix[j][i - 1] + 1,
+            matrix[j - 1][i - 1] + 1
+          );
       }
     }
     

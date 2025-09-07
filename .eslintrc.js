@@ -7,7 +7,10 @@ module.exports = {
   extends: ["eslint:recommended"],
   parserOptions: {
     ecmaVersion: 2022,
-    sourceType: "module"
+    sourceType: "script",
+    ecmaFeatures: {
+      globalReturn: true
+    }
   },
   rules: {
     "no-unused-vars": "warn",

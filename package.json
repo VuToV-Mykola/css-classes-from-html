@@ -2,7 +2,7 @@
   "name": "css-classes-from-html",
   "displayName": "CSS Classes from HTML",
   "description": "Generate CSS classes from HTML with Figma integration",
-  "version": "0.0.8",
+  "version": "0.0.7",
   "publisher": "vutov-mykola",
   "author": {
     "name": "VuToV-Mykola",
@@ -34,15 +34,6 @@
   "main": "./extension.js",
   "browser": "./extension.js",
   "activationEvents": [
-    "onCommand:css-classes.showMenu",
-    "onCommand:css-classes.showMenuFromContext",
-    "onCommand:css-classes.openCanvasSelector",
-    "onCommand:css-classes.quickGenerate",
-    "onCommand:css-classes.fullGenerate",
-    "onCommand:css-classes.testNetwork",
-    "onCommand:css-classes.generateSimplyChocolateCSS",
-    "onCommand:css-classes.analyzeSimplyChocolate",
-    "onCommand:css-classes.validateSystem",
     "onLanguage:html"
   ],
   "contributes": {
@@ -240,7 +231,7 @@
     "build": "echo 'Build completed - no compilation needed'",
     "package": "vsce package --out ./build/",
     "publish": "vsce publish",
-    "lint": "npx eslint extension.js backend/**/*.js frontend/**/*.js --fix",
+    "lint": "npx eslint extension.js backend/**/*.js --fix",
     "test": "node test/integration-test.js",
     "prepackage": "npm run lint",
     "clean": "rm -rf node_modules package-lock.json build/*.vsix && npm install",

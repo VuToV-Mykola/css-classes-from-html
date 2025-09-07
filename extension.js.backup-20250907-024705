@@ -25,7 +25,7 @@ const configManager = {
   initialize(extensionPath) {
     const configDir = path.join(extensionPath, ".vscode", "css-classes-config")
     this.configPath = path.join(configDir, "last-settings.json")
-
+    
     // ✅ FIX: Створюємо директорію синхронно з правильною обробкою помилок
     try {
       if (!fs.existsSync(configDir)) {
@@ -160,7 +160,7 @@ function activate(context) {
 
     // ✅ FIX: Правильна реєстрація всіх команд з try-catch
     const commands = []
-
+    
     try {
       commands.push(
         vscode.commands.registerCommand("css-classes.showMenu", async () => {
@@ -176,7 +176,7 @@ function activate(context) {
       )
 
       commands.push(
-        vscode.commands.registerCommand("css-classes.showMenuFromContext", async uri => {
+        vscode.commands.registerCommand("css-classes.showMenuFromContext", async (uri) => {
           outputChannel.appendLine("🎯 Command 'css-classes.showMenuFromContext' executed")
           outputChannel.appendLine(`📁 URI: ${uri ? uri.fsPath : "undefined"}`)
           try {
@@ -203,7 +203,7 @@ function activate(context) {
       )
 
       commands.push(
-        vscode.commands.registerCommand("css-classes.quickGenerate", async args => {
+        vscode.commands.registerCommand("css-classes.quickGenerate", async (args) => {
           outputChannel.appendLine("🎯 Command 'css-classes.quickGenerate' executed")
           try {
             await quickGenerateCSS(context, args)
@@ -275,6 +275,7 @@ function activate(context) {
       )
 
       outputChannel.appendLine(`✅ Successfully registered ${commands.length} commands`)
+
     } catch (error) {
       outputChannel.appendLine(`❌ Error registering commands: ${error.message}`)
       vscode.window.showErrorMessage(`Помилка реєстрації команд: ${error.message}`)
@@ -291,7 +292,8 @@ function activate(context) {
     setupNetworkLogging()
 
     outputChannel.appendLine("🎉 CSS Classes from HTML Extension fully activated!")
-    return {success: true, commandsCount: commands.length}
+    return { success: true, commandsCount: commands.length }
+
   } catch (error) {
     console.error("❌ Fatal error during activation:", error)
     if (outputChannel) {
@@ -308,27 +310,27 @@ function activate(context) {
  */
 function deactivate() {
   console.log("🔄 CSS Classes from HTML Extension deactivating...")
-
+  
   try {
     if (panel) {
       panel.dispose()
       panel = null
       console.log("✅ WebView panel disposed")
     }
-
+    
     if (outputChannel) {
       outputChannel.appendLine("🔄 Extension deactivating...")
       outputChannel.dispose()
       outputChannel = null
       console.log("✅ Output channel disposed")
     }
-
+    
     if (integrationEngine) {
       integrationEngine.clearCache()
       integrationEngine = null
       console.log("✅ Integration engine cleared")
     }
-
+    
     console.log("✅ CSS Classes from HTML Extension deactivated successfully")
   } catch (error) {
     console.error("❌ Error during deactivation:", error.message)
@@ -347,7 +349,7 @@ function updateWorkspaceRoot() {
     } else {
       workspaceRoot = __dirname
     }
-
+    
     if (outputChannel) {
       outputChannel.appendLine(`📂 Workspace root updated: ${workspaceRoot}`)
     }
@@ -387,9 +389,7 @@ async function handleHtmlContext(uri = null) {
           htmlFilePath: activeEditor.document.uri.fsPath,
           source: "active-tab"
         }
-        outputChannel?.appendLine(
-          `📄 HTML context from active editor: ${path.basename(activeEditor.document.uri.fsPath)}`
-        )
+        outputChannel?.appendLine(`📄 HTML context from active editor: ${path.basename(activeEditor.document.uri.fsPath)}`)
       } else {
         // ✅ FIX: Немає HTML контексту - не помилка
         htmlContext = {
@@ -449,13 +449,12 @@ async function openMainMenu(context) {
           panel.webview.postMessage({
             command: "htmlContextLoaded",
             hasHtmlContext: !!htmlContext.activeHtmlFile,
-            htmlFileName: htmlContext.activeHtmlFile
-              ? path.basename(htmlContext.activeHtmlFile)
-              : null,
+            htmlFileName: htmlContext.activeHtmlFile ? path.basename(htmlContext.activeHtmlFile) : null,
             source: htmlContext.source
           })
         }
       }, 500)
+
     } catch (error) {
       outputChannel?.appendLine(`❌ Error loading menu HTML: ${error.message}`)
       panel.webview.html = getFallbackHTML()
@@ -469,6 +468,7 @@ async function openMainMenu(context) {
     })
 
     outputChannel?.appendLine("✅ Main menu opened successfully")
+
   } catch (error) {
     outputChannel?.appendLine(`❌ Error opening main menu: ${error.message}`)
     vscode.window.showErrorMessage(`Помилка відкриття меню: ${error.message}`)
@@ -485,10 +485,10 @@ async function loadMenuHTML(context, panel) {
   if (!fs.existsSync(htmlPath)) {
     outputChannel?.appendLine(`⚠️ Menu HTML not found at: ${htmlPath}`)
     outputChannel?.appendLine("🔧 Creating default menu HTML...")
-
+    
     const defaultHTML = getDefaultMenuHTML()
     const frontendDir = path.join(context.extensionPath, "frontend")
-
+    
     try {
       if (!fs.existsSync(frontendDir)) {
         fs.mkdirSync(frontendDir, {recursive: true})
@@ -519,7 +519,7 @@ function processWebviewResources(htmlContent, context, panel) {
     // ✅ FIX: Обробка script тегів
     htmlContent = htmlContent.replace(/<script src="([^"]+)"><\/script>/g, (match, src) => {
       if (src.startsWith("http")) return match
-
+      
       const scriptPath = vscode.Uri.file(path.join(context.extensionPath, "frontend", src))
       const scriptUri = panel.webview.asWebviewUri(scriptPath)
       return `<script src="${scriptUri}"></script>`
@@ -528,7 +528,7 @@ function processWebviewResources(htmlContent, context, panel) {
     // ✅ FIX: Обробка CSS файлів
     htmlContent = htmlContent.replace(/<link rel="stylesheet" href="([^"]+)">/g, (match, href) => {
       if (href.startsWith("http")) return match
-
+      
       const stylePath = vscode.Uri.file(path.join(context.extensionPath, "frontend", href))
       const styleUri = panel.webview.asWebviewUri(stylePath)
       return `<link rel="stylesheet" href="${styleUri}">`
@@ -711,7 +711,7 @@ async function quickGenerateCSS(context, args = null) {
     outputChannel?.appendLine("⚡ Starting quick CSS generation...")
 
     let targetUri = null
-
+    
     if (args && args.fsPath) {
       targetUri = args
     } else if (vscode.window.activeTextEditor) {
@@ -739,10 +739,11 @@ async function quickGenerateCSS(context, args = null) {
     const savedPath = await saveGeneratedCSS(cssContent, targetUri.fsPath)
 
     await openGeneratedCSSFile(savedPath)
-
+    
     const successMessage = `✅ CSS згенеровано: ${path.basename(savedPath)}`
     vscode.window.showInformationMessage(successMessage)
     outputChannel?.appendLine(successMessage)
+
   } catch (error) {
     outputChannel?.appendLine(`❌ Error in quick generate: ${error.message}`)
     vscode.window.showErrorMessage(`Помилка швидкої генерації: ${error.message}`)
@@ -851,12 +852,12 @@ function makeHttpRequest(url, method = "GET", data = null, headers = {}, timeout
       const parsedUrl = new URL(url)
       const options = {
         hostname: parsedUrl.hostname,
-        port: parsedUrl.port || (parsedUrl.protocol === "https:" ? 443 : 80),
+        port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
         path: parsedUrl.pathname + parsedUrl.search,
         method: method,
         headers: {
           "User-Agent": "VSCode-CSS-Classes-Extension/2.1.0",
-          Accept: "application/json",
+          "Accept": "application/json",
           ...headers
         },
         timeout: timeout,
@@ -1001,7 +1002,7 @@ async function handleLoadSettings(panel, context) {
 
 async function handleSaveSettings(panel, context, settings) {
   try {
-    globalConfig = {...globalConfig, ...settings}
+    globalConfig = { ...globalConfig, ...settings }
     const success = configManager.saveConfig(globalConfig)
     panel.webview.postMessage({
       command: "settingsSaved",
@@ -1039,6 +1040,7 @@ async function handleGenerateCSS(panel, context, settings) {
     })
 
     outputChannel?.appendLine(`✅ CSS generation completed: ${savedPath}`)
+
   } catch (error) {
     outputChannel?.appendLine(`❌ Error in CSS generation: ${error.message}`)
     panel.webview.postMessage({
@@ -1071,7 +1073,7 @@ async function handleClearSettings(panel, context) {
 async function handleGetFigmaCanvases(panel, message) {
   try {
     outputChannel?.appendLine("🎨 Getting Figma canvases...")
-
+    
     // ✅ FIX: Заглушка для Figma Canvas
     panel.webview.postMessage({
       command: "figmaCanvases",
@@ -1091,7 +1093,7 @@ async function handleGetFigmaCanvases(panel, message) {
 async function handleGetFigmaLayers(panel, message) {
   try {
     outputChannel?.appendLine("🎨 Getting Figma layers...")
-
+    
     panel.webview.postMessage({
       command: "figmaLayers",
       layers: [],
@@ -1110,7 +1112,7 @@ async function handleGetFigmaLayers(panel, message) {
 async function handleGetLayerStyles(panel, message) {
   try {
     outputChannel?.appendLine("🎨 Getting layer styles...")
-
+    
     panel.webview.postMessage({
       command: "layerStyles",
       layerId: message.layerId,
@@ -1173,36 +1175,35 @@ async function analyzeSimplyChocolate(context) {
 async function validateSystem(context) {
   try {
     outputChannel?.appendLine("🔍 System validation started...")
-
+    
     // ✅ FIX: Базова валідація системи
     const checks = []
-
+    
     // Перевірка Node.js
     checks.push(`Node.js: ${process.version} ✅`)
-
+    
     // Перевірка VS Code
     checks.push(`VS Code API: ${vscode.version || "Unknown"} ✅`)
-
+    
     // Перевірка файлів
     const extensionPath = context?.extensionPath || __dirname
     const packageJsonPath = path.join(extensionPath, "package.json")
     checks.push(`Package.json: ${fs.existsSync(packageJsonPath) ? "✅" : "❌"}`)
-
+    
     // Перевірка backend
     const backendPath = path.join(extensionPath, "backend")
     checks.push(`Backend modules: ${fs.existsSync(backendPath) ? "✅" : "❌"}`)
-
+    
     // Перевірка frontend
     const frontendPath = path.join(extensionPath, "frontend")
     checks.push(`Frontend files: ${fs.existsSync(frontendPath) ? "✅" : "❌"}`)
-
+    
     const report = checks.join("\n")
     outputChannel?.appendLine("📊 System Validation Report:")
     outputChannel?.appendLine(report)
-
-    vscode.window.showInformationMessage(
-      "✅ Валідація системи завершена. Перевірте Output Channel."
-    )
+    
+    vscode.window.showInformationMessage("✅ Валідація системи завершена. Перевірте Output Channel.")
+    
   } catch (error) {
     outputChannel?.appendLine(`❌ Error in system validation: ${error.message}`)
     vscode.window.showErrorMessage(`Помилка валідації: ${error.message}`)
@@ -1550,13 +1551,14 @@ function getDefaultMenuHTML() {
             });
             
             // Вибір нового режиму
-            document.querySelector(\`[data-mode="\${mode}"]\`).classList.add('selected');
+            document.querySelector(`[data-mode="${mode}"]`).classList.add('selected');
             selectedMode = mode;
             
             // Активація кнопки генерації
             document.getElementById('generateBtn').disabled = false;
             
-            showStatus(\`Режим "\${getModeName(mode)}" вибрано\`, 'success');
+            showStatus(`Режим "${getModeName(mode)}" 
+            `, 'success');
         }
         
         function getModeName(mode) {
@@ -1598,20 +1600,19 @@ function getDefaultMenuHTML() {
             vscode.postMessage({ command: 'validateSystem' });
         }
         
-        function showStatus(message, type) {
-            if (!type) type = 'info';
+        function showStatus(message, type = 'info') {
             const status = document.getElementById('status');
-            status.className = 'status ' + type + ' show';
+            status.className = `status ${type} show`;
             status.textContent = message;
             
             // Автоматичне приховування через 5 секунд
-            setTimeout(function() {
+            setTimeout(() => {
                 status.classList.remove('show');
             }, 5000);
         }
         
         // Обробка повідомлень від VSCode
-        window.addEventListener('message', function(event) {
+        window.addEventListener('message', event => {
             const message = event.data;
             
             switch (message.command) {
@@ -1619,20 +1620,20 @@ function getDefaultMenuHTML() {
                     if (message.success) {
                         showStatus('✅ CSS успішно згенеровано!', 'success');
                     } else {
-                        showStatus('❌ Помилка: ' + message.error, 'error');
+                        showStatus(`❌ Помилка: ${message.error}`, 'error');
                     }
                     break;
                     
                 case 'htmlContextLoaded':
                     if (message.hasHtmlContext) {
-                        showStatus('📄 HTML файл: ' + message.htmlFileName, 'info');
+                        showStatus(`📄 HTML файл: ${message.htmlFileName}`, 'info');
                     } else {
                         showStatus('⚠️ HTML файл не знайдено. Відкрийте HTML файл для генерації CSS.', 'error');
                     }
                     break;
                     
                 case 'error':
-                    showStatus('❌ Помилка: ' + message.message, 'error');
+                    showStatus(`❌ Помилка: ${message.message}`, 'error');
                     break;
                     
                 default:

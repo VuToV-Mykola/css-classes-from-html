@@ -33,7 +33,7 @@ try {
 
   // Спрощена перевірка синтаксису
   try {
-    const eslintCheck = execSync("npx eslint extension.js --no-eslintrc --env node", {
+    const eslintCheck = execSync("npx eslint extension.js --env node --env es2022 --parser-options ecmaVersion:2022,sourceType:script", {
       encoding: "utf8"
     })
     console.log("✅ Синтаксис extension.js валідний")

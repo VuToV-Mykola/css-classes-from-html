@@ -1,5 +1,5 @@
 /* Простий smoke-test проектних модулів */
-const FigmaAPIClient = require('../core/FigmaAPIClient');
+const FigmaAPIClient = require('../backend/core/FigmaAPIClient');
 (async ()=>{
   console.log('Running smoke tests...');
   try {

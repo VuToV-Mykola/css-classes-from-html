@@ -12,7 +12,7 @@ NC='\033[0m' # No Color
 
 # Змінні
 PROJECT_NAME="css-classes-from-html"
-VERSION="0.0.7"
+VERSION=$(node -p "require('./package.json').version")
 LOG_DIR="log"
 OUTPUT_DIR="output"
 BUILD_DIR="build"
@@ -86,31 +86,33 @@ npm install --save-dev @types/vscode @vscode/test-electron @vscode/vsce 2>&1 | t
 check_error "Не вдалось встановити dev залежності"
 
 # Перевірка основних файлів
-# log "${YELLOW}📝 Перевірка структури проєкту...${NC}"
+log "${YELLOW}📝 Перевірка структури проєкту...${NC}"
 
-# REQUIRED_FILES=(
-#     "extension.js"
-#     "package.json"
-#     "frontend/css-classes-from-html-menu.html"
-#     "frontend/configurationManager.js"
-#     "core/FigmaAPIClient.js"
-#     "core/HTMLParser.js"
-#     "core/StyleMatcher.js"
-#     "core/CSSGenerator.js"
-# )
+REQUIRED_FILES=(
+    "extension.js"
+    "package.json"
+    "frontend/css-classes-from-html-menu.html"
+    "backend/core/FigmaAPIClient.js"
+    "backend/core/HTMLParser.js"
+    "backend/core/IntegrationEngine.js"
+    "backend/generators/CSSGenerator.js"
+    "backend/matchers/StyleMatcher.js"
+    "backend/matchers/HierarchyMatcher.js"
+    "backend/analyzers/FigmaAnalyzer.js"
+)
 
-# for file in "${REQUIRED_FILES[@]}"; do
-#     if [ -f "$file" ]; then
-#         log "${GREEN}✓ $file${NC}"
-#     else
-#         log "${RED}❌ Відсутній файл: $file${NC}"
-#         exit 1
-#     fi
-# done
+for file in "${REQUIRED_FILES[@]}"; do
+    if [ -f "$file" ]; then
+        log "${GREEN}✓ $file${NC}"
+    else
+        log "${RED}❌ Відсутній файл: $file${NC}"
+        exit 1
+    fi
+done
 
 # Перевірка синтаксису JavaScript
 log "${YELLOW}🔧 Перевірка синтаксису JavaScript...${NC}"
-for file in extension.js core/*.js frontend/*.js backend/*.js; do
+for file in extension.js backend/**/*.js; do
     if [ -f "$file" ]; then
         node -c "$file" 2>&1 | tee -a "$LOG_FILE"
         if [ $? -eq 0 ]; then

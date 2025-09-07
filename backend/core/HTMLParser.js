@@ -338,36 +338,36 @@ class HTMLParser {
 
     // Аналіз за тегом
     switch (tag) {
-      case 'button':
-        return 'interactive';
-      case 'h1':
-      case 'h2':
-      case 'h3':
-      case 'h4':
-      case 'h5':
-      case 'h6':
-        return 'heading';
-      case 'nav':
-        return 'navigation';
-      case 'ul':
-      case 'ol':
-        return 'navigation';
-      case 'img':
-        return 'image';
-      case 'section':
-      case 'article':
-      case 'aside':
-        return 'content-section';
-      case 'main':
-        return 'main';
-      case 'header':
-        return 'header';
-      case 'footer':
-        return 'footer';
-      case 'a':
-        return 'interactive';
-      default:
-        break;
+    case 'button':
+      return 'interactive';
+    case 'h1':
+    case 'h2':
+    case 'h3':
+    case 'h4':
+    case 'h5':
+    case 'h6':
+      return 'heading';
+    case 'nav':
+      return 'navigation';
+    case 'ul':
+    case 'ol':
+      return 'navigation';
+    case 'img':
+      return 'image';
+    case 'section':
+    case 'article':
+    case 'aside':
+      return 'content-section';
+    case 'main':
+      return 'main';
+    case 'header':
+      return 'header';
+    case 'footer':
+      return 'footer';
+    case 'a':
+      return 'interactive';
+    default:
+      break;
     }
 
     // Аналіз за класами
