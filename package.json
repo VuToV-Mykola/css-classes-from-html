@@ -1,6 +1,6 @@
 {
   "name": "css-classes-from-html",
-  "displayName": "CSS Classes from HTML v0.0.7",
+  "displayName": "CSS Classes from HTML",
   "description": "Автоматична генерація CSS класів з HTML файлів з реальною інтеграцією Figma",
   "version": "0.0.7",
   "publisher": "vutov-mykola",
@@ -10,7 +10,7 @@
   },
   "license": "MIT",
   "engines": {
-    "vscode": "^1.103.0",
+    "vscode": "^1.74.0",
     "node": ">=18.0.0"
   },
   "categories": [
@@ -32,27 +32,24 @@
   ],
   "main": "./extension.js",
   "activationEvents": [
-    "onLanguage:html"
+    "onLanguage:html",
+    "onCommand:css-classes.showMenu",
+    "onCommand:css-classes.showMenuFromContext",
+    "onCommand:css-classes.quickGenerate"
   ],
   "contributes": {
     "commands": [
       {
         "command": "css-classes.showMenu",
-        "title": "CSS Classes: Show Enhanced Menu",
-        "category": "CSS Classes Enhanced",
-        "icon": "$(gear)"
+        "title": "Show Main Menu"
       },
       {
         "command": "css-classes.showMenuFromContext",
-        "title": "CSS Classes: Generate Enhanced CSS from this HTML file",
-        "category": "CSS Classes Enhanced",
-        "icon": "$(file-code)"
+        "title": "Generate CSS from HTML"
       },
       {
         "command": "css-classes.quickGenerate",
-        "title": "CSS Classes: Quick Generate CSS",
-        "category": "CSS Classes Enhanced",
-        "icon": "$(zap)"
+        "title": "Quick Generate CSS"
       }
     ],
     "menus": {
