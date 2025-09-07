@@ -1,4 +1,4 @@
-# 🎨 CSS Classes from HTML v0.0.7
+# 🎨 CSS Classes from HTML v4.0
 
 [![Version](https://img.shields.io/badge/version-4.0.0-blue.svg)](https://github.com/VuToV-Mykola/css-classes-from-html)
 [![VS Code](https://img.shields.io/badge/VS_Code-007ACC?logo=visual-studio-code&logoColor=white)](https://code.visualstudio.com/)
