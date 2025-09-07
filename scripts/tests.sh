@@ -252,16 +252,73 @@ test_dependencies() {
     
     # Перевірка критичних залежностей
     local critical_deps=("jsdom")
+    local missing_deps=()
     
     for dep in "${critical_deps[@]}"; do
         if [ ! -d "node_modules/$dep" ]; then
+            missing_deps+=("$dep")
             echo "Critical dependency missing: $dep" | tee -a "$LOG_FILE"
-            return 1
+        else
+            echo "✓ $dep available" | tee -a "$LOG_FILE"
         fi
-        echo "✓ $dep available" | tee -a "$LOG_FILE"
     done
     
-    return 0
+    # Автоматичне встановлення відсутніх залежностей
+    if [ ${#missing_deps[@]} -gt 0 ]; then
+        log_warning "Installing missing dependencies: ${missing_deps[*]}"
+        
+        for dep in "${missing_deps[@]}"; do
+            echo "Installing $dep..." | tee -a "$LOG_FILE"
+            if npm install "$dep" > logs/tests/npm-install-$dep.log 2>&1; then
+                echo "✓ $dep installed successfully" | tee -a "$LOG_FILE"
+                
+                # Перевірка після встановлення
+                if [ -d "node_modules/$dep" ]; then
+                    echo "✓ $dep now available" | tee -a "$LOG_FILE"
+                else
+                    echo "❌ $dep still missing after installation" | tee -a "$LOG_FILE"
+                    return 1
+                fi
+            else
+                echo "❌ Failed to install $dep" | tee -a "$LOG_FILE"
+                tail -5 logs/tests/npm-install-$dep.log | tee -a "$LOG_FILE"
+                return 1
+            fi
+        done
+    fi
+    
+    # Додаткова перевірка: чи можна завантажити jsdom
+    log_info "Testing jsdom availability..."
+    cat > "$TESTS_DIR/jsdom-test.js" << 'EOF'
+try {
+    const jsdom = require('jsdom');
+    const { JSDOM } = jsdom;
+    
+    // Простий тест jsdom
+    const dom = new JSDOM(`<!DOCTYPE html><html><body><div class="test">Hello</div></body></html>`);
+    const div = dom.window.document.querySelector('.test');
+    
+    if (div && div.textContent === 'Hello') {
+        console.log('✅ jsdom working correctly');
+        process.exit(0);
+    } else {
+        console.log('❌ jsdom not working properly');
+        process.exit(1);
+    }
+} catch (error) {
+    console.error('❌ jsdom test failed:', error.message);
+    process.exit(1);
+}
+EOF
+
+    if node "$TESTS_DIR/jsdom-test.js" > logs/tests/jsdom-test.log 2>&1; then
+        echo "✓ jsdom functionality verified" | tee -a "$LOG_FILE"
+        return 0
+    else
+        echo "❌ jsdom functionality test failed" | tee -a "$LOG_FILE"
+        cat logs/tests/jsdom-test.log | tee -a "$LOG_FILE"
+        return 1
+    fi
 }
 
 # ✅ Test 6: Functional integration test

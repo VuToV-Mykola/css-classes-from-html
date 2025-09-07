@@ -1,40 +1,78 @@
 #!/bin/bash
 
-# ✅ CSS Classes from HTML v0.0.7 - Deploy Script
+# 🎨 CSS Classes from HTML v0.0.7 - Enhanced Deploy Script
 # Автоматичне розгортання розширення VS Code з реальною Figma інтеграцією
 # Author: VuToV-Mykola
 # Version: 0.0.7
 
 set -e # Зупинка на першій помилці
 
-# ✅ Кольори для виводу
+# 🎨 Кольори для виводу
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
+ORANGE='\033[0;33m'
+MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
 
-# ✅ Функції логування
+# 🎨 Символи та емодзі
+CHECK="✅"
+WARN="⚠️"
+ERROR="❌"
+INFO="ℹ️"
+ROCKET="🚀"
+GEAR="⚙️"
+PACKAGE="📦"
+TEST="🧪"
+REPORT="📋"
+GITHUB="🐙"
+MARKETPLACE="🏪"
+TRASH="🗑️"
+RESET="🔄"
+SUCCESS="🎉"
+FAIL="💥"
+
+# ✅ Функції логування з емодзі
 log_info() {
-    echo -e "${BLUE}ℹ️  $1${NC}" | tee -a "$LOG_FILE"
+    echo -e "${BLUE}${INFO}  $1${NC}" | tee -a "$LOG_FILE"
 }
 
 log_success() {
-    echo -e "${GREEN}✅ $1${NC}" | tee -a "$LOG_FILE"
+    echo -e "${GREEN}${CHECK} $1${NC}" | tee -a "$LOG_FILE"
 }
 
 log_warning() {
-    echo -e "${YELLOW}⚠️  $1${NC}" | tee -a "$LOG_FILE"
+    echo -e "${YELLOW}${WARN}  $1${NC}" | tee -a "$LOG_FILE"
 }
 
 log_error() {
-    echo -e "${RED}❌ $1${NC}" | tee -a "$LOG_FILE"
+    echo -e "${RED}${ERROR} $1${NC}" | tee -a "$LOG_FILE"
 }
 
 log_header() {
-    echo -e "${PURPLE}🚀 $1${NC}" | tee -a "$LOG_FILE"
+    echo -e "${PURPLE}${ROCKET} $1${NC}" | tee -a "$LOG_FILE"
+}
+
+log_step() {
+    echo -e "${CYAN}${GEAR} $1${NC}" | tee -a "$LOG_FILE"
+}
+
+# 🎨 Анімація завантаження
+spinner() {
+    local pid=$1
+    local delay=0.1
+    local spinstr='|/-\'
+    while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+        local temp=${spinstr#?}
+        printf " [%c]  " "$spinstr"
+        local spinstr=$temp${spinstr%"$temp"}
+        sleep $delay
+        printf "\b\b\b\b\b\b"
+    done
+    printf "    \b\b\b\b"
 }
 
 # ✅ Конфігурація проєкту
@@ -45,153 +83,291 @@ PUBLISHER="vutov-mykola"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 LOG_FILE="logs/deploy/deploy_${TIMESTAMP}.log"
 
+# ✅ Глобальні змінні для відстеження статусу
+CRITICAL_ERRORS=0
+VALIDATION_PASSED=true
+
 # ✅ Створення log файлу
 mkdir -p logs/deploy
 touch "$LOG_FILE"
 
+# 🎨 Красивий роздільник
+print_separator() {
+    echo -e "${MAGENTA}┌──────────────────────────────────────────────────────────────┐${NC}" | tee -a "$LOG_FILE"
+}
+
+print_separator_mid() {
+    echo -e "${MAGENTA}├──────────────────────────────────────────────────────────────┤${NC}" | tee -a "$LOG_FILE"
+}
+
+print_separator_end() {
+    echo -e "${MAGENTA}└──────────────────────────────────────────────────────────────┘${NC}" | tee -a "$LOG_FILE"
+}
+
+# ✅ Функція для отримання відповіді від користувача
+ask_user() {
+    local prompt="$1"
+    local default="$2"
+    local response
+    
+    print_separator_mid
+    echo -e "${YELLOW}❓ $prompt${NC}" | tee -a "$LOG_FILE"
+    while true; do
+        read -p "$(echo -e "${CYAN}👉 Відповідь [${default}]: ${NC}")" response
+        response=${response:-$default}
+        
+        case $response in
+            [Yy]* ) echo "✅ Користувач підтвердив: Так" >> "$LOG_FILE"; return 0;;
+            [Nn]* ) echo "❌ Користувач відхилив: Ні" >> "$LOG_FILE"; return 1;;
+            * ) echo -e "${RED}Будь ласка, відповідайте так (y) чи ні (n)${NC}";;
+        esac
+    done
+}
+
+# ✅ Безпечна функція для видалення старого розширення
+remove_old_extension() {
+    log_info "Перевірка наявності старого розширення..."
+    
+    # Безпечний пошук старого розширення
+    local old_extensions=""
+    if command -v code &> /dev/null; then
+        # Спробуємо знайти розширення через файлову систему
+        if [ -d "$HOME/.vscode/extensions" ]; then
+            old_extensions=$(find "$HOME/.vscode/extensions" -name "*css-classes*" -o -name "*vutov*" 2>/dev/null | head -5 || true)
+        fi
+        
+        # Альтернативний спосіб через list-extensions (з обробкою помилок)
+        if [ -z "$old_extensions" ]; then
+            old_extensions=$(code --list-extensions 2>/dev/null | grep -i "css-classes\|vutov" || true) || true
+        fi
+    fi
+    
+    if [ -n "$old_extensions" ]; then
+        echo -e "${YELLOW}📦 Знайдено старі версії розширення:${NC}" | tee -a "$LOG_FILE"
+        echo "$old_extensions" | while read -r ext; do
+            echo -e "   ${ORANGE}•${NC} $ext" | tee -a "$LOG_FILE"
+        done
+        
+        if ask_user "🗑️ Видалити старі версії розширення?" "y"; then
+            for ext in $old_extensions; do
+                # Безпечне видалення (тільки якщо це дійсно розширення)
+                if [[ "$ext" == *.* ]]; then
+                    log_info "Видалення розширення: $ext"
+                    if code --uninstall-extension "$ext" 2>> "$LOG_FILE"; then
+                        log_success "Розширення $ext видалено"
+                    else
+                        log_warning "Не вдалося видалити розширення $ext"
+                    fi
+                fi
+            done
+            log_success "Старі версії розширення видалено"
+        else
+            log_info "Пропущено видалення старих версій розширення"
+        fi
+    else
+        log_success "Старі версії розширення не знайдено"
+    fi
+}
+
+# ✅ Функція для скидання кешу та очищення
+reset_environment() {
+    log_info "Очищення середовища перед деплоєм..."
+    
+    if ask_user "🔄 Виконати очищення кешу та reset?" "y"; then
+        # Очищення кешу npm
+        log_info "Очищення npm кешу..."
+        if npm cache clean --force 2>/dev/null; then
+            log_success "npm кеш очищено"
+        else
+            log_warning "Не вдалося очистити кеш npm"
+        fi
+        
+        # Видалення node_modules (з підтвердженням)
+        if [ -d "node_modules" ] && ask_user "📁 Видалити node_modules?" "n"; then
+            rm -rf node_modules
+            log_success "node_modules видалено"
+        fi
+        
+        # Видалення старих збірок
+        if [ -d "builds" ]; then
+            rm -rf builds/*
+            log_success "Старі збірки очищено"
+        fi
+        
+        # Очищення логів деплою
+        if [ -d "logs/deploy" ]; then
+            find logs/deploy -name "*.log" -mtime +7 -delete 2>/dev/null || true
+            log_success "Старі логи очищено"
+        fi
+        
+        # Git reset (тільки якщо є git репозиторій)
+        if [ -d ".git" ] && ask_user "🔧 Виконати git reset --hard?" "n"; then
+            git reset --hard
+            git clean -fd
+            log_success "Git reset виконано"
+        fi
+    else
+        log_info "Пропущено очищення середовища"
+    fi
+}
+
 # ✅ Перевірка залежностей
 check_dependencies() {
-    log_info "Перевірка залежностей..."
+    log_step "Перевірка залежностей..."
     
-    # Node.js
-    if ! command -v node &> /dev/null; then
-        log_error "Node.js не знайдено. Встановіть Node.js 18+"
-        exit 1
-    fi
+    local deps=(
+        "Node.js:node:18+"
+        "npm:npm:9+"
+        "vsce:vsce:2+"
+        "VS Code:code:1.103+"
+    )
     
-    NODE_VERSION=$(node --version)
-    log_success "Node.js знайдено: $NODE_VERSION"
+    for dep in "${deps[@]}"; do
+        IFS=':' read -r name cmd min_version <<< "$dep"
+        
+        if ! command -v "$cmd" &> /dev/null; then
+            if [ "$name" == "vsce" ]; then
+                log_warning "$name не знайдено. Встановлюємо..."
+                if npm install -g @vscode/vsce; then
+                    log_success "$name встановлено"
+                else
+                    log_error "Не вдалося встановити $name"
+                    CRITICAL_ERRORS=$((CRITICAL_ERRORS + 1))
+                fi
+            else
+                log_error "$name не знайдено"
+                CRITICAL_ERRORS=$((CRITICAL_ERRORS + 1))
+            fi
+        else
+            version=$($cmd --version 2>/dev/null | head -n 1 || echo "unknown")
+            log_success "$name знайдено: $version"
+        fi
+    done
     
-    # npm
-    if ! command -v npm &> /dev/null; then
-        log_error "npm не знайдено"
-        exit 1
-    fi
-    
-    NPM_VERSION=$(npm --version)
-    log_success "npm знайдено: $NPM_VERSION"
-    
-    # VS Code (опціонально)
-    if command -v code &> /dev/null; then
-        CODE_VERSION=$(code --version | head -n 1)
-        log_success "VS Code знайдено: $CODE_VERSION"
-    else
-        log_warning "VS Code CLI не знайдено (опціонально)"
-    fi
-    
-    # vsce (VS Code Extension Manager)
-    if command -v vsce &> /dev/null; then
-        VSCE_VERSION=$(vsce --version)
-        log_success "vsce знайдено: $VSCE_VERSION"
-    else
-        log_warning "vsce не знайдено. Встановлюємо..."
-        npm install -g @vscode/vsce
-    fi
+    return 0
 }
 
 # ✅ Валідація файлів проєкту
 validate_project_files() {
-    log_info "Валідація файлів проєкту..."
+    log_step "Валідація файлів проєкту..."
     
-    REQUIRED_FILES=(
-        "package.json"
-        "extension.js"
-        "frontend/css-classes-from-html-menu.html"
-        "backend/core/FigmaAPIClient.js"
-        "backend/core/IntegrationEngine.js"
-        "backend/core/HTMLParser.js"
-        "backend/generators/SmartCSSGenerator.js"
-        "backend/utils/ImageImporter.js"
-        "backend/utils/FontImporter.js"
+    local REQUIRED_FILES=(
+        "package.json:📦 Конфігурація проєкту"
+        "extension.js:⚡ Головний файл розширення"
+        "frontend/css-classes-from-html-menu.html:🎨 HTML інтерфейс"
+        "backend/core/FigmaAPIClient.js:🔌 API клієнт Figma"
+        "backend/core/IntegrationEngine.js:⚙️ Рушій інтеграції"
+        "backend/core/HTMLParser.js:📄 Парсер HTML"
+        "backend/generators/SmartCSSGenerator.js:🎨 Генератор CSS"
+        "backend/utils/ImageImporter.js:🖼️ Імпортер зображень"
+        "backend/utils/FontImporter.js:🔤 Імпортер шрифтів"
     )
     
-    MISSING_FILES=()
+    local missing_count=0
     
-    for file in "${REQUIRED_FILES[@]}"; do
+    for file_desc in "${REQUIRED_FILES[@]}"; do
+        IFS=':' read -r file description <<< "$file_desc"
+        
         if [[ ! -f "$file" ]]; then
-            MISSING_FILES+=("$file")
+            log_error "Відсутній файл: $file ($description)"
+            missing_count=$((missing_count + 1))
+        else
+            echo -e "  ${GREEN}${CHECK}${NC} $file ${BLUE}($description)${NC}" | tee -a "$LOG_FILE"
         fi
     done
     
-    if [[ ${#MISSING_FILES[@]} -gt 0 ]]; then
-        log_error "Відсутні обов'язкові файли:"
-        for file in "${MISSING_FILES[@]}"; do
-            echo "  - $file" | tee -a "$LOG_FILE"
-        done
-        exit 1
+    if [[ $missing_count -gt 0 ]]; then
+        CRITICAL_ERRORS=$((CRITICAL_ERRORS + missing_count))
+        VALIDATION_PASSED=false
+        return 1
     fi
     
     log_success "Всі необхідні файли присутні (${#REQUIRED_FILES[@]} файлів)"
+    return 0
 }
 
 # ✅ Перевірка синтаксису JavaScript
 validate_javascript() {
-    log_info "Перевірка синтаксису JavaScript..."
+    log_step "Перевірка синтаксису JavaScript..."
     
-    JS_FILES=$(find . -name "*.js" -not -path "./node_modules/*" -not -path "./builds/*" -not -path "./logs/*" -not -path "./backups/*")
-    
-    SYNTAX_ERRORS=()
-    FILE_COUNT=0
+    local js_files=$(find . -name "*.js" -not -path "./node_modules/*" -not -path "./builds/*" -not -path "./logs/*" -not -path "./backups/*" 2>/dev/null | head -20 || true)
+    local error_count=0
+    local file_count=0
     
     while IFS= read -r file; do
         if [[ -f "$file" ]]; then
-            FILE_COUNT=$((FILE_COUNT + 1))
+            file_count=$((file_count + 1))
             if ! node -c "$file" 2>/dev/null; then
-                SYNTAX_ERRORS+=("$file")
+                log_error "Синтаксична помилка в: $file"
+                node -c "$file" 2>&1 | head -3 | sed 's/^/    /' | tee -a "$LOG_FILE"
+                error_count=$((error_count + 1))
+            else
+                echo -e "  ${GREEN}${CHECK}${NC} $file" | tee -a "$LOG_FILE"
             fi
         fi
-    done <<< "$JS_FILES"
+    done <<< "$js_files"
     
-    if [[ ${#SYNTAX_ERRORS[@]} -gt 0 ]]; then
-        log_error "Синтаксичні помилки в файлах:"
-        for file in "${SYNTAX_ERRORS[@]}"; do
-            echo "  - $file" | tee -a "$LOG_FILE"
-            node -c "$file" 2>&1 | head -3 | sed 's/^/    /' | tee -a "$LOG_FILE"
-        done
-        exit 1
+    if [[ $error_count -gt 0 ]]; then
+        CRITICAL_ERRORS=$((CRITICAL_ERRORS + error_count))
+        VALIDATION_PASSED=false
+        return 1
     fi
     
-    log_success "Синтаксис JavaScript валідний ($FILE_COUNT файлів перевірено)"
+    log_success "Синтаксис JavaScript валідний ($file_count файлів перевірено)"
+    return 0
 }
 
 # ✅ Встановлення залежностей
 install_dependencies() {
-    log_info "Встановлення залежностей..."
+    log_step "Встановлення залежностей..."
     
-    # Продакшн залежності
+    # Показати прогресивну інформацію
+    echo -e "${BLUE}📦 Встановлення залежностей...${NC}" | tee -a "$LOG_FILE"
+    
     if npm install --production > logs/deploy/npm-install.log 2>&1; then
         log_success "Продакшн залежності встановлено"
+        
+        # Dev залежності
+        if npm install --save-dev @vscode/vsce @types/vscode >> logs/deploy/npm-install.log 2>&1; then
+            log_success "Dev залежності встановлено"
+        else
+            log_warning "Деякі dev залежності недоступні"
+        fi
     else
         log_error "Помилка встановлення залежностей"
         cat logs/deploy/npm-install.log | tail -10 | tee -a "$LOG_FILE"
-        exit 1
+        CRITICAL_ERRORS=$((CRITICAL_ERRORS + 1))
+        VALIDATION_PASSED=false
+        return 1
     fi
     
-    # Dev залежності для збірки
-    if npm install --save-dev @vscode/vsce @types/vscode >> logs/deploy/npm-install.log 2>&1; then
-        log_success "Dev залежності встановлено"
-    else
-        log_warning "Деякі dev залежності можуть бути недоступні"
-    fi
+    return 0
 }
 
 # ✅ Оновлення package.json для збірки
 update_package_json() {
-    log_info "Оновлення package.json..."
+    log_step "Оновлення package.json..."
     
     # Створення backup
     cp package.json "backups/package.json.backup.${TIMESTAMP}"
     
-    # Оновлення версії та метаданих
+    # Красиве оновлення
+    echo -e "${BLUE}🔄 Оновлення версії до $VERSION...${NC}" | tee -a "$LOG_FILE"
+    
     node -e "
     const fs = require('fs');
     const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
     
-    pkg.version = '$VERSION';
-    pkg.displayName = '$EXTENSION_NAME v$VERSION';
-    pkg.description = 'Автоматична генерація CSS класів з HTML файлів з реальною інтеграцією Figma та розумним співставленням елементів';
-    pkg.main = './extension.js';
-    pkg.engines = { 'vscode': '^1.103.0', 'node': '>=18.0.0' };
+    // Оновлення основних полів
+    const updates = {
+        version: '$VERSION',
+        displayName: '$EXTENSION_NAME v$VERSION',
+        description: 'Автоматична генерація CSS класів з HTML файлів з реальною інтеграцією Figma',
+        main: './extension.js',
+        engines: { 'vscode': '^1.103.0', 'node': '>=18.0.0' }
+    };
+    
+    Object.assign(pkg, updates);
     
     // Оновлення scripts
     pkg.scripts = {
@@ -205,282 +381,241 @@ update_package_json() {
     // Оновлення keywords
     pkg.keywords = [
         'css', 'html', 'figma', 'generator', 'classes', 
-        'frontend', 'ui', 'design', 'automation', 'integration',
-        'smart-matching', 'real-figma', 'asset-import'
-    ];
-    
-    // Оновлення contributes
-    if (!pkg.contributes) pkg.contributes = {};
-    if (!pkg.contributes.commands) pkg.contributes.commands = [];
-    
-    // Додаємо основні команди
-    pkg.contributes.commands = [
-        {
-            'command': 'css-classes.showMenu',
-            'title': 'CSS Classes: Show Enhanced Menu',
-            'category': 'CSS Classes Enhanced',
-            'icon': '\$(gear)'
-        },
-        {
-            'command': 'css-classes.showMenuFromContext',
-            'title': 'CSS Classes: Generate Enhanced CSS from this HTML file',
-            'category': 'CSS Classes Enhanced',
-            'icon': '\$(file-code)'
-        },
-        {
-            'command': 'css-classes.quickGenerate',
-            'title': 'CSS Classes: Quick Generate CSS',
-            'category': 'CSS Classes Enhanced',
-            'icon': '\$(zap)'
-        }
+        'frontend', 'ui', 'design', 'automation', 'integration'
     ];
     
     fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
-    console.log('✅ package.json updated to version $VERSION');
+    console.log('✅ package.json оновлено успішно');
     " | tee -a "$LOG_FILE"
     
     log_success "package.json оновлено до версії $VERSION"
+    return 0
 }
 
 # ✅ Запуск тестів перед збіркою
 run_pre_build_tests() {
-    log_info "Запуск pre-build тестів..."
+    log_step "Запуск тестів..."
     
     if [ -f "scripts/tests.sh" ]; then
+        echo -e "${BLUE}${TEST} Запуск тестового скрипта...${NC}" | tee -a "$LOG_FILE"
+        
         if bash scripts/tests.sh > logs/deploy/pre-build-tests.log 2>&1; then
-            log_success "Pre-build тести пройдено"
+            log_success "Всі тести пройдено успішно"
         else
-            log_warning "Деякі тести не пройдено, але продовжуємо збірку"
+            log_error "Тести не пройдено"
             tail -10 logs/deploy/pre-build-tests.log | tee -a "$LOG_FILE"
+            CRITICAL_ERRORS=$((CRITICAL_ERRORS + 1))
+            VALIDATION_PASSED=false
+            return 1
         fi
     else
-        log_warning "Тестовий скрипт не знайдено, пропускаємо тести"
+        log_warning "Тестовий скрипт не знайдено"
     fi
+    
+    return 0
 }
 
 # ✅ Створення VSIX пакету
 create_vsix_package() {
-    log_info "Створення VSIX пакету..."
+    log_step "Створення VSIX пакету..."
     
     # Очищення попередніх збірок
     rm -rf builds/*
     mkdir -p builds
     
-    # Створення пакету
+    echo -e "${BLUE}${PACKAGE} Створення пакету розширення...${NC}" | tee -a "$LOG_FILE"
+    
     if vsce package --out builds/ > logs/deploy/vsce-package.log 2>&1; then
-        VSIX_FILE=$(find builds -name "*.vsix" | head -1)
-        if [[ -f "$VSIX_FILE" ]]; then
-            VSIX_SIZE=$(du -h "$VSIX_FILE" | cut -f1)
-            VSIX_NAME=$(basename "$VSIX_FILE")
-            log_success "VSIX пакет створено: $VSIX_NAME ($VSIX_SIZE)"
+        local vsix_file=$(find builds -name "*.vsix" | head -1)
+        if [[ -f "$vsix_file" ]]; then
+            local vsix_size=$(du -h "$vsix_file" | cut -f1)
+            local vsix_name=$(basename "$vsix_file")
             
-            # Копіювання в корінь для зручності
-            cp "$VSIX_FILE" .
-            log_info "Пакет скопійовано в корінь проєкту: $VSIX_NAME"
+            log_success "VSIX пакет створено: $vsix_name ($vsix_size)"
             
-            # Збереження інформації про пакет
-            echo "$VSIX_NAME" > builds/latest-package.txt
-            echo "$(date): $VSIX_NAME ($VSIX_SIZE)" >> builds/package-history.txt
+            # Копіювання для зручності
+            cp "$vsix_file" .
+            
+            # Збереження інформації
+            echo "$vsix_name" > builds/latest-package.txt
+            echo "$(date): $vsix_name ($vsix_size)" >> builds/package-history.txt
+            
+            # Показати інформацію про пакет
+            echo -e "${GREEN}📊 Інформація про пакет:${NC}" | tee -a "$LOG_FILE"
+            echo -e "  ${CYAN}•${NC} Назва: $vsix_name" | tee -a "$LOG_FILE"
+            echo -e "  ${CYAN}•${NC} Розмір: $vsix_size" | tee -a "$LOG_FILE"
+            echo -e "  ${CYAN}•${NC} Розташування: builds/$vsix_name" | tee -a "$LOG_FILE"
         else
-            log_error "VSIX файл не знайдено після збірки"
-            cat logs/deploy/vsce-package.log | tee -a "$LOG_FILE"
-            exit 1
+            log_error "VSIX файл не знайдено"
+            CRITICAL_ERRORS=$((CRITICAL_ERRORS + 1))
+            VALIDATION_PASSED=false
+            return 1
         fi
     else
-        log_error "Помилка при створенні VSIX пакету"
-        cat logs/deploy/vsce-package.log | tee -a "$LOG_FILE"
-        exit 1
+        log_error "Помилка створення пакету"
+        cat logs/deploy/vsce-package.log | tail -10 | tee -a "$LOG_FILE"
+        CRITICAL_ERRORS=$((CRITICAL_ERRORS + 1))
+        VALIDATION_PASSED=false
+        return 1
     fi
+    
+    return 0
+}
+
+# ✅ Функція для форс-пушу на GitHub
+force_push_to_github() {
+    if ask_user "🚀 Виконати git push --force до GitHub?" "n"; then
+        log_info "Виконуємо форс-пуш на GitHub..."
+        
+        # Перевірка наявності змін
+        if git diff --quiet && git diff --staged --quiet; then
+            log_info "Немає змін для коміту"
+        else
+            git add --all
+            git commit -m "🚀 Release v$VERSION - Automated deployment" || true
+        fi
+        
+        # Створення тегу
+        git tag -f "v$VERSION" -m "Release v$VERSION"
+        
+        if git push --force origin main --tags; then
+            log_success "Форс-пуш успішно виконано"
+        else
+            log_error "Помилка при форс-пуші"
+            return 1
+        fi
+    fi
+    return 0
+}
+
+# ✅ Функція для публікації на Marketplace
+publish_to_marketplace() {
+    if ask_user "🏪 Опублікувати на VS Code Marketplace?" "n"; then
+        log_info "Публікація розширення..."
+        
+        if vsce publish; then
+            log_success "Розширення опубліковано на Marketplace!"
+        else
+            log_error "Помилка публікації"
+            return 1
+        fi
+    fi
+    return 0
 }
 
 # ✅ Створення deployment звіту
 create_deployment_report() {
-    log_info "Створення deployment звіту..."
+    log_step "Створення звіту..."
     
-    REPORT_FILE="logs/deploy/deployment_report_${TIMESTAMP}.md"
+    local report_file="logs/deploy/deployment_report_${TIMESTAMP}.md"
     
     {
         echo "# 🚀 CSS Classes from HTML v$VERSION - Deployment Report"
         echo ""
-        echo "## 📊 Deployment Information"
-        echo "- **Date:** $(date)"
-        echo "- **Version:** $VERSION"
-        echo "- **Node.js:** $(node --version)"
-        echo "- **npm:** $(npm --version)"
-        echo "- **Extension Name:** $EXTENSION_NAME"
-        echo "- **Publisher:** $PUBLISHER"
+        echo "## 📊 Загальна інформація"
+        echo "- **Дата:** $(date)"
+        echo "- **Версія:** $VERSION"
+        echo "- **Статус:** $([[ $VALIDATION_PASSED == true ]] && echo '✅ Успішно' || echo '❌ Помилки')"
         echo ""
-        echo "## 📦 Package Information"
+        echo "## 📦 Інформація про пакет"
         if [ -f "builds/latest-package.txt" ]; then
-            PACKAGE_NAME=$(cat builds/latest-package.txt)
-            echo "- **VSIX File:** $PACKAGE_NAME"
-            echo "- **Size:** $(du -h "builds/$PACKAGE_NAME" | cut -f1)"
+            local pkg_name=$(cat builds/latest-package.txt)
+            echo "- **Файл:** $pkg_name"
+            echo "- **Розмір:** $(du -h "builds/$pkg_name" 2>/dev/null | cut -f1 || echo 'Невідомо')"
         fi
         echo ""
-        echo "## ✅ Validation Results"
-        echo "- **Required Files:** ✅ All present"
-        echo "- **JavaScript Syntax:** ✅ Valid"
-        echo "- **Dependencies:** ✅ Installed"
-        echo "- **Package Build:** ✅ Successful"
+        echo "## 📋 Результати перевірок"
+        echo "- **Файли:** $([[ $VALIDATION_PASSED == true ]] && echo '✅ Всі наявні' || echo '❌ Відсутні')"
+        echo "- **Синтаксис:** $([[ $VALIDATION_PASSED == true ]] && echo '✅ Валідний' || echo '❌ Помилки')"
+        echo "- **Залежності:** $([[ $VALIDATION_PASSED == true ]] && echo '✅ Встановлені' || echo '❌ Помилки')"
+        echo "- **Помилки:** $CRITICAL_ERRORS"
         echo ""
-        echo "## 📁 Project Structure"
-        echo "\`\`\`"
-        tree -I 'node_modules|.git' -L 2 || ls -la
-        echo "\`\`\`"
-        echo ""
-        echo "## 🎯 Next Steps"
-        echo "1. Test the extension in VS Code"
-        echo "2. Upload to VS Code Marketplace"
-        echo "3. Create GitHub release"
-        echo "4. Update documentation"
+        echo "## 🎯 Наступні кроки"
+        echo "1. Протестувати розширення в VS Code"
+        echo "2. Завантажити на Marketplace"
+        echo "3. Створити реліз на GitHub"
         echo ""
         echo "---"
-        echo "**Generated by:** CSS Classes from HTML Deploy Script v$VERSION"
-    } > "$REPORT_FILE"
+        echo "*Згенеровано автоматично*"
+    } > "$report_file"
     
-    log_success "Deployment звіт створено: $REPORT_FILE"
-}
-
-# ✅ Генерація GitHub команд
-generate_github_commands() {
-    log_info "Генерація GitHub команд..."
-    
-    COMMIT_MESSAGE="🚀 CSS Classes from HTML v$VERSION - Enhanced Figma Integration & Asset Import"
-    
-    cat > scripts/push-to-github.sh << EOF
-#!/bin/bash
-
-# ✅ Команди для пуша на GitHub
-echo "🚀 Pushing CSS Classes from HTML v$VERSION to GitHub..."
-
-# Додавання всіх змін
-git add --all
-
-# Створення коміту
-git commit -m "$COMMIT_MESSAGE"
-
-# Створення тегу
-git tag -a "v$VERSION" -m "Release v$VERSION - Enhanced Figma Integration"
-
-# Пуш змін та тегів
-git push origin main --tags
-
-echo "✅ Successfully pushed to GitHub!"
-echo "🔗 Create release at: https://github.com/VuToV-Mykola/css-classes-from-html/releases/new"
-echo "📦 Upload VSIX file from builds/ directory"
-EOF
-
-    chmod +x scripts/push-to-github.sh
-    
-    cat > scripts/marketplace-upload.md << EOF
-# 📦 VS Code Marketplace Upload Instructions
-
-## Upload to VS Code Marketplace
-
-1. **Login to Marketplace:**
-   - Go to: https://marketplace.visualstudio.com/manage
-   - Login with Microsoft account
-
-2. **Upload VSIX:**
-   - Click "New extension"
-   - Upload file: \`$(cat builds/latest-package.txt 2>/dev/null || echo 'css-classes-from-html-0.0.7.vsix')\`
-
-3. **Verify Extension:**
-   - Check extension page
-   - Test installation
-
-## Alternative: Command Line Upload
-
-\`\`\`bash
-# Install vsce if not already installed
-npm install -g @vscode/vsce
-
-# Login to marketplace (requires Personal Access Token)
-vsce login $PUBLISHER
-
-# Publish directly
-vsce publish
-\`\`\`
-
-## Package Information
-- **Version:** $VERSION
-- **Package:** $(cat builds/latest-package.txt 2>/dev/null || echo 'Not created yet')
-- **Size:** $(du -h builds/*.vsix 2>/dev/null | cut -f1 | head -1 || echo 'Unknown')
-EOF
-
-    log_success "GitHub команди згенеровано: scripts/push-to-github.sh"
-    log_success "Marketplace інструкції: scripts/marketplace-upload.md"
+    log_success "Звіт створено: $report_file"
 }
 
 # ✅ Головна функція
 main() {
-    log_header "🚀 CSS Classes from HTML v$VERSION - Deploy Script Starting..."
+    print_separator
+    echo -e "${PURPLE}${ROCKET}  CSS Classes from HTML v$VERSION - Deploy Script${NC}" | tee -a "$LOG_FILE"
+    echo -e "${PURPLE}${ROCKET}  Автоматичне розгортання розширення VS Code${NC}" | tee -a "$LOG_FILE"
+    print_separator_end
     echo ""
     
-    # Перевірка середовища
-    check_dependencies
+    # Очищення середовища
+    if ask_user "🔄 Виконати очищення середовища?" "y"; then
+        reset_environment
+    fi
     echo ""
     
-    # Валідація проєкту
-    validate_project_files
-    echo ""
+    # Послідовність перевірок
+    local steps=(
+        "Перевірка залежностей:check_dependencies"
+        "Валідація файлів:validate_project_files"
+        "Перевірка синтаксису:validate_javascript"
+        "Встановлення залежностей:install_dependencies"
+        "Оновлення package.json:update_package_json"
+        "Запуск тестів:run_pre_build_tests"
+        "Створення пакету:create_vsix_package"
+    )
     
-    # Перевірка синтаксису
-    validate_javascript
-    echo ""
+    for step in "${steps[@]}"; do
+        IFS=':' read -r step_name step_func <<< "$step"
+        log_step "$step_name..."
+        if ! $step_func; then
+            log_error "Помилка на етапі: $step_name"
+        fi
+        echo ""
+    done
     
-    # Встановлення залежностей
-    install_dependencies
-    echo ""
-    
-    # Оновлення метаданих
-    update_package_json
-    echo ""
-    
-    # Pre-build тести
-    run_pre_build_tests
-    echo ""
-    
-    # Створення пакету
-    create_vsix_package
-    echo ""
-    
-    # Створення звітів
+    # Створення звіту
     create_deployment_report
     echo ""
     
-    # GitHub команди
-    generate_github_commands
-    echo ""
-    
     # Фінальна статистика
-    TOTAL_FILES=$(find . -type f -not -path "./.git/*" -not -path "./node_modules/*" | wc -l)
-    PROJECT_SIZE=$(du -sh . 2>/dev/null | cut -f1 || echo "Unknown")
-    
-    log_header "📊 DEPLOYMENT STATISTICS"
-    echo -e "${CYAN}Project Name:${NC} $PROJECT_NAME" | tee -a "$LOG_FILE"
-    echo -e "${CYAN}Version:${NC} $VERSION" | tee -a "$LOG_FILE"
-    echo -e "${CYAN}Total Files:${NC} $TOTAL_FILES" | tee -a "$LOG_FILE"
-    echo -e "${CYAN}Project Size:${NC} $PROJECT_SIZE" | tee -a "$LOG_FILE"
-    echo -e "${CYAN}Build Directory:${NC} builds/" | tee -a "$LOG_FILE"
-    echo -e "${CYAN}Logs Directory:${NC} logs/" | tee -a "$LOG_FILE"
+    print_separator
+    echo -e "${CYAN}📊 ФІНАЛЬНА СТАТИСТИКА${NC}" | tee -a "$LOG_FILE"
+    print_separator_mid
+    echo -e "${CYAN}• Проєкт:${NC} $PROJECT_NAME" | tee -a "$LOG_FILE"
+    echo -e "${CYAN}• Версія:${NC} $VERSION" | tee -a "$LOG_FILE"
+    echo -e "${CYAN}• Помилки:${NC} $CRITICAL_ERRORS" | tee -a "$LOG_FILE"
+    echo -e "${CYAN}• Статус:${NC} $([[ $VALIDATION_PASSED == true ]] && echo '✅ УСПІШНО' || echo '❌ ПОМИЛКИ')" | tee -a "$LOG_FILE"
+    print_separator_end
     echo ""
     
-    log_success "🎉 Deployment completed successfully!"
-    log_info "📦 VSIX package ready for VS Code Marketplace"
-    log_info "🧪 All validations passed"
-    log_info "🚀 Ready for GitHub push"
-    log_info "📋 Full deployment log: $LOG_FILE"
-    echo ""
-    
-    echo -e "${GREEN}Next steps:${NC}"
-    echo -e "1. ${YELLOW}bash scripts/push-to-github.sh${NC} - Push to GitHub"
-    echo -e "2. ${YELLOW}Upload VSIX to VS Code Marketplace${NC} (see scripts/marketplace-upload.md)"
-    echo -e "3. ${YELLOW}Create GitHub release${NC}"
-    echo -e "4. ${YELLOW}Test extension in VS Code${NC}"
-    echo ""
-    
-    log_header "🎯 Project URL: https://github.com/VuToV-Mykola/css-classes-from-html"
+    # Фінальний результат
+    if [ $CRITICAL_ERRORS -eq 0 ] && [ "$VALIDATION_PASSED" = true ]; then
+        echo -e "${GREEN}${SUCCESS} 🎉 ДЕПЛОЙ ЗАВЕРШЕНО УСПІШНО!${NC}" | tee -a "$LOG_FILE"
+        echo ""
+        
+        # Додаткові дії
+        remove_old_extension
+        force_push_to_github
+        publish_to_marketplace
+        
+        echo ""
+        echo -e "${GREEN}${CHECK} Наступні кроки:${NC}"
+        echo -e "  ${CYAN}1.${NC} Протестувати розширення в VS Code"
+        echo -e "  ${CYAN}2.${NC} Перевірити роботу всіх функцій"
+        echo -e "  ${CYAN}3.${NC} Створити реліз на GitHub"
+        echo ""
+        
+    else
+        echo -e "${RED}${FAIL} 💥 ДЕПЛОЙ НЕ ВДАВСЯ!${NC}" | tee -a "$LOG_FILE"
+        echo ""
+        echo -e "${RED}${ERROR} Виправте помилки і повторіть спробу:${NC}"
+        grep -n "❌" "$LOG_FILE" | tail -5 | sed 's/^/  • /' | tee -a "$LOG_FILE"
+        echo ""
+        exit 1
+    fi
 }
 
 # ✅ Запуск

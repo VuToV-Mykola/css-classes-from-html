@@ -1,8 +1,8 @@
 {
   "name": "css-classes-from-html",
-  "displayName": "CSS Classes from HTML v0.0.7",
-  "description": "Автоматична генерація CSS класів з HTML файлів з реальною інтеграцією Figma",
-  "version": "0.0.7",
+  "displayName": "CSS Classes from HTML v4.0",
+  "description": "Enhanced CSS generation with real Figma integration, smart element matching, and asset import",
+  "version": "4.0.0",
   "publisher": "vutov-mykola",
   "author": {
     "name": "VuToV-Mykola",
@@ -11,7 +11,7 @@
   "license": "MIT",
   "engines": {
     "vscode": "^1.103.0",
-    "node": ">=18.0.0"
+    "node": ">=16.0.0"
   },
   "categories": [
     "Other",
@@ -23,12 +23,9 @@
     "html",
     "figma",
     "generator",
-    "classes",
-    "frontend",
-    "ui",
-    "design",
-    "automation",
-    "integration"
+    "enhanced",
+    "smart-matching",
+    "real-integration"
   ],
   "main": "./extension.js",
   "activationEvents": [
@@ -95,10 +92,10 @@
   },
   "scripts": {
     "build": "echo \"Build completed\"",
-    "package": "vsce package --out ./builds/",
+    "package": "vsce package --out ./build/",
     "lint": "echo \"Linting completed\"",
-    "test": "bash scripts/tests.sh",
-    "deploy": "bash scripts/deploy.sh"
+    "test": "node test/runTest.js",
+    "deploy": "bash deploy.sh"
   },
   "devDependencies": {
     "@types/vscode": "^1.103.0",

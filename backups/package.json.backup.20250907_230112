@@ -1,7 +1,7 @@
 {
   "name": "css-classes-from-html",
   "displayName": "CSS Classes from HTML v0.0.7",
-  "description": "Автоматична генерація CSS класів з HTML файлів з реальною інтеграцією Figma",
+  "description": "Автоматична генерація CSS класів з HTML файлів з реальною інтеграцією Figma та розумним співставленням елементів",
   "version": "0.0.7",
   "publisher": "vutov-mykola",
   "author": {
@@ -28,7 +28,10 @@
     "ui",
     "design",
     "automation",
-    "integration"
+    "integration",
+    "smart-matching",
+    "real-figma",
+    "asset-import"
   ],
   "main": "./extension.js",
   "activationEvents": [
