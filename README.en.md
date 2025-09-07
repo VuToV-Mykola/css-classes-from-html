@@ -1,76 +1,131 @@
-# 🎨 CSS Classes from HTML
+# 🎨 CSS Classes from HTML v4.0
 
-### 🌐 Виберіть мову/Choose language/Wählen Sprache:
-[🇺🇦 Українська](README.md) | [🇬🇧 English](README.en.md) | [🇩🇪 Deutsch](README.de.md)
+[![Version](https://img.shields.io/badge/version-4.0.0-blue.svg)](https://github.com/VuToV-Mykola/css-classes-from-html)
+[![VS Code](https://img.shields.io/badge/VS_Code-007ACC?logo=visual-studio-code&logoColor=white)](https://code.visualstudio.com/)
+[![Figma](https://img.shields.io/badge/Figma-F24E1E?logo=figma&logoColor=white)](https://www.figma.com/)
 
-<!-- AUTOGEN:STATS -->
-[![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript) [![Shell](https://img.shields.io/badge/Shell-000000?style=for-the-badge)]() [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML) [![Terminal](https://img.shields.io/badge/mac%20terminal-000000?style=for-the-badge&logo=apple&logoColor=white&labelColor=000000)](https://support.apple.com/guide/terminal/welcome/mac) [![VS Code](https://img.shields.io/badge/VS_Code-007ACC?style=for-the-badge&logo=visual-studio-code&logoColor=white)](https://code.visualstudio.com/) [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/) [![Figma](https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)](https://www.figma.com/) 
+> 🚀 **Revolutionary VS Code extension for automatic CSS generation with real Figma integration**
 
-[![📊 Views](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/css-classes-from-html/main/assets/db/visitors-badge.json)](https://github.com/VuToV-Mykola/css-classes-from-html/graphs/traffic)
-[![⭐ Stars](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/css-classes-from-html/main/assets/db/likes-badge.json)](https://github.com/VuToV-Mykola/css-classes-from-html/actions/workflows/screenshot-and-visitor.yaml)
-[![📦 Size](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/css-classes-from-html/main/assets/db/repo-size.json)](https://github.com/VuToV-Mykola/css-classes-from-html)
-[![📄 License](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/css-classes-from-html/main/assets/db/repo-license.json)](https://github.com/VuToV-Mykola/css-classes-from-html/blob/main/LICENSE)
-[![📝 Commits](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/css-classes-from-html/main/assets/db/commits-badge.json)](https://github.com/VuToV-Mykola/css-classes-from-html/commits)
-[![👥 Contributors](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/css-classes-from-html/main/assets/db/contributors-badge.json)](https://github.com/VuToV-Mykola/css-classes-from-html/graphs/contributors)
-[![⬇️ Downloads](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/css-classes-from-html/main/assets/db/downloads-badge.json)](https://github.com/VuToV-Mykola/css-classes-from-html/releases)
+## ✨ Key Features
 
-<!-- ## 📸 Latest Screenshot -->
-<!-- ![Project Screenshot](./assets/screenshot.png) -->
-<!-- END:AUTOGEN -->
-## 📊 Marketplace Statistics:
-[![Version](https://img.shields.io/badge/version-0.0.6-blue.svg)](https://marketplace.visualstudio.com/items?itemName=vutov-mykola.css-classes-from-html)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/VuToV-Mykola/css-classes-from-html/blob/HEAD/LICENSE.md)
-[![Downloads](https://img.shields.io/visual-studio-marketplace/d/vutov-mykola.css-classes-from-html.svg)](https://marketplace.visualstudio.com/items?itemName=vutov-mykola.css-classes-from-html)
-[![Rating](https://img.shields.io/visual-studio-marketplace/r/vutov-mykola.css-classes-from-html.svg)](https://marketplace.visualstudio.com/items?itemName=vutov-mykola.css-classes-from-html)
-[![GitHub Stars](https://img.shields.io/github/stars/VuToV-Mykola/css-classes-from-html.svg)](https://github.com/VuToV-Mykola/css-classes-from-html)
+### 🧠 Smart Element Matching
+- **Smart Matching Algorithm** - intelligent matching of Figma elements with HTML classes
+- **Hierarchy Analysis** - document structure consideration
+- **Semantic Recognition** - automatic element role detection
+- **Text Matching** - content comparison for precise matching
 
-## 📹 Video Tutorial
+### 🎨 Real Figma Integration
+- **Canvas Selection** - choose specific Canvas for processing
+- **Layer-by-Layer Analysis** - detailed analysis of each Layer
+- **Style Extraction** - extract real styles from Figma
+- **No Mock Data** - completely real Figma API integration
 
-[![Video usage tutorial](https://img.youtube.com/vi/xl46PGWNB3A/maxresdefault.jpg)](https://youtu.be/xl46PGWNB3A)
+### 📦 Asset Import
+- **🖼️ Images Import** - automatic image download and optimization
+- **🔤 Fonts Import** - Google Fonts integration
+- **🎨 SVG Sprites** - optimized sprite generation
+- **📂 Smart Organization** - automatic file organization
 
-**[🎬 Watch full tutorial on YouTube](https://youtu.be/xl46PGWNB3A)**
+### 🚀 Working Modes
+- **⚡ Minimal** - quick basic CSS class generation
+- **🎯 Maximum** - full Figma integration
+- **📦 Production** - optimized CSS for production
 
-## 💖 Support the Author
+## 🛠️ Installation
 
-[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate/?hosted_button_id=D5U6TQ3Q9CVLS)
-[![Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-orange.svg)](https://www.paypal.com/donate/?hosted_button_id=D5U6TQ3Q9CVLS)
+1. Open VS Code
+2. Go to Extensions (Ctrl+Shift+X)
+3. Search for "CSS Classes from HTML"
+4. Click Install
 
-> If this extension helped you in your work, support the author with a coffee! ☕
+## 🔑 Figma Setup
 
-## 📌 Description
+1. Get Figma API token: [figma.com/developers/api](https://www.figma.com/developers/api#access-tokens)
+2. Copy your Figma file link
+3. Paste token and link into the extension
 
-Automatic CSS class generation from HTML files with Figma integration. Developed with knowledge gained from GoIT courses and AI assistance.
+## 🎯 Usage
 
-## ✨ Features
+### Quick Start
+1. Open HTML file
+2. `Ctrl+Shift+C` or right-click → "CSS Classes: Generate"
+3. Choose generation mode
+4. Get ready CSS!
 
-- 🚀 **Three generation modes**: Minimal, Maximum, Production
-- 🎨 **Figma integration**: Import styles directly from designs
-- 📱 **Responsive styles**: Automatic media queries generation
-- 🔧 **Optimization**: Minification and production optimization
-- 💾 **Settings persistence**: Automatic configuration saving
+### With Figma Integration
+1. Paste Figma link and token
+2. Load Canvas and select needed ones
+3. Choose Layers for processing
+4. Import images and fonts (optional)
+5. Generate smart CSS with real styles
 
-## 📦 Installation
+## 📊 Example Result
 
-### Method 1: From VS Code Marketplace
-```bash
-code --install-extension vutov-mykola.css-classes-from-html
+```css
+/* ✅ CSS Generated by Smart CSS Generator v5.0 */
+/* Matched: 15 | Unmatched: 3 | Accuracy: 83.3% */
+
+/* ✅ MATCHED: Figma "Hero Title" (TEXT) → HTML .hero-title */
+/* Confidence: 95.2% | Strategy: smart-matching */
+.hero-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 48px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 56px;
+}
+
+/* ✅ MATCHED: Figma "Primary Button" (RECTANGLE) → HTML .btn-primary */
+/* Confidence: 89.7% | Strategy: smart-matching */
+.btn-primary {
+  background-color: #007ACC;
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 12px 24px;
+  border: none;
+  cursor: pointer;
+}
 ```
 
-### Method 2: From VSIX file
-1. Download `.vsix` file from [Releases](https://github.com/VuToV-Mykola/css-classes-from-html/releases)
-2. In VS Code: `Ctrl+Shift+P` → `Extensions: Install from VSIX...`
+## 🎮 Commands
 
-### Method 3: From source code
-```bash
-git clone https://github.com/VuToV-Mykola/css-classes-from-html.git
-cd css-classes-from-html
-npm install
-```
+| Command | Description | Shortcut |
+|---------|-------------|----------|
+| `CSS Classes: Show Menu` | Open main menu | `Ctrl+Shift+C` |
+| `CSS Classes: Quick Generate` | Quick generation | `Ctrl+Alt+C` |
+| `CSS Classes: Generate from Context` | Generate from context | Right-click |
 
-## 🚀 Usage
+## ⚙️ Configuration
 
-1. Open HTML file in VS Code
-2. Press `Ctrl+Shift+P` (Windows/Linux) or `Cmd+Shift+P` (Mac)
-3. Select `CSS Classes: Show Main Menu`
-4. Choose generation mode:
-   - **Minimal**: Basic CSS classes
+Extension automatically saves your settings:
+- Figma token and link
+- Selected Canvas and Layers
+- Generation mode
+- Import settings
+
+## 🐛 Troubleshooting
+
+### Figma API Errors
+- Check token validity
+- Ensure file is public or you have access
+- Token must have file reading permissions
+
+### Matching Issues
+- Use meaningful class names in HTML
+- Give clear names to Layers in Figma
+- Structure HTML semantically
+
+## 🤝 Support the Project
+
+- ⭐ Star on GitHub
+- 💰 [Support development](https://www.paypal.com/paypalme/vutov_nikola@icloud.com)
+- 🐛 [Report a bug](https://github.com/VuToV-Mykola/css-classes-from-html/issues)
+- 💡 [Suggest a feature](https://github.com/VuToV-Mykola/css-classes-from-html/discussions)
+
+## 📝 License
+
+MIT License - see [LICENSE](LICENSE) file
+
+---
+
+**Made with ❤️ by [VuToV-Mykola](https://github.com/VuToV-Mykola)**

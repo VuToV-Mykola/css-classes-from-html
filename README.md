@@ -1,139 +1,131 @@
-# 🎨 CSS Classes from HTML
+# 🎨 CSS Classes from HTML v4.0
 
-### 🌐 Виберіть мову/Choose language/Wählen Sprache:
-[🇺🇦 Українська](README.md) | [🇬🇧 English](README.en.md) | [🇩🇪 Deutsch](README.de.md)
+[![Version](https://img.shields.io/badge/version-4.0.0-blue.svg)](https://github.com/VuToV-Mykola/css-classes-from-html)
+[![VS Code](https://img.shields.io/badge/VS_Code-007ACC?logo=visual-studio-code&logoColor=white)](https://code.visualstudio.com/)
+[![Figma](https://img.shields.io/badge/Figma-F24E1E?logo=figma&logoColor=white)](https://www.figma.com/)
 
-<!-- AUTOGEN:STATS -->
-[![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript) [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML) [![Terminal](https://img.shields.io/badge/mac%20terminal-000000?style=for-the-badge&logo=apple&logoColor=white&labelColor=000000)](https://support.apple.com/guide/terminal/welcome/mac) [![VS Code](https://img.shields.io/badge/VS_Code-007ACC?style=for-the-badge&logo=visual-studio-code&logoColor=white)](https://code.visualstudio.com/) [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/) [![Figma](https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)](https://www.figma.com/) 
+> 🚀 **Революційне розширення для автоматичної генерації CSS з реальною інтеграцією Figma**
 
-[![📊 Views](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/css-classes-from-html/main/assets/db/visitors-badge.json)](https://github.com/VuToV-Mykola/css-classes-from-html/graphs/traffic)
-[![⭐ Stars](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/css-classes-from-html/main/assets/db/likes-badge.json)](https://github.com/VuToV-Mykola/css-classes-from-html/actions/workflows/screenshot-and-visitor.yaml)
-[![📦 Size](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/css-classes-from-html/main/assets/db/repo-size.json)](https://github.com/VuToV-Mykola/css-classes-from-html)
-[![📄 License](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/css-classes-from-html/main/assets/db/repo-license.json)](https://github.com/VuToV-Mykola/css-classes-from-html/blob/main/LICENSE)
-[![⬇️ Downloads](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/css-classes-from-html/main/assets/db/downloads-badge.json)](https://github.com/VuToV-Mykola/css-classes-from-html/releases)
+## ✨ Ключові особливості
 
-## 📸 Скріншот проекту
-![Project Screenshot](./assets/screenshot.png)
-<!-- END:AUTOGEN -->
-## 📊  Статистика Marketplace :
-[![Version](https://img.shields.io/badge/version-0.0.6-blue.svg)](https://marketplace.visualstudio.com/items?itemName=vutov-mykola.css-classes-from-html)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/VuToV-Mykola/css-classes-from-html/blob/HEAD/LICENSE.md)
-[![Downloads](https://img.shields.io/visual-studio-marketplace/d/vutov-mykola.css-classes-from-html.svg)](https://marketplace.visualstudio.com/items?itemName=vutov-mykola.css-classes-from-html)
-[![Rating](https://img.shields.io/visual-studio-marketplace/r/vutov-mykola.css-classes-from-html.svg)](https://marketplace.visualstudio.com/items?itemName=vutov-mykola.css-classes-from-html)
-[![GitHub Stars](https://img.shields.io/github/stars/VuToV-Mykola/css-classes-from-html.svg)](https://github.com/VuToV-Mykola/css-classes-from-html)
+### 🧠 Розумне співставлення елементів
+- **Smart Matching Algorithm** - розумне співставлення Figma елементів з HTML класами
+- **Аналіз ієрархії** - врахування структури документа
+- **Семантичне розпізнавання** - автоматичне визначення ролей елементів
+- **Текстове співставлення** - порівняння контенту для точного match
 
-## 📹 Відео інструкція
+### 🎨 Реальна Figma інтеграція
+- **Canvas Selection** - вибір конкретних Canvas для обробки  
+- **Layer-by-Layer Analysis** - детальний аналіз кожного Layer
+- **Style Extraction** - витягування справжніх стилів з Figma
+- **No Mock Data** - повністю реальна робота з Figma API
 
-[![Відео інструкція по використанню](https://img.youtube.com/vi/xl46PGWNB3A/maxresdefault.jpg)](https://youtu.be/xl46PGWNB3A)
+### 📦 Імпорт Assets
+- **🖼️ Images Import** - автоматичне завантаження та оптимізація зображень
+- **🔤 Fonts Import** - інтеграція з Google Fonts
+- **🎨 SVG Sprites** - генерація оптимізованих спрайтів
+- **📂 Smart Organization** - автоматична організація файлів
 
-**[🎬 Дивитися повну інструкцію на YouTube](https://youtu.be/xl46PGWNB3A)**
+### 🚀 Режими роботи
+- **⚡ Мінімальний** - швидка генерація базових CSS класів
+- **🎯 Максимальний** - повна інтеграція з Figma
+- **📦 Production** - оптимізований CSS для продакшн
 
-## 💖 Підтримати автора
+## 🛠️ Встановлення
 
-[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate/?hosted_button_id=D5U6TQ3Q9CVLS)
-[![Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-orange.svg)](https://www.paypal.com/donate/?hosted_button_id=D5U6TQ3Q9CVLS)
+1. Відкрийте VS Code
+2. Перейдіть в Extensions (Ctrl+Shift+X)
+3. Шукайте "CSS Classes from HTML"
+4. Натисніть Install
 
-> Якщо це розширення допомогло вам у роботі, підтримайте автора кавою! ☕
+## 🔑 Налаштування Figma
 
-## 📌 Опис
+1. Отримайте Figma API токен: [figma.com/developers/api](https://www.figma.com/developers/api#access-tokens)
+2. Скопіюйте посилання на ваш Figma файл
+3. Вставте токен та посилання в розширення
 
-Автоматична генерація CSS класів з HTML файлів з інтеграцією Figma. Розроблено завдяки знанням отриманим на курсах GoIT з використанням штучного інтелекту.
+## 🎯 Використання
 
-## ✨ Можливості
+### Швидкий старт
+1. Відкрийте HTML файл
+2. `Ctrl+Shift+C` або правий клік → "CSS Classes: Generate"
+3. Виберіть режим генерації
+4. Отримайте готовий CSS!
 
-- 🚀 **Три режими генерації**: Мінімальний, Максимальний, Production
-- 🎨 **Інтеграція з Figma**: Імпорт стилів безпосередньо з дизайнів
-- 📱 **Адаптивні стилі**: Автоматична генерація media queries
-- 🔧 **Оптимізація**: Мініфікація та оптимізація для production
-- 💾 **Збереження налаштувань**: Автоматичне збереження конфігурації
+### З Figma інтеграцією
+1. Вставте Figma посилання та токен
+2. Завантажте Canvas та виберіть потрібні
+3. Виберіть Layers для обробки
+4. Імпортуйте зображення та шрифти (опціонально)
+5. Згенеруйте розумний CSS з справжніми стилями
 
-## 📦 Встановлення
+## 📊 Приклад результату
 
-### Спосіб 1: З VS Code Marketplace
-```bash
-code --install-extension vutov-mykola.css-classes-from-html
+```css
+/* ✅ CSS Generated by Smart CSS Generator v5.0 */
+/* Matched: 15 | Unmatched: 3 | Accuracy: 83.3% */
+
+/* ✅ MATCHED: Figma "Hero Title" (TEXT) → HTML .hero-title */
+/* Confidence: 95.2% | Strategy: smart-matching */
+.hero-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 48px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 56px;
+}
+
+/* ✅ MATCHED: Figma "Primary Button" (RECTANGLE) → HTML .btn-primary */
+/* Confidence: 89.7% | Strategy: smart-matching */
+.btn-primary {
+  background-color: #007ACC;
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 12px 24px;
+  border: none;
+  cursor: pointer;
+}
 ```
 
-### Спосіб 2: З VSIX файлу
-1. Завантажте `.vsix` файл з [Releases](https://github.com/VuToV-Mykola/css-classes-from-html/releases)
-2. У VS Code: `Ctrl+Shift+P` → `Extensions: Install from VSIX...`
+## 🎮 Команди
 
-### Спосіб 3: З вихідного коду
-```bash
-git clone https://github.com/VuToV-Mykola/css-classes-from-html.git
-cd css-classes-from-html
-npm install
-```
+| Команда | Опис | Shortcut |
+|---------|------|----------|
+| `CSS Classes: Show Menu` | Відкрити головне меню | `Ctrl+Shift+C` |
+| `CSS Classes: Quick Generate` | Швидка генерація | `Ctrl+Alt+C` |
+| `CSS Classes: Generate from Context` | Генерація з контексту | Right-click |
 
-## 🚀 Використання
+## ⚙️ Конфігурація
 
-1. Відкрийте HTML файл у VS Code
-2. Натисніть `Ctrl+Shift+P` (Windows/Linux) або `Cmd+Shift+P` (Mac)
-3. Виберіть `CSS Classes: Show Main Menu`
-4. Оберіть режим генерації:
-   - **Мінімальний**: Базові CSS класи
-   - **Максимальний**: Повна інтеграція з Figma
-   - **Production**: Оптимізований код
+Розширення автоматично зберігає ваші налаштування:
+- Figma токен та посилання
+- Вибрані Canvas та Layers  
+- Режим генерації
+- Налаштування імпорту
 
-## ⚙️ Налаштування
+## 🐛 Troubleshooting
 
-### Figma інтеграція
-1. Отримайте [Figma Personal Access Token](https://www.figma.com/developers/api#access-tokens)
-2. Вставте посилання на Figma файл
-3. Виберіть Canvas та Layers для імпорту
+### Figma API помилки
+- Перевірте валідність токену
+- Переконайтеся що файл публічний або у вас є доступ
+- Токен повинен мати права на читання файлів
 
-### Опції генерації
-- `includeReset`: Включити reset стилі
-- `includeComments`: Додати коментарі
-- `optimizeCSS`: Оптимізувати CSS
-- `generateResponsive`: Генерувати адаптивні стилі
+### Проблеми зі співставленням
+- Використовуйте осмислені назви класів у HTML
+- Давайте зрозумілі назви Layers у Figma
+- Структуруйте HTML семантично
 
-## ⌨️ Гарячі клавіші
+## 🤝 Підтримка проєкту
 
-| Команда | Windows/Linux | Mac |
-|---------|---------------|-----|
-| Показати меню | `Ctrl+Shift+C` | `Cmd+Shift+C` |
-| Швидка генерація | `Ctrl+Alt+C` | `Cmd+Alt+C` |
-
-## 🛠️ Розробка
-
-```bash
-# Клонування репозиторію
-git clone https://github.com/VuToV-Mykola/css-classes-from-html.git
-
-# Встановлення залежностей
-npm install
-
-# Запуск тестів
-npm test
-
-# Створення VSIX пакету
-vsce package
-```
+- ⭐ Поставте зірку на GitHub
+- 💰 [Підтримайте розробку](https://www.paypal.com/paypalme/vutov_nikola@icloud.com)
+- 🐛 [Повідомте про баг](https://github.com/VuToV-Mykola/css-classes-from-html/issues)
+- 💡 [Запропонуйте функцію](https://github.com/VuToV-Mykola/css-classes-from-html/discussions)
 
 ## 📝 Ліцензія
 
-MIT License - дивіться файл [LICENSE](LICENSE)
-
-## 👨‍💻 Автор
-
-**VuToV-Mykola**
-- GitHub: [@VuToV-Mykola](https://github.com/VuToV-Mykola)
-- Email: vutov.mykola@gmail.com
-
-## 🙏 Подяки
-
-- [GoIT](https://goit.global) - за знання та навчання
-- Anthropic Claude AI - за допомогу в розробці
-- VS Code Team - за чудовий редактор
-
-## 🐛 Повідомлення про помилки
-
-Знайшли помилку? [Створіть issue](https://github.com/VuToV-Mykola/css-classes-from-html/issues)
-
-## 🤝 Внесок у проєкт
-
-Внески вітаються! Будь ласка, прочитайте [CONTRIBUTING.md](CONTRIBUTING.md)
+MIT License - дивіться [LICENSE](LICENSE) файл
 
 ---
-Розроблено з ❤️ в Україні 🇺🇦
+
+**Розроблено з ❤️ by [VuToV-Mykola](https://github.com/VuToV-Mykola)**
