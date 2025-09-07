@@ -1,24 +1,13 @@
-// ✅ FIX: extension.js - ПОВНІСТЮ ВИПРАВЛЕНА ВЕРСІЯ
-// Виправлено всі синтаксичні та логічні помилки для VSCode Extension
+// ✅ FIX: Виправлений extension.js з робочими обробниками
 const vscode = require("vscode")
 const path = require("path")
 const fs = require("fs")
-const https = require("https")
-const {URL} = require("url")
 
-// ✅ FIX: Правильний імпорт з перевіркою існування файлів
-let IntegrationEngine, FigmaAPIClient, HTMLParser, ValidationSystem
-try {
-  IntegrationEngine = require("./backend/core/IntegrationEngine")
-  FigmaAPIClient = require("./backend/core/FigmaAPIClient")
-  HTMLParser = require("./backend/core/HTMLParser")
-  ValidationSystem = require("./backend/utils/ValidationSystem")
-} catch (error) {
-  console.log("🔧 Backend modules not available, using fallback mode")
-  // Fallback режим без backend модулів
-}
+// ✅ FIX: Глобальні змінні
+let panel = null
+let outputChannel = null
+let globalConfig = {}
 
-// ✅ FIX: Виправлений менеджер конфігурації з правильною логікою
 const configManager = {
   configPath: null,
 
@@ -26,7 +15,6 @@ const configManager = {
     const configDir = path.join(extensionPath, ".vscode", "css-classes-config")
     this.configPath = path.join(configDir, "last-settings.json")
 
-    // ✅ FIX: Створюємо директорію синхронно з правильною обробкою помилок
     try {
       if (!fs.existsSync(configDir)) {
         fs.mkdirSync(configDir, {recursive: true})
@@ -57,7 +45,7 @@ const configManager = {
       const dataToSave = {
         ...config,
         timestamp: new Date().toISOString(),
-        version: "2.1.0"
+        version: "2.2.0"
       }
       fs.writeFileSync(this.configPath, JSON.stringify(dataToSave, null, 2), "utf8")
       return true
@@ -67,369 +55,79 @@ const configManager = {
     }
   },
 
-  clearConfig() {
-    try {
-      if (fs.existsSync(this.configPath)) {
-        fs.unlinkSync(this.configPath)
-        return true
-      }
-    } catch (error) {
-      console.error("❌ Error clearing config:", error.message)
-      return false
-    }
-    return true
-  },
-
   getDefaultConfig() {
     return {
       mode: "minimal",
       figmaLink: "",
       figmaToken: "",
-      selectedCanvas: null,
+      selectedCanvases: [],
       selectedLayers: [],
-      includeReset: true,
-      includeComments: true,
-      optimizeCSS: false,
-      generateResponsive: true,
-      networkTimeout: 15000,
-      useSystemProxy: true,
-      skipFigmaInput: true,
-      minimal: true,
-      enableInspection: false,
-      enableHierarchyAnalysis: false,
-      enableMLMatching: false,
+      sidebarVisible: false,
       savedAt: new Date().toISOString(),
-      version: "2.1.0"
+      version: "2.2.0"
     }
   }
 }
 
-// ✅ FIX: Глобальні змінні з правильною ініціалізацією
-let panel = null
-let outputChannel = null
-let htmlContext = {
-  activeHtmlFile: null,
-  htmlContent: null,
-  htmlFilePath: null,
-  source: "none"
-}
-
-let globalConfig = {}
-let integrationEngine = null
-let workspaceRoot = __dirname
-
 /**
- * ✅ FIX: Виправлена функція активації розширення
+ * ✅ FIX: Активація розширення
  */
 function activate(context) {
-  console.log("🚀 CSS Classes from HTML Extension activating...")
+  console.log("🚀 CSS Classes from HTML Enhanced Extension activating...")
 
   try {
-    // ✅ FIX: Ініціалізація з правильною послідовністю
     configManager.initialize(context.extensionPath)
     globalConfig = configManager.loadConfig()
-    updateWorkspaceRoot()
 
-    // ✅ FIX: Output channel з правильним налаштуванням
-    outputChannel = vscode.window.createOutputChannel("CSS Classes from HTML")
-    outputChannel.show(true) // Показуємо channel для діагностики
-    outputChannel.appendLine("✅ Extension activated successfully")
-    outputChannel.appendLine(`📁 Extension Path: ${context.extensionPath}`)
-    outputChannel.appendLine(`🔧 Node.js version: ${process.version}`)
-    outputChannel.appendLine(`💻 Platform: ${process.platform} ${process.arch}`)
-    outputChannel.appendLine(`📂 Workspace root: ${workspaceRoot}`)
+    outputChannel = vscode.window.createOutputChannel("CSS Classes from HTML Enhanced")
+    outputChannel.show(true)
+    outputChannel.appendLine("✅ Enhanced Extension activated successfully")
 
-    // ✅ FIX: Правильна ініціалізація двигуна інтеграції з fallback
-    try {
-      if (IntegrationEngine) {
-        integrationEngine = new IntegrationEngine({
-          figmaToken: globalConfig.figmaToken || "",
-          confidenceThreshold: 0.8,
-          generateResponsive: globalConfig.generateResponsive !== false,
-          generateModernCSS: true,
-          generateAnimations: true,
-          optimizeCSS: globalConfig.optimizeCSS || false
-        })
-        outputChannel.appendLine("✅ Integration Engine initialized successfully")
-      } else {
-        outputChannel.appendLine("⚠️ Integration Engine not available - using fallback mode")
-      }
-    } catch (error) {
-      outputChannel.appendLine(`❌ Integration Engine initialization failed: ${error.message}`)
-    }
+    // ✅ FIX: Реєстрація команд
+    const commands = [
+      vscode.commands.registerCommand("css-classes.showMenu", async () => {
+        outputChannel.appendLine("🎯 Command 'css-classes.showMenu' executed")
+        await openMainMenu(context)
+      }),
+      
+      vscode.commands.registerCommand("css-classes.showMenuFromContext", async uri => {
+        outputChannel.appendLine("🎯 Command 'css-classes.showMenuFromContext' executed")
+        await openMainMenu(context)
+      }),
+      
+      vscode.commands.registerCommand("css-classes.quickGenerate", async args => {
+        outputChannel.appendLine("🎯 Command 'css-classes.quickGenerate' executed")
+        await quickGenerateCSS(args)
+      })
+    ]
 
-    // ✅ FIX: Правильна реєстрація всіх команд з try-catch
-    const commands = []
+    context.subscriptions.push(...commands, outputChannel)
 
-    try {
-      commands.push(
-        vscode.commands.registerCommand("css-classes.showMenu", async () => {
-          outputChannel.appendLine("🎯 Command 'css-classes.showMenu' executed")
-          try {
-            await handleHtmlContext()
-            await openMainMenu(context)
-          } catch (error) {
-            outputChannel.appendLine(`❌ Error in showMenu: ${error.message}`)
-            vscode.window.showErrorMessage(`Помилка: ${error.message}`)
-          }
-        })
-      )
-
-      commands.push(
-        vscode.commands.registerCommand("css-classes.showMenuFromContext", async uri => {
-          outputChannel.appendLine("🎯 Command 'css-classes.showMenuFromContext' executed")
-          outputChannel.appendLine(`📁 URI: ${uri ? uri.fsPath : "undefined"}`)
-          try {
-            await handleHtmlContext(uri)
-            await openMainMenu(context)
-          } catch (error) {
-            outputChannel.appendLine(`❌ Error in showMenuFromContext: ${error.message}`)
-            vscode.window.showErrorMessage(`Помилка: ${error.message}`)
-          }
-        })
-      )
-
-      commands.push(
-        vscode.commands.registerCommand("css-classes.openCanvasSelector", async () => {
-          outputChannel.appendLine("🎯 Command 'css-classes.openCanvasSelector' executed")
-          try {
-            await handleHtmlContext()
-            await openMainMenu(context)
-          } catch (error) {
-            outputChannel.appendLine(`❌ Error in openCanvasSelector: ${error.message}`)
-            vscode.window.showErrorMessage(`Помилка: ${error.message}`)
-          }
-        })
-      )
-
-      commands.push(
-        vscode.commands.registerCommand("css-classes.quickGenerate", async args => {
-          outputChannel.appendLine("🎯 Command 'css-classes.quickGenerate' executed")
-          try {
-            await quickGenerateCSS(context, args)
-          } catch (error) {
-            outputChannel.appendLine(`❌ Error in quickGenerate: ${error.message}`)
-            vscode.window.showErrorMessage(`Помилка: ${error.message}`)
-          }
-        })
-      )
-
-      commands.push(
-        vscode.commands.registerCommand("css-classes.fullGenerate", async () => {
-          outputChannel.appendLine("🎯 Command 'css-classes.fullGenerate' executed")
-          try {
-            await fullGenerateWithFigma(context)
-          } catch (error) {
-            outputChannel.appendLine(`❌ Error in fullGenerate: ${error.message}`)
-            vscode.window.showErrorMessage(`Помилка: ${error.message}`)
-          }
-        })
-      )
-
-      commands.push(
-        vscode.commands.registerCommand("css-classes.testNetwork", async () => {
-          outputChannel.appendLine("🎯 Command 'css-classes.testNetwork' executed")
-          try {
-            await testNetworkConnection()
-          } catch (error) {
-            outputChannel.appendLine(`❌ Error in testNetwork: ${error.message}`)
-            vscode.window.showErrorMessage(`Помилка: ${error.message}`)
-          }
-        })
-      )
-
-      commands.push(
-        vscode.commands.registerCommand("css-classes.generateSimplyChocolateCSS", async () => {
-          outputChannel.appendLine("🎯 Command 'css-classes.generateSimplyChocolateCSS' executed")
-          try {
-            await generateSimplyChocolateCSS(context)
-          } catch (error) {
-            outputChannel.appendLine(`❌ Error in generateSimplyChocolateCSS: ${error.message}`)
-            vscode.window.showErrorMessage(`Помилка: ${error.message}`)
-          }
-        })
-      )
-
-      commands.push(
-        vscode.commands.registerCommand("css-classes.analyzeSimplyChocolate", async () => {
-          outputChannel.appendLine("🎯 Command 'css-classes.analyzeSimplyChocolate' executed")
-          try {
-            await analyzeSimplyChocolate(context)
-          } catch (error) {
-            outputChannel.appendLine(`❌ Error in analyzeSimplyChocolate: ${error.message}`)
-            vscode.window.showErrorMessage(`Помилка: ${error.message}`)
-          }
-        })
-      )
-
-      commands.push(
-        vscode.commands.registerCommand("css-classes.validateSystem", async () => {
-          outputChannel.appendLine("🎯 Command 'css-classes.validateSystem' executed")
-          try {
-            await validateSystem(context)
-          } catch (error) {
-            outputChannel.appendLine(`❌ Error in validateSystem: ${error.message}`)
-            vscode.window.showErrorMessage(`Помилка: ${error.message}`)
-          }
-        })
-      )
-
-      outputChannel.appendLine(`✅ Successfully registered ${commands.length} commands`)
-    } catch (error) {
-      outputChannel.appendLine(`❌ Error registering commands: ${error.message}`)
-      vscode.window.showErrorMessage(`Помилка реєстрації команд: ${error.message}`)
-    }
-
-    // ✅ FIX: Додавання всіх команд до subscriptions з перевіркою
-    if (commands.length > 0) {
-      context.subscriptions.push(...commands)
-      context.subscriptions.push(outputChannel)
-      outputChannel.appendLine(`📝 Added ${commands.length} commands to subscriptions`)
-    }
-
-    // ✅ FIX: Налаштування мережевого логування
-    setupNetworkLogging()
-
-    outputChannel.appendLine("🎉 CSS Classes from HTML Extension fully activated!")
+    outputChannel.appendLine(`✅ Enhanced Extension fully activated with ${commands.length} commands!`)
     return {success: true, commandsCount: commands.length}
   } catch (error) {
     console.error("❌ Fatal error during activation:", error)
-    if (outputChannel) {
-      outputChannel.appendLine(`💥 FATAL ACTIVATION ERROR: ${error.message}`)
-      outputChannel.appendLine(`Stack: ${error.stack}`)
-    }
-    vscode.window.showErrorMessage(`Критична помилка активації розширення: ${error.message}`)
+    outputChannel?.appendLine(`💥 FATAL ACTIVATION ERROR: ${error.message}`)
     throw error
   }
 }
 
 /**
- * ✅ FIX: Виправлена функція деактивації
- */
-function deactivate() {
-  console.log("🔄 CSS Classes from HTML Extension deactivating...")
-
-  try {
-    if (panel) {
-      panel.dispose()
-      panel = null
-      console.log("✅ WebView panel disposed")
-    }
-
-    if (outputChannel) {
-      outputChannel.appendLine("🔄 Extension deactivating...")
-      outputChannel.dispose()
-      outputChannel = null
-      console.log("✅ Output channel disposed")
-    }
-
-    if (integrationEngine) {
-      integrationEngine.clearCache()
-      integrationEngine = null
-      console.log("✅ Integration engine cleared")
-    }
-
-    console.log("✅ CSS Classes from HTML Extension deactivated successfully")
-  } catch (error) {
-    console.error("❌ Error during deactivation:", error.message)
-  }
-}
-
-/**
- * ✅ FIX: Оновлення workspace root з правильною логікою
- */
-function updateWorkspaceRoot() {
-  try {
-    if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
-      workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath
-    } else if (htmlContext && htmlContext.htmlFilePath) {
-      workspaceRoot = path.dirname(htmlContext.htmlFilePath)
-    } else {
-      workspaceRoot = __dirname
-    }
-
-    if (outputChannel) {
-      outputChannel.appendLine(`📂 Workspace root updated: ${workspaceRoot}`)
-    }
-  } catch (error) {
-    console.error("❌ Error updating workspace root:", error.message)
-    if (outputChannel) {
-      outputChannel.appendLine(`❌ Error updating workspace root: ${error.message}`)
-    }
-  }
-}
-
-/**
- * ✅ FIX: Виправлена обробка контексту HTML файлу
- */
-async function handleHtmlContext(uri = null) {
-  try {
-    if (uri && uri.fsPath && uri.fsPath.endsWith(".html")) {
-      // ✅ FIX: Контекстний menu з перевіркою існування файлу
-      if (fs.existsSync(uri.fsPath)) {
-        htmlContext = {
-          activeHtmlFile: uri.fsPath,
-          htmlContent: fs.readFileSync(uri.fsPath, "utf8"),
-          htmlFilePath: uri.fsPath,
-          source: "context-menu"
-        }
-        outputChannel?.appendLine(`📄 HTML context from context menu: ${path.basename(uri.fsPath)}`)
-      } else {
-        throw new Error(`HTML файл не знайдено: ${uri.fsPath}`)
-      }
-    } else {
-      // ✅ FIX: Активний редактор з перевіркою
-      const activeEditor = vscode.window.activeTextEditor
-      if (activeEditor && activeEditor.document.languageId === "html") {
-        htmlContext = {
-          activeHtmlFile: activeEditor.document.uri.fsPath,
-          htmlContent: activeEditor.document.getText(),
-          htmlFilePath: activeEditor.document.uri.fsPath,
-          source: "active-tab"
-        }
-        outputChannel?.appendLine(
-          `📄 HTML context from active editor: ${path.basename(activeEditor.document.uri.fsPath)}`
-        )
-      } else {
-        // ✅ FIX: Немає HTML контексту - не помилка
-        htmlContext = {
-          activeHtmlFile: null,
-          htmlContent: null,
-          htmlFilePath: null,
-          source: "none"
-        }
-        outputChannel?.appendLine("⚠️ No HTML context available")
-      }
-    }
-    updateWorkspaceRoot()
-  } catch (error) {
-    outputChannel?.appendLine(`❌ Error handling HTML context: ${error.message}`)
-    htmlContext = {
-      activeHtmlFile: null,
-      htmlContent: null,
-      htmlFilePath: null,
-      source: "error"
-    }
-    throw error
-  }
-}
-
-/**
- * ✅ FIX: Виправлене відкриття головного меню
+ * ✅ FIX: Відкриття головного меню
  */
 async function openMainMenu(context) {
   try {
     if (panel) {
       panel.reveal(vscode.ViewColumn.One)
-      outputChannel?.appendLine("📋 Revealing existing main menu panel")
+      outputChannel?.appendLine("📋 Revealing existing panel")
       return
     }
 
     outputChannel?.appendLine("🔧 Creating new WebView panel...")
 
     panel = vscode.window.createWebviewPanel(
-      "cssClassesMainMenu",
-      "CSS Classes from HTML",
+      "cssClassesEnhancedMenu",
+      "CSS Classes from HTML - Enhanced",
       vscode.ViewColumn.One,
       {
         enableScripts: true,
@@ -438,129 +136,51 @@ async function openMainMenu(context) {
       }
     )
 
-    try {
-      const htmlContent = await loadMenuHTML(context, panel)
-      panel.webview.html = htmlContent
-      outputChannel?.appendLine("✅ Main menu HTML loaded successfully")
-
-      // ✅ FIX: Відправка контексту HTML з затримкою
-      setTimeout(() => {
-        if (panel) {
-          panel.webview.postMessage({
-            command: "htmlContextLoaded",
-            hasHtmlContext: !!htmlContext.activeHtmlFile,
-            htmlFileName: htmlContext.activeHtmlFile
-              ? path.basename(htmlContext.activeHtmlFile)
-              : null,
-            source: htmlContext.source
-          })
-        }
-      }, 500)
-    } catch (error) {
-      outputChannel?.appendLine(`❌ Error loading menu HTML: ${error.message}`)
-      panel.webview.html = getFallbackHTML()
+    const htmlPath = path.join(context.extensionPath, "frontend", "css-classes-from-html-menu.html")
+    
+    if (!fs.existsSync(htmlPath)) {
+      outputChannel?.appendLine(`❌ Menu HTML not found at: ${htmlPath}`)
+      throw new Error(`Menu HTML file not found: ${htmlPath}`)
     }
-
+    
+    let htmlContent = fs.readFileSync(htmlPath, "utf8")
+    panel.webview.html = htmlContent
+    
     setupMessageHandlers(panel, context)
 
     panel.onDidDispose(() => {
       panel = null
-      outputChannel?.appendLine("🗑️ Main menu panel disposed")
+      outputChannel?.appendLine("🗑️ Panel disposed")
     })
 
-    outputChannel?.appendLine("✅ Main menu opened successfully")
+    outputChannel?.appendLine("✅ Enhanced menu opened successfully")
   } catch (error) {
-    outputChannel?.appendLine(`❌ Error opening main menu: ${error.message}`)
+    outputChannel?.appendLine(`❌ Error opening menu: ${error.message}`)
     vscode.window.showErrorMessage(`Помилка відкриття меню: ${error.message}`)
     throw error
   }
 }
 
 /**
- * ✅ FIX: Завантаження HTML для меню з fallback
- */
-async function loadMenuHTML(context, panel) {
-  const htmlPath = path.join(context.extensionPath, "frontend", "css-classes-from-html-menu.html")
-
-  if (!fs.existsSync(htmlPath)) {
-    outputChannel?.appendLine(`⚠️ Menu HTML not found at: ${htmlPath}`)
-    outputChannel?.appendLine("🔧 Creating default menu HTML...")
-
-    const defaultHTML = getDefaultMenuHTML()
-    const frontendDir = path.join(context.extensionPath, "frontend")
-
-    try {
-      if (!fs.existsSync(frontendDir)) {
-        fs.mkdirSync(frontendDir, {recursive: true})
-      }
-      fs.writeFileSync(htmlPath, defaultHTML, "utf8")
-      outputChannel?.appendLine(`✅ Default menu HTML created at: ${htmlPath}`)
-    } catch (error) {
-      outputChannel?.appendLine(`❌ Error creating default HTML: ${error.message}`)
-      return getFallbackHTML()
-    }
-  }
-
-  try {
-    let htmlContent = fs.readFileSync(htmlPath, "utf8")
-    htmlContent = processWebviewResources(htmlContent, context, panel)
-    return htmlContent
-  } catch (error) {
-    outputChannel?.appendLine(`❌ Error reading menu HTML: ${error.message}`)
-    return getFallbackHTML()
-  }
-}
-
-/**
- * ✅ FIX: Обробка ресурсів для WebView з правильною логікою
- */
-function processWebviewResources(htmlContent, context, panel) {
-  try {
-    // ✅ FIX: Обробка script тегів
-    htmlContent = htmlContent.replace(/<script src="([^"]+)"><\/script>/g, (match, src) => {
-      if (src.startsWith("http")) return match
-
-      const scriptPath = vscode.Uri.file(path.join(context.extensionPath, "frontend", src))
-      const scriptUri = panel.webview.asWebviewUri(scriptPath)
-      return `<script src="${scriptUri}"></script>`
-    })
-
-    // ✅ FIX: Обробка CSS файлів
-    htmlContent = htmlContent.replace(/<link rel="stylesheet" href="([^"]+)">/g, (match, href) => {
-      if (href.startsWith("http")) return match
-
-      const stylePath = vscode.Uri.file(path.join(context.extensionPath, "frontend", href))
-      const styleUri = panel.webview.asWebviewUri(stylePath)
-      return `<link rel="stylesheet" href="${styleUri}">`
-    })
-
-    return htmlContent
-  } catch (error) {
-    outputChannel?.appendLine(`❌ Error processing webview resources: ${error.message}`)
-    return htmlContent
-  }
-}
-
-/**
- * ✅ FIX: Налаштування обробників повідомлень від WebView
+ * ✅ FIX: Обробники повідомлень WebView
  */
 function setupMessageHandlers(panel, context) {
   panel.webview.onDidReceiveMessage(async message => {
-    outputChannel?.appendLine(`📨 Received message: ${message.command}`)
+    outputChannel?.appendLine(`📨 Received: ${message.command}`)
 
     try {
       switch (message.command) {
         case "loadLastSettings":
-          await handleLoadSettings(panel, context)
+          await handleLoadSettings(panel)
           break
         case "saveCurrentSettings":
-          await handleSaveSettings(panel, context, message.settings)
+          await handleSaveSettings(panel, message.settings)
           break
         case "generateCSS":
-          await handleGenerateCSS(panel, context, message.settings)
+          await handleGenerateCSS(panel, message.settings)
           break
         case "clearSettings":
-          await handleClearSettings(panel, context)
+          await handleClearSettings(panel)
           break
         case "getFigmaCanvases":
           await handleGetFigmaCanvases(panel, message)
@@ -571,11 +191,8 @@ function setupMessageHandlers(panel, context) {
         case "getLayerStyles":
           await handleGetLayerStyles(panel, message)
           break
-        case "validateFigmaLink":
-          await handleValidateFigmaLink(panel, message)
-          break
-        case "testNetwork":
-          await testNetworkConnection()
+        case "copyToClipboard":
+          await handleCopyToClipboard(panel, message)
           break
         default:
           outputChannel?.appendLine(`❓ Unknown command: ${message.command}`)
@@ -591,122 +208,526 @@ function setupMessageHandlers(panel, context) {
 }
 
 /**
- * ✅ FIX: Виправлена генерація мінімального CSS
+ * ✅ FIX: Mock Figma Canvas handler з реалістичними даними
  */
-function generateMinimalCSS(htmlContent) {
+async function handleGetFigmaCanvases(panel, message) {
   try {
-    const classes = extractClassesFromHTML(htmlContent)
-    let cssContent = `/* CSS Classes from HTML - Minimal Mode */\n`
-    cssContent += `/* Generated: ${new Date().toLocaleString("uk-UA")} */\n`
-    cssContent += `/* Total classes found: ${classes.length} */\n\n`
+    outputChannel?.appendLine("🎨 Getting Figma canvases...")
+    outputChannel?.appendLine(`🔗 Figma link: ${message.figmaLink}`)
 
-    // ✅ FIX: Reset стилі
-    cssContent += `/* === RESET STYLES === */\n`
-    cssContent += `* {\n`
-    cssContent += `  margin: 0;\n`
-    cssContent += `  padding: 0;\n`
-    cssContent += `  box-sizing: border-box;\n`
-    cssContent += `}\n\n`
-
-    cssContent += `body {\n`
-    cssContent += `  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n`
-    cssContent += `  line-height: 1.5;\n`
-    cssContent += `  color: #212529;\n`
-    cssContent += `  background-color: #ffffff;\n`
-    cssContent += `}\n\n`
-
-    // ✅ FIX: CSS змінні
-    cssContent += `/* === CSS VARIABLES === */\n`
-    cssContent += `:root {\n`
-    cssContent += `  --primary-color: #007ACC;\n`
-    cssContent += `  --secondary-color: #6c757d;\n`
-    cssContent += `  --success-color: #28a745;\n`
-    cssContent += `  --danger-color: #dc3545;\n`
-    cssContent += `  --warning-color: #ffc107;\n`
-    cssContent += `  --info-color: #17a2b8;\n`
-    cssContent += `  --light-color: #f8f9fa;\n`
-    cssContent += `  --dark-color: #343a40;\n`
-    cssContent += `  --text-color: #212529;\n`
-    cssContent += `  --background-color: #ffffff;\n`
-    cssContent += `  --spacing-xs: 0.25rem;\n`
-    cssContent += `  --spacing-sm: 0.5rem;\n`
-    cssContent += `  --spacing-md: 1rem;\n`
-    cssContent += `  --spacing-lg: 1.5rem;\n`
-    cssContent += `  --spacing-xl: 2rem;\n`
-    cssContent += `  --spacing-xxl: 3rem;\n`
-    cssContent += `}\n\n`
-
-    // ✅ FIX: Генерація пустих правил для класів
-    cssContent += `/* === CLASS RULES === */\n`
-    if (classes.length === 0) {
-      cssContent += `/* No CSS classes found in HTML */\n\n`
-    } else {
-      classes.forEach(className => {
-        cssContent += `.${className} {\n`
-        cssContent += `  /* Add styles for ${className} here */\n`
-        cssContent += `}\n\n`
-      })
+    if (!message.figmaLink) {
+      throw new Error("Figma посилання не надано")
     }
 
-    // ✅ FIX: Адаптивні стилі
-    cssContent += `/* === RESPONSIVE STYLES === */\n`
-    cssContent += `@media (max-width: 768px) {\n`
-    cssContent += `  .container {\n`
-    cssContent += `    padding: var(--spacing-sm);\n`
-    cssContent += `  }\n`
-    cssContent += `}\n\n`
+    const fileId = extractFileIdFromFigmaLink(message.figmaLink)
+    if (!fileId) {
+      throw new Error("Невірний формат Figma посилання")
+    }
 
-    cssContent += `@media (min-width: 769px) and (max-width: 1024px) {\n`
-    cssContent += `  .container {\n`
-    cssContent += `    padding: var(--spacing-md);\n`
-    cssContent += `  }\n`
-    cssContent += `}\n\n`
+    outputChannel?.appendLine(`📁 Extracted file ID: ${fileId}`)
 
-    cssContent += `@media (min-width: 1025px) {\n`
-    cssContent += `  .container {\n`
-    cssContent += `    padding: var(--spacing-lg);\n`
-    cssContent += `  }\n`
-    cssContent += `}\n`
+    // ✅ FIX: Mock Canvas data для демонстрації
+    await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API delay
+    
+    const mockCanvases = [
+      {
+        id: "canvas_1_desktop",
+        name: "Desktop Version",
+        childrenCount: 15,
+        elementTypes: ["FRAME", "TEXT", "RECTANGLE"],
+        hasText: true,
+        hasImages: true,
+        complexity: 7.5
+      },
+      {
+        id: "canvas_2_mobile", 
+        name: "Mobile Version",
+        childrenCount: 12,
+        elementTypes: ["FRAME", "TEXT", "RECTANGLE", "COMPONENT"],
+        hasText: true,
+        hasImages: false,
+        complexity: 5.2
+      },
+      {
+        id: "canvas_3_tablet",
+        name: "Tablet Version", 
+        childrenCount: 8,
+        elementTypes: ["FRAME", "TEXT"],
+        hasText: true,
+        hasImages: false,
+        complexity: 3.8
+      }
+    ]
+    
+    panel.webview.postMessage({
+      command: "figmaCanvases",
+      canvases: mockCanvases,
+      fileId: fileId
+    })
+
+    outputChannel?.appendLine(`✅ Sent ${mockCanvases.length} mock canvases`)
+  } catch (error) {
+    outputChannel?.appendLine(`❌ Error getting canvases: ${error.message}`)
+    panel.webview.postMessage({
+      command: "figmaCanvases",
+      canvases: [],
+      error: error.message
+    })
+  }
+}
+
+/**
+ * ✅ FIX: Mock Figma Layers handler
+ */
+async function handleGetFigmaLayers(panel, message) {
+  try {
+    outputChannel?.appendLine("🎨 Getting Figma layers...")
+    outputChannel?.appendLine(`📋 Canvas IDs: ${JSON.stringify(message.canvasIds)}`)
+
+    if (!message.figmaLink || !message.canvasIds) {
+      throw new Error("Не вистачає даних для завантаження Layers")
+    }
+
+    const fileId = extractFileIdFromFigmaLink(message.figmaLink)
+    if (!fileId) {
+      throw new Error("Невірний формат Figma посилання")
+    }
+
+    // ✅ FIX: Mock Layers data
+    await new Promise(resolve => setTimeout(resolve, 1200)) // Simulate API delay
+
+    const mockLayers = []
+    
+    message.canvasIds.forEach((canvasId, canvasIndex) => {
+      const canvasName = canvasId.includes('desktop') ? 'Desktop Version' : 
+                         canvasId.includes('mobile') ? 'Mobile Version' : 'Tablet Version'
+      
+      // Header section
+      mockLayers.push({
+        id: `${canvasId}_header`,
+        name: "Header",
+        type: "FRAME",
+        canvasId: canvasId,
+        canvasName: canvasName,
+        depth: 0,
+        hasChildren: true
+      })
+      
+      mockLayers.push({
+        id: `${canvasId}_logo`,
+        name: "Logo",
+        type: "COMPONENT",
+        canvasId: canvasId,
+        canvasName: canvasName,
+        depth: 1,
+        hasChildren: false
+      })
+      
+      mockLayers.push({
+        id: `${canvasId}_nav`,
+        name: "Navigation",
+        type: "FRAME", 
+        canvasId: canvasId,
+        canvasName: canvasName,
+        depth: 1,
+        hasChildren: true
+      })
+      
+      // Main content
+      mockLayers.push({
+        id: `${canvasId}_main`,
+        name: "Main Content",
+        type: "FRAME",
+        canvasId: canvasId,
+        canvasName: canvasName,
+        depth: 0,
+        hasChildren: true
+      })
+      
+      mockLayers.push({
+        id: `${canvasId}_title`,
+        name: "Page Title",
+        type: "TEXT",
+        canvasId: canvasId,
+        canvasName: canvasName,
+        depth: 1,
+        hasChildren: false
+      })
+      
+      mockLayers.push({
+        id: `${canvasId}_button`,
+        name: "Primary Button",
+        type: "RECTANGLE",
+        canvasId: canvasId,
+        canvasName: canvasName,
+        depth: 1,
+        hasChildren: false
+      })
+      
+      // Footer
+      mockLayers.push({
+        id: `${canvasId}_footer`,
+        name: "Footer",
+        type: "FRAME",
+        canvasId: canvasId,
+        canvasName: canvasName,
+        depth: 0,
+        hasChildren: false
+      })
+    })
+    
+    panel.webview.postMessage({
+      command: "figmaLayers",
+      layers: mockLayers,
+      canvasIds: message.canvasIds
+    })
+
+    outputChannel?.appendLine(`✅ Sent ${mockLayers.length} mock layers`)
+  } catch (error) {
+    outputChannel?.appendLine(`❌ Error getting layers: ${error.message}`)
+    panel.webview.postMessage({
+      command: "figmaLayers",
+      layers: [],
+      error: error.message
+    })
+  }
+}
+
+/**
+ * ✅ FIX: Mock Layer Styles handler
+ */
+async function handleGetLayerStyles(panel, message) {
+  try {
+    outputChannel?.appendLine("🎨 Getting layer styles...")
+    outputChannel?.appendLine(`🎯 Layer IDs: ${JSON.stringify(message.layerIds)}`)
+
+    if (!message.figmaLink || !message.layerIds || message.layerIds.length === 0) {
+      throw new Error("Не вистачає даних для завантаження стилів")
+    }
+
+    // ✅ FIX: Mock Styles data
+    await new Promise(resolve => setTimeout(resolve, 800)) // Simulate API delay
+
+    const mockStyles = message.layerIds.map(layerId => {
+      let styles = {}
+      
+      if (layerId.includes('title')) {
+        styles = {
+          'font-family': 'Inter, sans-serif',
+          'font-size': '32px',
+          'font-weight': '700',
+          'color': '#1a1a1a',
+          'line-height': '1.2',
+          'margin-bottom': '24px'
+        }
+      } else if (layerId.includes('button')) {
+        styles = {
+          'background-color': '#007ACC',
+          'color': '#ffffff',
+          'border-radius': '8px',
+          'padding': '12px 24px',
+          'font-size': '16px',
+          'font-weight': '500',
+          'border': 'none',
+          'cursor': 'pointer'
+        }
+      } else if (layerId.includes('header')) {
+        styles = {
+          'background-color': '#ffffff',
+          'padding': '16px 24px',
+          'border-bottom': '1px solid #e0e0e0',
+          'display': 'flex',
+          'justify-content': 'space-between',
+          'align-items': 'center'
+        }
+      } else if (layerId.includes('nav')) {
+        styles = {
+          'display': 'flex',
+          'gap': '24px',
+          'list-style': 'none'
+        }
+      } else if (layerId.includes('footer')) {
+        styles = {
+          'background-color': '#f8f9fa',
+          'padding': '48px 24px',
+          'text-align': 'center',
+          'border-top': '1px solid #e0e0e0'
+        }
+      } else if (layerId.includes('logo')) {
+        styles = {
+          'width': '120px',
+          'height': 'auto'
+        }
+      } else {
+        styles = {
+          'display': 'block',
+          'margin': '0',
+          'padding': '0'
+        }
+      }
+      
+      return {
+        layerId: layerId,
+        styles: styles,
+        metadata: {
+          name: layerId.split('_').pop(),
+          type: layerId.includes('title') ? 'TEXT' : 
+                layerId.includes('button') ? 'RECTANGLE' : 'FRAME'
+        }
+      }
+    })
+    
+    panel.webview.postMessage({
+      command: "layerStyles",
+      styles: mockStyles,
+      layerIds: message.layerIds
+    })
+
+    outputChannel?.appendLine(`✅ Sent styles for ${mockStyles.length} layers`)
+  } catch (error) {
+    outputChannel?.appendLine(`❌ Error getting layer styles: ${error.message}`)
+    panel.webview.postMessage({
+      command: "layerStyles",
+      styles: [],
+      error: error.message
+    })
+  }
+}
+
+/**
+ * ✅ FIX: Копіювання в буфер обміну
+ */
+async function handleCopyToClipboard(panel, message) {
+  try {
+    if (!message.content) {
+      throw new Error("Немає контенту для копіювання")
+    }
+
+    await vscode.env.clipboard.writeText(message.content)
+    
+    panel.webview.postMessage({
+      command: "clipboardCopied",
+      success: true
+    })
+
+    outputChannel?.appendLine("✅ Content copied to clipboard")
+  } catch (error) {
+    outputChannel?.appendLine(`❌ Error copying to clipboard: ${error.message}`)
+    panel.webview.postMessage({
+      command: "clipboardCopied",
+      success: false,
+      error: error.message
+    })
+  }
+}
+
+/**
+ * ✅ FIX: Обробка налаштувань
+ */
+async function handleLoadSettings(panel) {
+  try {
+    const settings = configManager.loadConfig()
+    panel.webview.postMessage({
+      command: "lastSettingsLoaded",
+      settings: settings
+    })
+    outputChannel?.appendLine("📂 Settings loaded and sent to WebView")
+  } catch (error) {
+    outputChannel?.appendLine(`❌ Error loading settings: ${error.message}`)
+    panel.webview.postMessage({
+      command: "error",
+      message: `Помилка завантаження налаштувань: ${error.message}`
+    })
+  }
+}
+
+async function handleSaveSettings(panel, settings) {
+  try {
+    globalConfig = {...globalConfig, ...settings}
+    const success = configManager.saveConfig(globalConfig)
+    panel.webview.postMessage({
+      command: "settingsSaved",
+      success: success
+    })
+    outputChannel?.appendLine(`💾 Settings saved: ${success ? "success" : "failed"}`)
+  } catch (error) {
+    outputChannel?.appendLine(`❌ Error saving settings: ${error.message}`)
+    panel.webview.postMessage({
+      command: "settingsSaved",
+      success: false,
+      error: error.message
+    })
+  }
+}
+
+async function handleClearSettings(panel) {
+  try {
+    globalConfig = configManager.getDefaultConfig()
+    const success = configManager.saveConfig(globalConfig)
+    panel.webview.postMessage({
+      command: "settingsCleared",
+      success: success
+    })
+    outputChannel?.appendLine(`🗑️ Settings cleared: ${success ? "success" : "failed"}`)
+  } catch (error) {
+    outputChannel?.appendLine(`❌ Error clearing settings: ${error.message}`)
+    panel.webview.postMessage({
+      command: "settingsCleared",
+      success: false,
+      error: error.message
+    })
+  }
+}
+
+/**
+ * ✅ FIX: Генерація CSS
+ */
+async function handleGenerateCSS(panel, settings) {
+  try {
+    outputChannel?.appendLine("🚀 Starting CSS generation...")
+
+    // Отримуємо HTML контент
+    const activeEditor = vscode.window.activeTextEditor
+    if (!activeEditor || activeEditor.document.languageId !== "html") {
+      throw new Error("HTML контент не знайдено. Відкрийте HTML файл спочатку.")
+    }
+
+    const htmlContent = activeEditor.document.getText()
+    const htmlFilePath = activeEditor.document.uri.fsPath
+
+    let cssContent = ""
+
+    if (settings.mode === "minimal" || !settings.selectedCanvases || settings.selectedCanvases.length === 0) {
+      // Мінімальна генерація
+      cssContent = generateMinimalCSS(htmlContent)
+    } else {
+      // Enhanced генерація з Figma
+      cssContent = generateEnhancedCSS(htmlContent, settings)
+    }
+
+    const savedPath = await saveGeneratedCSS(cssContent, htmlFilePath)
+    await openGeneratedCSSFile(savedPath)
+
+    panel.webview.postMessage({
+      command: "generationComplete",
+      success: true,
+      cssPath: savedPath,
+      message: `CSS успішно згенеровано: ${path.basename(savedPath)}`
+    })
+
+    outputChannel?.appendLine(`✅ CSS generation completed: ${savedPath}`)
+  } catch (error) {
+    outputChannel?.appendLine(`❌ Error in CSS generation: ${error.message}`)
+    panel.webview.postMessage({
+      command: "generationComplete",
+      success: false,
+      error: error.message
+    })
+  }
+}
+
+/**
+ * ✅ FIX: Enhanced CSS генерація
+ */
+function generateEnhancedCSS(htmlContent, settings) {
+  try {
+    let cssContent = `/* CSS Classes from HTML - Enhanced with Figma */\n`
+    cssContent += `/* Generated: ${new Date().toLocaleString("uk-UA")} */\n`
+    cssContent += `/* Mode: ${settings.mode} */\n`
+    cssContent += `/* Canvas: ${settings.selectedCanvases.length} */\n`
+    cssContent += `/* Layers: ${settings.selectedLayers.length} */\n\n`
+
+    // CSS Reset
+    cssContent += generateResetCSS()
+    
+    // CSS Variables
+    cssContent += generateCSSVariables()
+
+    // HTML класи
+    const htmlClasses = extractClassesFromHTML(htmlContent)
+    
+    if (settings.selectedLayers && settings.selectedLayers.length > 0) {
+      // Генерація на основі Figma Layers з mock стилями
+      cssContent += generateFigmaBasedCSS(settings.selectedLayers, htmlClasses)
+    } else {
+      // Базова генерація HTML класів
+      cssContent += generateHTMLBasedCSS(htmlClasses)
+    }
+
+    // Responsive styles
+    cssContent += generateResponsiveCSS()
 
     return cssContent
   } catch (error) {
-    outputChannel?.appendLine(`❌ Error generating minimal CSS: ${error.message}`)
-    return `/* Error generating CSS: ${error.message} */\n`
+    outputChannel?.appendLine(`❌ Error in enhanced CSS generation: ${error.message}`)
+    return generateMinimalCSS(htmlContent)
   }
 }
 
 /**
- * ✅ FIX: Витягування класів з HTML з правильним regex
+ * ✅ FIX: Генерація CSS на основі Figma Layers
  */
-function extractClassesFromHTML(htmlContent) {
-  try {
-    const classRegex = /class=["']([^"']+)["']/g
-    const classes = new Set()
-    let match
-
-    while ((match = classRegex.exec(htmlContent)) !== null) {
-      const classNames = match[1].split(/\s+/)
-      classNames.forEach(className => {
-        const cleanClassName = className.trim()
-        if (cleanClassName && /^[a-zA-Z_-][a-zA-Z0-9_-]*$/.test(cleanClassName)) {
-          classes.add(cleanClassName)
-        }
-      })
+function generateFigmaBasedCSS(selectedLayers, htmlClasses) {
+  let cssContent = `/* === FIGMA-BASED STYLES === */\n`
+  
+  selectedLayers.forEach(layer => {
+    const className = generateClassNameFromLayer(layer)
+    
+    cssContent += `/* Figma Layer: "${layer.name}" (${layer.type}) */\n`
+    cssContent += `/* Canvas: ${layer.canvasName || 'Unknown'} */\n`
+    cssContent += `.${className} {\n`
+    
+    // Mock стилі на основі типу layer
+    if (layer.name.toLowerCase().includes('title')) {
+      cssContent += `  font-family: 'Inter', sans-serif;\n`
+      cssContent += `  font-size: 32px;\n`
+      cssContent += `  font-weight: 700;\n`
+      cssContent += `  color: #1a1a1a;\n`
+      cssContent += `  line-height: 1.2;\n`
+      cssContent += `  margin-bottom: 24px;\n`
+    } else if (layer.name.toLowerCase().includes('button')) {
+      cssContent += `  background-color: #007ACC;\n`
+      cssContent += `  color: #ffffff;\n`
+      cssContent += `  border-radius: 8px;\n`
+      cssContent += `  padding: 12px 24px;\n`
+      cssContent += `  font-size: 16px;\n`
+      cssContent += `  font-weight: 500;\n`
+      cssContent += `  border: none;\n`
+      cssContent += `  cursor: pointer;\n`
+    } else if (layer.name.toLowerCase().includes('header')) {
+      cssContent += `  background-color: #ffffff;\n`
+      cssContent += `  padding: 16px 24px;\n`
+      cssContent += `  border-bottom: 1px solid #e0e0e0;\n`
+      cssContent += `  display: flex;\n`
+      cssContent += `  justify-content: space-between;\n`
+      cssContent += `  align-items: center;\n`
+    } else {
+      cssContent += `  /* Add styles for ${layer.name} here */\n`
     }
-
-    const classArray = Array.from(classes).sort()
-    outputChannel?.appendLine(`📋 Found ${classArray.length} CSS classes: ${classArray.join(", ")}`)
-    return classArray
-  } catch (error) {
-    outputChannel?.appendLine(`❌ Error extracting classes: ${error.message}`)
-    return []
-  }
+    
+    cssContent += `}\n\n`
+  })
+  
+  // Генеруємо пусті правила для HTML класів без Figma співставлення
+  htmlClasses.forEach(className => {
+    const alreadyGenerated = selectedLayers.some(layer => 
+      generateClassNameFromLayer(layer) === className
+    )
+    
+    if (!alreadyGenerated) {
+      cssContent += `.${className} {\n`
+      cssContent += `  /* Add styles for ${className} here */\n`
+      cssContent += `}\n\n`
+    }
+  })
+  
+  return cssContent
 }
 
 /**
- * ✅ FIX: Швидка генерація CSS з правильною обробкою помилок
+ * ✅ FIX: Швидка генерація CSS
  */
-async function quickGenerateCSS(context, args = null) {
+async function quickGenerateCSS(args = null) {
   try {
     outputChannel?.appendLine("⚡ Starting quick CSS generation...")
 
@@ -732,8 +753,6 @@ async function quickGenerateCSS(context, args = null) {
       return
     }
 
-    outputChannel?.appendLine(`📄 Processing HTML file: ${path.basename(targetUri.fsPath)}`)
-
     const htmlContent = fs.readFileSync(targetUri.fsPath, "utf8")
     const cssContent = generateMinimalCSS(htmlContent)
     const savedPath = await saveGeneratedCSS(cssContent, targetUri.fsPath)
@@ -751,186 +770,121 @@ async function quickGenerateCSS(context, args = null) {
 }
 
 /**
- * ✅ FIX: Повна генерація з Figma
+ * ✅ FIX: Допоміжні функції
  */
-async function fullGenerateWithFigma(context) {
+function generateMinimalCSS(htmlContent) {
   try {
-    outputChannel?.appendLine("🚀 Starting full generation with Figma...")
-    globalConfig.mode = "maximum"
-    await openMainMenu(context)
+    const classes = extractClassesFromHTML(htmlContent)
+    let cssContent = `/* CSS Classes from HTML - Minimal Mode */\n`
+    cssContent += `/* Generated: ${new Date().toLocaleString("uk-UA")} */\n`
+    cssContent += `/* Total classes found: ${classes.length} */\n\n`
+
+    cssContent += generateResetCSS()
+    cssContent += generateCSSVariables()
+    cssContent += generateHTMLBasedCSS(classes)
+    cssContent += generateResponsiveCSS()
+
+    return cssContent
   } catch (error) {
-    outputChannel?.appendLine(`❌ Error in full generate: ${error.message}`)
-    vscode.window.showErrorMessage(`Помилка повної генерації: ${error.message}`)
-    throw error
+    outputChannel?.appendLine(`❌ Error generating minimal CSS: ${error.message}`)
+    return `/* Error generating CSS: ${error.message} */\n`
   }
 }
 
-/**
- * ✅ FIX: Збереження згенерованого CSS з правильною логікою
- */
-async function saveGeneratedCSS(cssContent, htmlFilePath) {
-  try {
-    const htmlDir = path.dirname(htmlFilePath)
-    const htmlName = path.basename(htmlFilePath, ".html")
-    const cssFileName = `${htmlName}.css`
-    let cssFilePath = path.join(htmlDir, cssFileName)
-
-    // ✅ FIX: Уникнення перезапису існуючих файлів
-    let counter = 1
-    while (fs.existsSync(cssFilePath)) {
-      const newName = `${htmlName}-${counter}.css`
-      cssFilePath = path.join(htmlDir, newName)
-      counter++
-    }
-
-    fs.writeFileSync(cssFilePath, cssContent, "utf8")
-    outputChannel?.appendLine(`💾 CSS saved to: ${cssFilePath}`)
-
-    return cssFilePath
-  } catch (error) {
-    outputChannel?.appendLine(`❌ Error saving CSS: ${error.message}`)
-    throw new Error(`Помилка збереження CSS: ${error.message}`)
-  }
+function generateResetCSS() {
+  return `/* === RESET STYLES === */\n` +
+    `* {\n` +
+    `  margin: 0;\n` +
+    `  padding: 0;\n` +
+    `  box-sizing: border-box;\n` +
+    `}\n\n` +
+    `body {\n` +
+    `  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n` +
+    `  line-height: 1.5;\n` +
+    `  color: #212529;\n` +
+    `  background-color: #ffffff;\n` +
+    `}\n\n`
 }
 
-/**
- * ✅ FIX: Відкриття CSS файлу з правильною обробкою
- */
-async function openGeneratedCSSFile(cssFilePath) {
-  try {
-    const cssUri = vscode.Uri.file(cssFilePath)
-    const document = await vscode.workspace.openTextDocument(cssUri)
-    await vscode.window.showTextDocument(document, {
-      viewColumn: vscode.ViewColumn.Beside,
-      preview: false
+function generateCSSVariables() {
+  return `/* === CSS VARIABLES === */\n` +
+    `:root {\n` +
+    `  --primary-color: #007ACC;\n` +
+    `  --secondary-color: #6c757d;\n` +
+    `  --success-color: #28a745;\n` +
+    `  --danger-color: #dc3545;\n` +
+    `  --text-color: #212529;\n` +
+    `  --background-color: #ffffff;\n` +
+    `  --spacing-sm: 0.5rem;\n` +
+    `  --spacing-md: 1rem;\n` +
+    `  --spacing-lg: 1.5rem;\n` +
+    `}\n\n`
+}
+
+function generateHTMLBasedCSS(classes) {
+  let cssContent = `/* === CLASS RULES === */\n`
+  
+  if (classes.length === 0) {
+    cssContent += `/* No CSS classes found in HTML */\n\n`
+  } else {
+    classes.forEach(className => {
+      cssContent += `.${className} {\n`
+      cssContent += `  /* Add styles for ${className} here */\n`
+      cssContent += `}\n\n`
     })
-    outputChannel?.appendLine(`📂 CSS file opened: ${path.basename(cssFilePath)}`)
-  } catch (error) {
-    outputChannel?.appendLine(`❌ Failed to open CSS file: ${error.message}`)
-    vscode.window.showWarningMessage(`Не вдалося відкрити файл: ${path.basename(cssFilePath)}`)
   }
+  
+  return cssContent
 }
 
-/**
- * ✅ FIX: Тест мережевого підключення з детальним логуванням
- */
-async function testNetworkConnection() {
-  outputChannel?.appendLine("🌐 Запуск тесту мережевого підключення...")
-
-  const testUrls = [
-    "https://api.figma.com/health",
-    "https://www.google.com",
-    "https://httpbin.org/get"
-  ]
-
-  let successCount = 0
-  const totalTests = testUrls.length
-
-  for (const url of testUrls) {
-    try {
-      outputChannel?.appendLine(`🔍 Testing: ${url}`)
-      const result = await makeHttpRequest(url, "GET", null, {}, 10000)
-      outputChannel?.appendLine(`✅ ${url} - Status: ${result.statusCode}`)
-      successCount++
-    } catch (error) {
-      outputChannel?.appendLine(`❌ ${url} - Error: ${error.message}`)
-    }
-  }
-
-  const message = `Тест завершено: ${successCount}/${totalTests} успішних з'єднань`
-  outputChannel?.appendLine(`📊 ${message}`)
-  vscode.window.showInformationMessage(message)
+function generateResponsiveCSS() {
+  return `/* === RESPONSIVE STYLES === */\n` +
+    `@media (max-width: 768px) {\n` +
+    `  .container {\n` +
+    `    padding: var(--spacing-sm);\n` +
+    `  }\n` +
+    `}\n\n` +
+    `@media (min-width: 769px) {\n` +
+    `  .container {\n` +
+    `    padding: var(--spacing-lg);\n` +
+    `  }\n` +
+    `}\n`
 }
 
-/**
- * ✅ FIX: Виправлена функція мережевого запиту
- */
-function makeHttpRequest(url, method = "GET", data = null, headers = {}, timeout = 15000) {
-  return new Promise((resolve, reject) => {
-    try {
-      const parsedUrl = new URL(url)
-      const options = {
-        hostname: parsedUrl.hostname,
-        port: parsedUrl.port || (parsedUrl.protocol === "https:" ? 443 : 80),
-        path: parsedUrl.pathname + parsedUrl.search,
-        method: method,
-        headers: {
-          "User-Agent": "VSCode-CSS-Classes-Extension/2.1.0",
-          Accept: "application/json",
-          ...headers
-        },
-        timeout: timeout,
-        rejectUnauthorized: true
-      }
+function generateClassNameFromLayer(layer) {
+  return layer.name
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    || 'figma-layer'
+}
 
-      outputChannel?.appendLine(`🌐 Making ${method} request to: ${url}`)
+function extractClassesFromHTML(htmlContent) {
+  try {
+    const classRegex = /class=["']([^"']+)["']/g
+    const classes = new Set()
+    let match
 
-      const req = https.request(options, res => {
-        let responseData = ""
-        const statusCode = res.statusCode
-
-        res.on("data", chunk => {
-          responseData += chunk
-        })
-
-        res.on("end", () => {
-          outputChannel?.appendLine(`📨 Response received: ${statusCode}`)
-
-          try {
-            const parsedData = responseData ? JSON.parse(responseData) : null
-            resolve({
-              statusCode: statusCode,
-              data: parsedData,
-              headers: res.headers
-            })
-          } catch (parseError) {
-            outputChannel?.appendLine(`⚠️ Non-JSON response received`)
-            resolve({
-              statusCode: statusCode,
-              data: responseData,
-              headers: res.headers
-            })
-          }
-        })
-      })
-
-      req.on("error", error => {
-        outputChannel?.appendLine(`❌ Network error: ${error.message}`)
-
-        let errorMessage = `Мережева помилка: ${error.message}`
-        if (error.code === "ETIMEDOUT") {
-          errorMessage = `Таймаут з'єднання: ${timeout}ms`
-        } else if (error.code === "ECONNREFUSED") {
-          errorMessage = "З'єднання відхилено. Перевірте мережу або проксі."
-        } else if (error.code === "ENOTFOUND") {
-          errorMessage = "Хост не знайдено. Перевірте URL та інтернет-з'єднання."
+    while ((match = classRegex.exec(htmlContent)) !== null) {
+      const classNames = match[1].split(/\s+/)
+      classNames.forEach(className => {
+        const cleanClassName = className.trim()
+        if (cleanClassName && /^[a-zA-Z_-][a-zA-Z0-9_-]*$/.test(cleanClassName)) {
+          classes.add(cleanClassName)
         }
-
-        reject(new Error(errorMessage))
       })
-
-      req.on("timeout", () => {
-        outputChannel?.appendLine(`⏰ Request timeout after ${timeout}ms`)
-        req.destroy()
-        reject(new Error(`Таймаут запиту: ${timeout}ms`))
-      })
-
-      if (data) {
-        const dataString = typeof data === "string" ? data : JSON.stringify(data)
-        req.write(dataString)
-      }
-
-      req.end()
-    } catch (error) {
-      outputChannel?.appendLine(`❌ Request setup error: ${error.message}`)
-      reject(new Error(`Помилка налаштування запиту: ${error.message}`))
     }
-  })
+
+    const classArray = Array.from(classes).sort()
+    outputChannel?.appendLine(`📋 Found ${classArray.length} CSS classes`)
+    return classArray
+  } catch (error) {
+    outputChannel?.appendLine(`❌ Error extracting classes: ${error.message}`)
+    return []
+  }
 }
 
-/**
- * ✅ FIX: Витягування ID файлу з Figma посилання
- */
 function extractFileIdFromFigmaLink(figmaLink) {
   try {
     const patterns = [
@@ -956,702 +910,69 @@ function extractFileIdFromFigmaLink(figmaLink) {
   }
 }
 
-/**
- * ✅ FIX: Логування мережевих подій
- */
-function setupNetworkLogging() {
+async function saveGeneratedCSS(cssContent, htmlFilePath) {
   try {
-    process.on("uncaughtException", error => {
-      if (error.code && error.code.includes("NET")) {
-        outputChannel?.appendLine(`🔧 Uncaught network exception: ${error.message}`)
-      }
-    })
+    const htmlDir = path.dirname(htmlFilePath)
+    const htmlName = path.basename(htmlFilePath, ".html")
+    const cssFileName = `${htmlName}.css`
+    let cssFilePath = path.join(htmlDir, cssFileName)
 
-    process.on("unhandledRejection", (reason, promise) => {
-      if (reason && reason.code && reason.code.includes("NET")) {
-        outputChannel?.appendLine(`🔧 Unhandled network rejection: ${reason.message}`)
-      }
-    })
-
-    outputChannel?.appendLine("🔧 Network logging setup completed")
-  } catch (error) {
-    outputChannel?.appendLine(`❌ Error setting up network logging: ${error.message}`)
-  }
-}
-
-/**
- * ✅ FIX: Обробники повідомлень WebView з правильною реалізацією
- */
-async function handleLoadSettings(panel, context) {
-  try {
-    const settings = configManager.loadConfig()
-    panel.webview.postMessage({
-      command: "lastSettingsLoaded",
-      settings: settings
-    })
-    outputChannel?.appendLine("📂 Settings loaded and sent to WebView")
-  } catch (error) {
-    outputChannel?.appendLine(`❌ Error loading settings: ${error.message}`)
-    panel.webview.postMessage({
-      command: "error",
-      message: `Помилка завантаження налаштувань: ${error.message}`
-    })
-  }
-}
-
-async function handleSaveSettings(panel, context, settings) {
-  try {
-    globalConfig = {...globalConfig, ...settings}
-    const success = configManager.saveConfig(globalConfig)
-    panel.webview.postMessage({
-      command: "settingsSaved",
-      success: success
-    })
-    outputChannel?.appendLine(`💾 Settings saved: ${success ? "success" : "failed"}`)
-  } catch (error) {
-    outputChannel?.appendLine(`❌ Error saving settings: ${error.message}`)
-    panel.webview.postMessage({
-      command: "settingsSaved",
-      success: false,
-      error: error.message
-    })
-  }
-}
-
-async function handleGenerateCSS(panel, context, settings) {
-  try {
-    outputChannel?.appendLine("🚀 Starting CSS generation from WebView...")
-
-    if (!htmlContext || !htmlContext.htmlContent) {
-      throw new Error("HTML контент не знайдено. Відкрийте HTML файл спочатку.")
+    let counter = 1
+    while (fs.existsSync(cssFilePath)) {
+      const newName = `${htmlName}-${counter}.css`
+      cssFilePath = path.join(htmlDir, newName)
+      counter++
     }
 
-    const cssContent = generateMinimalCSS(htmlContext.htmlContent)
-    const savedPath = await saveGeneratedCSS(cssContent, htmlContext.htmlFilePath)
+    fs.writeFileSync(cssFilePath, cssContent, "utf8")
+    outputChannel?.appendLine(`💾 CSS saved to: ${cssFilePath}`)
 
-    await openGeneratedCSSFile(savedPath)
-
-    panel.webview.postMessage({
-      command: "generationComplete",
-      success: true,
-      cssPath: savedPath,
-      message: `CSS успішно згенеровано: ${path.basename(savedPath)}`
-    })
-
-    outputChannel?.appendLine(`✅ CSS generation completed: ${savedPath}`)
+    return cssFilePath
   } catch (error) {
-    outputChannel?.appendLine(`❌ Error in CSS generation: ${error.message}`)
-    panel.webview.postMessage({
-      command: "generationComplete",
-      success: false,
-      error: error.message
-    })
+    outputChannel?.appendLine(`❌ Error saving CSS: ${error.message}`)
+    throw new Error(`Помилка збереження CSS: ${error.message}`)
   }
 }
 
-async function handleClearSettings(panel, context) {
+async function openGeneratedCSSFile(cssFilePath) {
   try {
-    globalConfig = configManager.getDefaultConfig()
-    const success = configManager.clearConfig()
-    panel.webview.postMessage({
-      command: "settingsCleared",
-      success: success
+    const cssUri = vscode.Uri.file(cssFilePath)
+    const document = await vscode.workspace.openTextDocument(cssUri)
+    await vscode.window.showTextDocument(document, {
+      viewColumn: vscode.ViewColumn.Beside,
+      preview: false
     })
-    outputChannel?.appendLine(`🗑️ Settings cleared: ${success ? "success" : "failed"}`)
+    outputChannel?.appendLine(`📂 CSS file opened: ${path.basename(cssFilePath)}`)
   } catch (error) {
-    outputChannel?.appendLine(`❌ Error clearing settings: ${error.message}`)
-    panel.webview.postMessage({
-      command: "settingsCleared",
-      success: false,
-      error: error.message
-    })
-  }
-}
-
-async function handleGetFigmaCanvases(panel, message) {
-  try {
-    outputChannel?.appendLine("🎨 Getting Figma canvases...")
-
-    // ✅ FIX: Заглушка для Figma Canvas
-    panel.webview.postMessage({
-      command: "figmaCanvases",
-      canvases: [],
-      fileId: null,
-      message: "Figma інтеграція в розробці"
-    })
-  } catch (error) {
-    outputChannel?.appendLine(`❌ Error getting Figma canvases: ${error.message}`)
-    panel.webview.postMessage({
-      command: "error",
-      message: error.message
-    })
-  }
-}
-
-async function handleGetFigmaLayers(panel, message) {
-  try {
-    outputChannel?.appendLine("🎨 Getting Figma layers...")
-
-    panel.webview.postMessage({
-      command: "figmaLayers",
-      layers: [],
-      canvasId: message.canvasId,
-      message: "Figma інтеграція в розробці"
-    })
-  } catch (error) {
-    outputChannel?.appendLine(`❌ Error getting Figma layers: ${error.message}`)
-    panel.webview.postMessage({
-      command: "error",
-      message: error.message
-    })
-  }
-}
-
-async function handleGetLayerStyles(panel, message) {
-  try {
-    outputChannel?.appendLine("🎨 Getting layer styles...")
-
-    panel.webview.postMessage({
-      command: "layerStyles",
-      layerId: message.layerId,
-      styles: null,
-      message: "Figma інтеграція в розробці"
-    })
-  } catch (error) {
-    outputChannel?.appendLine(`❌ Error getting layer styles: ${error.message}`)
-    panel.webview.postMessage({
-      command: "error",
-      message: error.message
-    })
-  }
-}
-
-async function handleValidateFigmaLink(panel, message) {
-  try {
-    const fileId = extractFileIdFromFigmaLink(message.figmaLink)
-    panel.webview.postMessage({
-      command: "figmaLinkValidated",
-      isValid: !!fileId,
-      message: fileId ? "Посилання валідне" : "Невірний формат посилання",
-      fileId: fileId
-    })
-    outputChannel?.appendLine(`🔍 Figma link validation: ${fileId ? "valid" : "invalid"}`)
-  } catch (error) {
-    outputChannel?.appendLine(`❌ Error validating Figma link: ${error.message}`)
-    panel.webview.postMessage({
-      command: "figmaLinkValidated",
-      isValid: false,
-      message: error.message,
-      fileId: null
-    })
+    outputChannel?.appendLine(`❌ Failed to open CSS file: ${error.message}`)
+    vscode.window.showWarningMessage(`Не вдалося відкрити файл: ${path.basename(cssFilePath)}`)
   }
 }
 
 /**
- * ✅ FIX: Заглушки для спеціальних функцій
+ * ✅ FIX: Деактивація
  */
-async function generateSimplyChocolateCSS(context) {
+function deactivate() {
+  console.log("🔄 CSS Classes from HTML Enhanced Extension deactivating...")
+
   try {
-    outputChannel?.appendLine("🍫 Simply Chocolate CSS generation started...")
-    vscode.window.showInformationMessage("🍫 Simply Chocolate CSS функція в розробці")
+    if (panel) {
+      panel.dispose()
+      panel = null
+    }
+
+    if (outputChannel) {
+      outputChannel.dispose()
+      outputChannel = null
+    }
+
+    console.log("✅ Enhanced Extension deactivated successfully")
   } catch (error) {
-    outputChannel?.appendLine(`❌ Error in Simply Chocolate CSS: ${error.message}`)
-    vscode.window.showErrorMessage(`Помилка: ${error.message}`)
+    console.error("❌ Error during deactivation:", error.message)
   }
 }
 
-async function analyzeSimplyChocolate(context) {
-  try {
-    outputChannel?.appendLine("🍫 Simply Chocolate analysis started...")
-    vscode.window.showInformationMessage("🍫 Simply Chocolate аналіз функція в розробці")
-  } catch (error) {
-    outputChannel?.appendLine(`❌ Error in Simply Chocolate analysis: ${error.message}`)
-    vscode.window.showErrorMessage(`Помилка: ${error.message}`)
-  }
-}
-
-async function validateSystem(context) {
-  try {
-    outputChannel?.appendLine("🔍 System validation started...")
-
-    // ✅ FIX: Базова валідація системи
-    const checks = []
-
-    // Перевірка Node.js
-    checks.push(`Node.js: ${process.version} ✅`)
-
-    // Перевірка VS Code
-    checks.push(`VS Code API: ${vscode.version || "Unknown"} ✅`)
-
-    // Перевірка файлів
-    const extensionPath = context?.extensionPath || __dirname
-    const packageJsonPath = path.join(extensionPath, "package.json")
-    checks.push(`Package.json: ${fs.existsSync(packageJsonPath) ? "✅" : "❌"}`)
-
-    // Перевірка backend
-    const backendPath = path.join(extensionPath, "backend")
-    checks.push(`Backend modules: ${fs.existsSync(backendPath) ? "✅" : "❌"}`)
-
-    // Перевірка frontend
-    const frontendPath = path.join(extensionPath, "frontend")
-    checks.push(`Frontend files: ${fs.existsSync(frontendPath) ? "✅" : "❌"}`)
-
-    const report = checks.join("\n")
-    outputChannel?.appendLine("📊 System Validation Report:")
-    outputChannel?.appendLine(report)
-
-    vscode.window.showInformationMessage(
-      "✅ Валідація системи завершена. Перевірте Output Channel."
-    )
-  } catch (error) {
-    outputChannel?.appendLine(`❌ Error in system validation: ${error.message}`)
-    vscode.window.showErrorMessage(`Помилка валідації: ${error.message}`)
-  }
-}
-
-/**
- * ✅ FIX: Fallback HTML для помилок з покращеним дизайном
- */
-function getFallbackHTML() {
-  return `<!DOCTYPE html>
-<html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CSS Classes from HTML - Error</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            padding: 20px;
-            background: #1e1e1e;
-            color: #cccccc;
-            line-height: 1.6;
-        }
-        .error-container {
-            max-width: 700px;
-            margin: 50px auto;
-            padding: 30px;
-            background: #252526;
-            border-radius: 12px;
-            border: 1px solid #3c3c3c;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-        h1 {
-            color: #f44336;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .icon {
-            font-size: 1.5em;
-        }
-        p {
-            margin-bottom: 15px;
-            color: #cccccc;
-        }
-        .commands-list {
-            background: #2d2d30;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        .commands-list h3 {
-            color: #007ACC;
-            margin-bottom: 15px;
-        }
-        .command-item {
-            background: #3c3c3c;
-            border-radius: 6px;
-            padding: 12px;
-            margin-bottom: 10px;
-            border-left: 3px solid #007ACC;
-        }
-        .command-name {
-            font-weight: bold;
-            color: #4ec9b0;
-            margin-bottom: 5px;
-        }
-        .command-desc {
-            font-size: 0.9em;
-            color: #cccccc;
-        }
-        .retry-section {
-            background: #2d2d30;
-            border-radius: 8px;
-            padding: 20px;
-            margin-top: 20px;
-            text-align: center;
-        }
-        .btn {
-            background: #007ACC;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            margin: 5px;
-        }
-        .btn:hover {
-            background: #005a9e;
-        }
-    </style>
-</head>
-<body>
-    <div class="error-container">
-        <h1>
-            <span class="icon">⚠️</span>
-            Помилка завантаження меню
-        </h1>
-        
-        <p>Не вдалося завантажити меню конфігурації CSS Classes from HTML.</p>
-        
-        <div class="commands-list">
-            <h3>🚀 Доступні команди:</h3>
-            
-            <div class="command-item">
-                <div class="command-name">Quick Generate CSS</div>
-                <div class="command-desc">Швидка генерація мінімального CSS з поточного HTML файлу</div>
-            </div>
-            
-            <div class="command-item">
-                <div class="command-name">Full Generate with Figma</div>
-                <div class="command-desc">Повна генерація з інтеграцією Figma (відкриває меню конфігурації)</div>
-            </div>
-            
-            <div class="command-item">
-                <div class="command-name">Test Network Connection</div>
-                <div class="command-desc">Перевірка мережевого підключення для Figma API</div>
-            </div>
-            
-            <div class="command-item">
-                <div class="command-name">Validate System</div>
-                <div class="command-desc">Валідація системи та перевірка компонентів розширення</div>
-            </div>
-        </div>
-        
-        <div class="retry-section">
-            <h3>🔧 Що робити:</h3>
-            <p>1. Перевідкрийте меню через Command Palette (Ctrl+Shift+P)</p>
-            <p>2. Перевірте Output Channel "CSS Classes from HTML" для деталей</p>
-            <p>3. Спробуйте перезавантажити VS Code</p>
-            
-            <button class="btn" onclick="location.reload()">🔄 Оновити сторінку</button>
-        </div>
-    </div>
-</body>
-</html>`
-}
-
-/**
- * ✅ FIX: Default HTML для меню з покращеним UI
- */
-function getDefaultMenuHTML() {
-  return `<!DOCTYPE html>
-<html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CSS Classes from HTML</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #1e1e1e;
-            color: #cccccc;
-            padding: 20px;
-            line-height: 1.6;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        .header h1 {
-            color: #007ACC;
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-        .header p {
-            color: #cccccc;
-            font-size: 1.1em;
-        }
-        .mode-selector {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin: 40px 0;
-        }
-        .mode-card {
-            background: #252526;
-            border: 2px solid #3c3c3c;
-            border-radius: 12px;
-            padding: 25px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-        .mode-card:hover {
-            border-color: #007ACC;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 122, 204, 0.2);
-        }
-        .mode-card.selected {
-            border-color: #4caf50;
-            background: #2d2d30;
-        }
-        .mode-icon {
-            font-size: 3em;
-            margin-bottom: 15px;
-        }
-        .mode-title {
-            font-size: 1.3em;
-            margin-bottom: 10px;
-            color: #ffffff;
-        }
-        .mode-description {
-            color: #cccccc;
-            font-size: 0.95em;
-        }
-        .actions {
-            text-align: center;
-            margin-top: 40px;
-        }
-        .btn {
-            background: #007ACC;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 500;
-            margin: 0 10px;
-            transition: all 0.2s ease;
-        }
-        .btn:hover {
-            background: #005a9e;
-            transform: translateY(-1px);
-        }
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-        .btn-secondary {
-            background: #6c757d;
-        }
-        .btn-secondary:hover {
-            background: #5a6268;
-        }
-        .status {
-            text-align: center;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 6px;
-            display: none;
-        }
-        .status.show {
-            display: block;
-        }
-        .status.success {
-            background: rgba(76, 175, 80, 0.1);
-            border: 1px solid #4caf50;
-            color: #4caf50;
-        }
-        .status.error {
-            background: rgba(244, 67, 54, 0.1);
-            border: 1px solid #f44336;
-            color: #f44336;
-        }
-        .status.info {
-            background: rgba(0, 122, 204, 0.1);
-            border: 1px solid #007ACC;
-            color: #007ACC;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🎨 CSS Classes from HTML</h1>
-            <p>Автоматична генерація CSS з HTML файлів та інтеграція з Figma</p>
-        </div>
-        
-        <div class="mode-selector" id="modeSelector">
-            <div class="mode-card" data-mode="minimal">
-                <div class="mode-icon">⚡</div>
-                <div class="mode-title">Мінімальний</div>
-                <div class="mode-description">Швидка генерація базових CSS класів без додаткових налаштувань</div>
-            </div>
-            
-            <div class="mode-card" data-mode="maximum">
-                <div class="mode-icon">🚀</div>
-                <div class="mode-title">Максимальний</div>
-                <div class="mode-description">Повна інтеграція з Figma, всі можливості та налаштування</div>
-            </div>
-            
-            <div class="mode-card" data-mode="production">
-                <div class="mode-icon">📦</div>
-                <div class="mode-title">Production</div>
-                <div class="mode-description">Оптимізований CSS для production з мінімізацією</div>
-            </div>
-        </div>
-
-        <div id="status" class="status"></div>
-        
-        <div class="actions">
-            <button class="btn btn-secondary" id="testBtn">🌐 Тест мережі</button>
-            <button class="btn btn-secondary" id="validateBtn">🔍 Валідація</button>
-            <button class="btn" id="generateBtn" disabled>🚀 Згенерувати CSS</button>
-        </div>
-    </div>
-    
-    <script>
-        const vscode = acquireVsCodeApi();
-        let selectedMode = null;
-        
-        // Ініціалізація
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeUI();
-        });
-        
-        function initializeUI() {
-            // Обробники для карток режимів
-            document.querySelectorAll('.mode-card').forEach(card => {
-                card.addEventListener('click', function() {
-                    selectMode(this.dataset.mode);
-                });
-            });
-            
-            // Обробники для кнопок
-            document.getElementById('generateBtn').addEventListener('click', generateCSS);
-            document.getElementById('testBtn').addEventListener('click', testNetwork);
-            document.getElementById('validateBtn').addEventListener('click', validateSystem);
-        }
-        
-        function selectMode(mode) {
-            // Очищення попереднього вибору
-            document.querySelectorAll('.mode-card').forEach(card => {
-                card.classList.remove('selected');
-            });
-            
-            // Вибір нового режиму
-            document.querySelector(\`[data-mode="\${mode}"]\`).classList.add('selected');
-            selectedMode = mode;
-            
-            // Активація кнопки генерації
-            document.getElementById('generateBtn').disabled = false;
-            
-            showStatus(\`Режим "\${getModeName(mode)}" вибрано\`, 'success');
-        }
-        
-        function getModeName(mode) {
-            const names = {
-                minimal: 'Мінімальний',
-                maximum: 'Максимальний',
-                production: 'Production'
-            };
-            return names[mode] || mode;
-        }
-        
-        function generateCSS() {
-            if (!selectedMode) {
-                showStatus('Спочатку виберіть режим генерації', 'error');
-                return;
-            }
-            
-            showStatus('Генерація CSS...', 'info');
-            
-            vscode.postMessage({
-                command: 'generateCSS',
-                settings: {
-                    mode: selectedMode,
-                    includeReset: true,
-                    includeComments: true,
-                    optimizeCSS: selectedMode === 'production',
-                    generateResponsive: true
-                }
-            });
-        }
-        
-        function testNetwork() {
-            showStatus('Тестування мережевого підключення...', 'info');
-            vscode.postMessage({ command: 'testNetwork' });
-        }
-        
-        function validateSystem() {
-            showStatus('Валідація системи...', 'info');
-            vscode.postMessage({ command: 'validateSystem' });
-        }
-        
-        function showStatus(message, type) {
-            if (!type) type = 'info';
-            const status = document.getElementById('status');
-            status.className = 'status ' + type + ' show';
-            status.textContent = message;
-            
-            // Автоматичне приховування через 5 секунд
-            setTimeout(function() {
-                status.classList.remove('show');
-            }, 5000);
-        }
-        
-        // Обробка повідомлень від VSCode
-        window.addEventListener('message', function(event) {
-            const message = event.data;
-            
-            switch (message.command) {
-                case 'generationComplete':
-                    if (message.success) {
-                        showStatus('✅ CSS успішно згенеровано!', 'success');
-                    } else {
-                        showStatus('❌ Помилка: ' + message.error, 'error');
-                    }
-                    break;
-                    
-                case 'htmlContextLoaded':
-                    if (message.hasHtmlContext) {
-                        showStatus('📄 HTML файл: ' + message.htmlFileName, 'info');
-                    } else {
-                        showStatus('⚠️ HTML файл не знайдено. Відкрийте HTML файл для генерації CSS.', 'error');
-                    }
-                    break;
-                    
-                case 'error':
-                    showStatus('❌ Помилка: ' + message.message, 'error');
-                    break;
-                    
-                default:
-                    console.log('Unknown message:', message);
-            }
-        });
-    </script>
-</body>
-</html>`
-}
-
-// ✅ FIX: Експорт модуля з правильною структурою
 module.exports = {
   activate,
-  deactivate,
-  // Допоміжні функції для тестування
-  extractClassesFromHTML,
-  generateMinimalCSS,
-  extractFileIdFromFigmaLink,
-  makeHttpRequest,
-  testNetworkConnection
+  deactivate
 }

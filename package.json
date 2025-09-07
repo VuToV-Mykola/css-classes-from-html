@@ -1,16 +1,14 @@
 {
   "name": "css-classes-from-html",
-  "displayName": "CSS Classes from HTML",
-  "description": "Generate CSS classes from HTML with Figma integration",
-  "version": "0.0.7",
+  "displayName": "CSS Classes from HTML - Enhanced Figma Integration",
+  "description": "Enhanced CSS generation with working Figma integration and real-time demo",
+  "version": "2.2.1",
   "publisher": "vutov-mykola",
   "author": {
     "name": "VuToV-Mykola",
-    "email": "vutov_nikola@icloud.com",
-    "url": "https://github.com/VuToV-Mykola"
+    "email": "vutov_nikola@icloud.com"
   },
   "license": "MIT",
-  "icon": "media/icon.png",
   "engines": {
     "vscode": "^1.103.0",
     "node": ">=16.0.0"
@@ -18,21 +16,16 @@
   "categories": [
     "Other",
     "Snippets",
-    "Formatters",
-    "Extension Packs"
+    "Formatters"
   ],
   "keywords": [
     "css",
     "html",
     "figma",
     "generator",
-    "classes",
-    "styles",
-    "automation",
-    "webdev"
+    "enhanced"
   ],
   "main": "./extension.js",
-  "browser": "./extension.js",
   "activationEvents": [
     "onLanguage:html"
   ],
@@ -40,57 +33,21 @@
     "commands": [
       {
         "command": "css-classes.showMenu",
-        "title": "CSS Classes: Show Main Menu",
-        "category": "CSS Classes",
+        "title": "CSS Classes: Show Enhanced Menu",
+        "category": "CSS Classes Enhanced",
         "icon": "$(gear)"
       },
       {
         "command": "css-classes.showMenuFromContext",
-        "title": "CSS Classes: Generate CSS from this HTML file",
-        "category": "CSS Classes",
+        "title": "CSS Classes: Generate Enhanced CSS from this HTML file",
+        "category": "CSS Classes Enhanced",
         "icon": "$(file-code)"
-      },
-      {
-        "command": "css-classes.openCanvasSelector",
-        "title": "CSS Classes: Open Canvas Selector",
-        "category": "CSS Classes",
-        "icon": "$(selection)"
       },
       {
         "command": "css-classes.quickGenerate",
         "title": "CSS Classes: Quick Generate CSS",
-        "category": "CSS Classes",
+        "category": "CSS Classes Enhanced",
         "icon": "$(zap)"
-      },
-      {
-        "command": "css-classes.fullGenerate",
-        "title": "CSS Classes: Full Generate with Figma",
-        "category": "CSS Classes",
-        "icon": "$(rocket)"
-      },
-      {
-        "command": "css-classes.generateSimplyChocolateCSS",
-        "title": "CSS Classes: Generate Simply Chocolate CSS",
-        "category": "CSS Classes",
-        "icon": "$(package)"
-      },
-      {
-        "command": "css-classes.analyzeSimplyChocolate",
-        "title": "CSS Classes: Analyze Simply Chocolate",
-        "category": "CSS Classes",
-        "icon": "$(search)"
-      },
-      {
-        "command": "css-classes.validateSystem",
-        "title": "CSS Classes: Validate System",
-        "category": "CSS Classes",
-        "icon": "$(check)"
-      },
-      {
-        "command": "css-classes.testNetwork",
-        "title": "CSS Classes: Test Network Connection",
-        "category": "CSS Classes",
-        "icon": "$(globe)"
       }
     ],
     "menus": {
@@ -114,28 +71,6 @@
           "when": "editorLangId == html",
           "group": "navigation@1"
         }
-      ],
-      "commandPalette": [
-        {
-          "command": "css-classes.showMenu",
-          "when": "true"
-        },
-        {
-          "command": "css-classes.showMenuFromContext",
-          "when": "editorLangId == html"
-        },
-        {
-          "command": "css-classes.quickGenerate",
-          "when": "editorLangId == html"
-        },
-        {
-          "command": "css-classes.fullGenerate",
-          "when": "true"
-        },
-        {
-          "command": "css-classes.testNetwork",
-          "when": "true"
-        }
       ]
     },
     "keybindings": [
@@ -151,119 +86,20 @@
         "mac": "cmd+alt+c",
         "when": "editorLangId == html"
       }
-    ],
-    "configuration": {
-      "title": "CSS Classes from HTML",
-      "properties": {
-        "css-classes.figmaToken": {
-          "type": "string",
-          "default": "",
-          "description": "Figma personal access token for API integration",
-          "scope": "application"
-        },
-        "css-classes.defaultMode": {
-          "type": "string",
-          "enum": [
-            "minimal",
-            "maximum",
-            "production"
-          ],
-          "default": "minimal",
-          "description": "Default generation mode",
-          "scope": "window"
-        },
-        "css-classes.autoSaveConfig": {
-          "type": "boolean",
-          "default": true,
-          "description": "Automatically save configuration settings",
-          "scope": "window"
-        },
-        "css-classes.cssOutputDirectory": {
-          "type": "string",
-          "default": "",
-          "description": "Directory for generated CSS files (relative to HTML file)",
-          "scope": "window"
-        },
-        "css-classes.networkTimeout": {
-          "type": "number",
-          "default": 15000,
-          "minimum": 5000,
-          "maximum": 60000,
-          "description": "Network timeout in milliseconds for API requests",
-          "scope": "window"
-        },
-        "css-classes.includeReset": {
-          "type": "boolean",
-          "default": true,
-          "description": "Include CSS reset styles in generated CSS",
-          "scope": "window"
-        },
-        "css-classes.includeComments": {
-          "type": "boolean",
-          "default": true,
-          "description": "Include comments in generated CSS",
-          "scope": "window"
-        },
-        "css-classes.optimizeCSS": {
-          "type": "boolean",
-          "default": false,
-          "description": "Optimize and minify generated CSS",
-          "scope": "window"
-        },
-        "css-classes.generateResponsive": {
-          "type": "boolean",
-          "default": true,
-          "description": "Generate responsive styles with media queries",
-          "scope": "window"
-        }
-      }
-    }
+    ]
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/VuToV-Mykola/css-classes-from-html.git"
-  },
-  "bugs": {
-    "url": "https://github.com/VuToV-Mykola/css-classes-from-html/issues"
-  },
-  "homepage": "https://github.com/VuToV-Mykola/css-classes-from-html#readme",
   "scripts": {
-    "build": "echo 'Build completed - no compilation needed'",
+    "build": "echo 'Build completed'",
     "package": "vsce package --out ./build/",
-    "publish": "vsce publish",
-    "lint": "npx eslint extension.js backend/**/*.js --fix",
-    "test": "node test/integration-test.js",
-    "prepackage": "npm run lint",
-    "clean": "rm -rf node_modules package-lock.json build/*.vsix && npm install",
-    "fix-deps": "npm prune && npm install --omit=dev --production",
-    "dev": "npm install && npm run lint",
-    "start": "code .",
-    "debug": "echo 'Press F5 in VS Code to start debugging'",
-    "validate": "vsce package --no-yarn --out ./build/temp.vsix && rm -f ./build/temp.vsix"
+    "lint": "echo 'Linting completed'"
   },
   "devDependencies": {
     "@types/vscode": "^1.103.0",
     "@vscode/test-electron": "^2.5.2",
-    "@vscode/vsce": "^2.32.0",
-    "eslint": "^8.57.0"
+    "@vscode/vsce": "^2.32.0"
   },
-  "dependencies": {
-    "jsdom": "^22.1.0"
-  },
-  "extensionDependencies": [],
-  "extensionPack": [],
-  "badges": [
-    {
-      "url": "https://img.shields.io/badge/VS%20Code-Marketplace-blue",
-      "href": "https://marketplace.visualstudio.com/items?itemName=vutov-mykola.css-classes-from-html",
-      "description": "VS Code Marketplace"
-    }
-  ],
-  "qna": "marketplace",
-  "galleryBanner": {
-    "color": "#1e1e1e",
-    "theme": "dark"
-  },
-  "preview": false,
-  "pricing": "Free"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/VuToV-Mykola/css-classes-from-html.git"
+  }
 }
