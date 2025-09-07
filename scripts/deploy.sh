@@ -60,21 +60,6 @@ log_step() {
     echo -e "${CYAN}${GEAR} $1${NC}" | tee -a "$LOG_FILE"
 }
 
-# 🎨 Анімація завантаження
-spinner() {
-    local pid=$1
-    local delay=0.1
-    local spinstr='|/-\'
-    while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
-        local temp=${spinstr#?}
-        printf " [%c]  " "$spinstr"
-        local spinstr=$temp${spinstr%"$temp"}
-        sleep $delay
-        printf "\b\b\b\b\b\b"
-    done
-    printf "    \b\b\b\b"
-}
-
 # ✅ Конфігурація проєкту
 PROJECT_NAME="css-classes-from-html"
 VERSION="0.0.7"
@@ -128,15 +113,12 @@ ask_user() {
 remove_old_extension() {
     log_info "Перевірка наявності старого розширення..."
     
-    # Безпечний пошук старого розширення
     local old_extensions=""
     if command -v code &> /dev/null; then
-        # Спробуємо знайти розширення через файлову систему
         if [ -d "$HOME/.vscode/extensions" ]; then
             old_extensions=$(find "$HOME/.vscode/extensions" -name "*css-classes*" -o -name "*vutov*" 2>/dev/null | head -5 || true)
         fi
         
-        # Альтернативний спосіб через list-extensions (з обробкою помилок)
         if [ -z "$old_extensions" ]; then
             old_extensions=$(code --list-extensions 2>/dev/null | grep -i "css-classes\|vutov" || true) || true
         fi
@@ -150,7 +132,6 @@ remove_old_extension() {
         
         if ask_user "🗑️ Видалити старі версії розширення?" "y"; then
             for ext in $old_extensions; do
-                # Безпечне видалення (тільки якщо це дійсно розширення)
                 if [[ "$ext" == *.* ]]; then
                     log_info "Видалення розширення: $ext"
                     if code --uninstall-extension "$ext" 2>> "$LOG_FILE"; then
@@ -174,7 +155,6 @@ reset_environment() {
     log_info "Очищення середовища перед деплоєм..."
     
     if ask_user "🔄 Виконати очищення кешу та reset?" "y"; then
-        # Очищення кешу npm
         log_info "Очищення npm кешу..."
         if npm cache clean --force 2>/dev/null; then
             log_success "npm кеш очищено"
@@ -182,25 +162,21 @@ reset_environment() {
             log_warning "Не вдалося очистити кеш npm"
         fi
         
-        # Видалення node_modules (з підтвердженням)
         if [ -d "node_modules" ] && ask_user "📁 Видалити node_modules?" "n"; then
             rm -rf node_modules
             log_success "node_modules видалено"
         fi
         
-        # Видалення старих збірок
         if [ -d "builds" ]; then
             rm -rf builds/*
             log_success "Старі збірки очищено"
         fi
         
-        # Очищення логів деплою
         if [ -d "logs/deploy" ]; then
             find logs/deploy -name "*.log" -mtime +7 -delete 2>/dev/null || true
             log_success "Старі логи очищено"
         fi
         
-        # Git reset (тільки якщо є git репозиторій)
         if [ -d ".git" ] && ask_user "🔧 Виконати git reset --hard?" "n"; then
             git reset --hard
             git clean -fd
@@ -321,13 +297,9 @@ validate_javascript() {
 install_dependencies() {
     log_step "Встановлення залежностей..."
     
-    # Показати прогресивну інформацію
-    echo -e "${BLUE}📦 Встановлення залежностей...${NC}" | tee -a "$LOG_FILE"
-    
     if npm install --production > logs/deploy/npm-install.log 2>&1; then
         log_success "Продакшн залежності встановлено"
         
-        # Dev залежності
         if npm install --save-dev @vscode/vsce @types/vscode >> logs/deploy/npm-install.log 2>&1; then
             log_success "Dev залежності встановлено"
         else
@@ -348,17 +320,12 @@ install_dependencies() {
 update_package_json() {
     log_step "Оновлення package.json..."
     
-    # Створення backup
     cp package.json "backups/package.json.backup.${TIMESTAMP}"
-    
-    # Красиве оновлення
-    echo -e "${BLUE}🔄 Оновлення версії до $VERSION...${NC}" | tee -a "$LOG_FILE"
     
     node -e "
     const fs = require('fs');
     const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
     
-    // Оновлення основних полів
     const updates = {
         version: '$VERSION',
         displayName: '$EXTENSION_NAME v$VERSION',
@@ -369,7 +336,6 @@ update_package_json() {
     
     Object.assign(pkg, updates);
     
-    // Оновлення scripts
     pkg.scripts = {
         'build': 'echo \"Build completed\"',
         'package': 'vsce package --out ./builds/',
@@ -378,7 +344,6 @@ update_package_json() {
         'deploy': 'bash scripts/deploy.sh'
     };
     
-    // Оновлення keywords
     pkg.keywords = [
         'css', 'html', 'figma', 'generator', 'classes', 
         'frontend', 'ui', 'design', 'automation', 'integration'
@@ -397,8 +362,6 @@ run_pre_build_tests() {
     log_step "Запуск тестів..."
     
     if [ -f "scripts/tests.sh" ]; then
-        echo -e "${BLUE}${TEST} Запуск тестового скрипта...${NC}" | tee -a "$LOG_FILE"
-        
         if bash scripts/tests.sh > logs/deploy/pre-build-tests.log 2>&1; then
             log_success "Всі тести пройдено успішно"
         else
@@ -419,11 +382,8 @@ run_pre_build_tests() {
 create_vsix_package() {
     log_step "Створення VSIX пакету..."
     
-    # Очищення попередніх збірок
     rm -rf builds/*
     mkdir -p builds
-    
-    echo -e "${BLUE}${PACKAGE} Створення пакету розширення...${NC}" | tee -a "$LOG_FILE"
     
     if vsce package --out builds/ > logs/deploy/vsce-package.log 2>&1; then
         local vsix_file=$(find builds -name "*.vsix" | head -1)
@@ -433,14 +393,11 @@ create_vsix_package() {
             
             log_success "VSIX пакет створено: $vsix_name ($vsix_size)"
             
-            # Копіювання для зручності
             cp "$vsix_file" .
             
-            # Збереження інформації
             echo "$vsix_name" > builds/latest-package.txt
             echo "$(date): $vsix_name ($vsix_size)" >> builds/package-history.txt
             
-            # Показати інформацію про пакет
             echo -e "${GREEN}📊 Інформація про пакет:${NC}" | tee -a "$LOG_FILE"
             echo -e "  ${CYAN}•${NC} Назва: $vsix_name" | tee -a "$LOG_FILE"
             echo -e "  ${CYAN}•${NC} Розмір: $vsix_size" | tee -a "$LOG_FILE"
@@ -467,7 +424,6 @@ force_push_to_github() {
     if ask_user "🚀 Виконати git push --force до GitHub?" "n"; then
         log_info "Виконуємо форс-пуш на GitHub..."
         
-        # Перевірка наявності змін
         if git diff --quiet && git diff --staged --quiet; then
             log_info "Немає змін для коміту"
         else
@@ -475,7 +431,6 @@ force_push_to_github() {
             git commit -m "🚀 Release v$VERSION - Automated deployment" || true
         fi
         
-        # Створення тегу
         git tag -f "v$VERSION" -m "Release v$VERSION"
         
         if git push --force origin main --tags; then
@@ -550,13 +505,11 @@ main() {
     print_separator_end
     echo ""
     
-    # Очищення середовища
     if ask_user "🔄 Виконати очищення середовища?" "y"; then
         reset_environment
     fi
     echo ""
     
-    # Послідовність перевірок
     local steps=(
         "Перевірка залежностей:check_dependencies"
         "Валідація файлів:validate_project_files"
@@ -576,11 +529,9 @@ main() {
         echo ""
     done
     
-    # Створення звіту
     create_deployment_report
     echo ""
     
-    # Фінальна статистика
     print_separator
     echo -e "${CYAN}📊 ФІНАЛЬНА СТАТИСТИКА${NC}" | tee -a "$LOG_FILE"
     print_separator_mid
@@ -591,12 +542,10 @@ main() {
     print_separator_end
     echo ""
     
-    # Фінальний результат
     if [ $CRITICAL_ERRORS -eq 0 ] && [ "$VALIDATION_PASSED" = true ]; then
         echo -e "${GREEN}${SUCCESS} 🎉 ДЕПЛОЙ ЗАВЕРШЕНО УСПІШНО!${NC}" | tee -a "$LOG_FILE"
         echo ""
         
-        # Додаткові дії
         remove_old_extension
         force_push_to_github
         publish_to_marketplace
