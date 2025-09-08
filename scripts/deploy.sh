@@ -729,7 +729,7 @@ fi
     for step in "${steps[@]}" do
         IFS=':' read -r step_name step_func "$step"
         log_step "$step_name..."
-        if ! $step_func; then
+        if ! $step_func then
             log_error "Помилка на етапі: $step_name"
         fi
         echo ""
