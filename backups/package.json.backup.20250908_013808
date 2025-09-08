@@ -36,9 +36,6 @@
   "main": "./extension.js",
   "activationEvents": [
     "onLanguage:html",
-    "onStartupFinished",
-    "onStartupFinished",
-    "onStartupFinished",
     "onCommand:css-classes.showMenu",
     "onCommand:css-classes.showMenuFromContext",
     "onCommand:css-classes.quickGenerate",

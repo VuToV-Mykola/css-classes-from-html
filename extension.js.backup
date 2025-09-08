@@ -79,25 +79,6 @@ function activate(context) {
   console.log(`  📋 Extension Version: ${context.extension?.packageJSON?.version || 'undefined'}`)
 
 
-    // ✅ FIX: Додано відсутні команди
-    console.log("  🎯 Реєстрація команди: css-classes.showMenu");
-    outputChannel.appendLine("  🎯 Реєстрація команди: css-classes.showMenu");
-    commands.push(vscode.commands.registerCommand("css-classes.showMenu", async () => {
-        console.log("🎯 Command 'css-classes.showMenu' executed");
-        outputChannel.appendLine("🎯 Command 'css-classes.showMenu' executed");
-        await openMainMenu(context);
-    }));
-    
-    console.log("  🎯 Реєстрація команди: css-classes.showMenuFromContext");
-    outputChannel.appendLine("  🎯 Реєстрація команди: css-classes.showMenuFromContext");
-    commands.push(vscode.commands.registerCommand("css-classes.showMenuFromContext", async uri => {
-        console.log("🎯 Command 'css-classes.showMenuFromContext' executed");
-        console.log(`  📂 URI: ${uri ? uri.fsPath : 'undefined'}`);
-        outputChannel.appendLine("🎯 Command 'css-classes.showMenuFromContext' executed");
-        outputChannel.appendLine(`  📂 URI: ${uri ? uri.fsPath : 'undefined'}`);
-        await openMainMenu(context);
-    }));
-    
     // Команда 3: css-classes.quickGenerate
     console.log("  🎯 Реєстрація команди: css-classes.quickGenerate")
     outputChannel.appendLine("  🎯 Реєстрація команди: css-classes.quickGenerate")
