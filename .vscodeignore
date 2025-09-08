@@ -29,7 +29,7 @@ test/**
 tests/**
 **/*.test.js
 **/*.spec.js
-logs/**
+
 tmp/**
 temp/**
 .history/

@@ -725,7 +725,6 @@ fi
         "Встановлення залежностей:install_dependencies"
         "Запуск тестів:run_tests"
         "Створення пакету:create_vsix_package"
-    )
     
     for step in "${steps[@]}"; do
         IFS=':' read -r step_name step_func <<< "$step"
