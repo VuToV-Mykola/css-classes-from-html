@@ -10,8 +10,8 @@
   },
   "license": "MIT",
   "engines": {
-    "vscode": "^1.103.0",
-    "node": ">=18.0.0"
+    "vscode": "^1.74.0",
+    "node": ">=16.0.0"
   },
   "categories": [
     "Other",
@@ -34,11 +34,13 @@
     "css-generator"
   ],
   "main": "./extension.js",
+  "icon": "assets/icon.png",
+  "galleryBanner": {
+    "color": "#007ACC",
+    "theme": "dark"
+  },
   "activationEvents": [
     "onLanguage:html",
-    "onStartupFinished",
-    "onStartupFinished",
-    "onStartupFinished",
     "onCommand:css-classes.showMenu",
     "onCommand:css-classes.showMenuFromContext",
     "onCommand:css-classes.quickGenerate",
@@ -48,19 +50,26 @@
     "commands": [
       {
         "command": "css-classes.showMenu",
-        "title": "Show Main Menu"
+        "title": "Show Main Menu",
+        "category": "CSS Classes from HTML",
+        "icon": "$(symbol-class)"
       },
       {
         "command": "css-classes.showMenuFromContext",
-        "title": "Generate CSS from HTML"
+        "title": "Generate CSS from HTML",
+        "category": "CSS Classes from HTML",
+        "icon": "$(output)"
       },
       {
         "command": "css-classes.quickGenerate",
-        "title": "Quick Generate CSS"
+        "title": "Quick Generate CSS",
+        "category": "CSS Classes from HTML",
+        "icon": "$(rocket)"
       },
       {
         "command": "extension.cssClassesFromHtml",
-        "title": "CSS Classes from HTML: Generate CSS"
+        "title": "CSS Classes from HTML: Generate CSS",
+        "category": "CSS Classes from HTML"
       }
     ],
     "menus": {
@@ -84,6 +93,20 @@
           "when": "editorLangId == html",
           "group": "navigation@1"
         }
+      ],
+      "commandPalette": [
+        {
+          "command": "css-classes.showMenu",
+          "when": "editorLangId == html"
+        },
+        {
+          "command": "css-classes.showMenuFromContext",
+          "when": "editorLangId == html"
+        },
+        {
+          "command": "css-classes.quickGenerate",
+          "when": "editorLangId == html"
+        }
       ]
     },
     "keybindings": [
@@ -99,27 +122,66 @@
         "mac": "cmd+alt+c",
         "when": "editorLangId == html"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "CSS Classes from HTML",
+      "properties": {
+        "cssClassesFromHtml.figmaToken": {
+          "type": "string",
+          "default": "",
+          "description": "Figma API Token for integration",
+          "scope": "application"
+        },
+        "cssClassesFromHtml.autoOpenCSS": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically open generated CSS file"
+        },
+        "cssClassesFromHtml.includeReset": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include CSS reset styles"
+        },
+        "cssClassesFromHtml.includeVariables": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include CSS custom properties (variables)"
+        },
+        "cssClassesFromHtml.generateResponsive": {
+          "type": "boolean",
+          "default": true,
+          "description": "Generate responsive media queries"
+        }
+      }
+    }
   },
   "scripts": {
     "build": "echo \"✅ Build completed for v0.0.7\"",
     "package": "vsce package --out ./builds/",
-    "lint": "echo \"✅ Linting completed\"",
+    "lint": "eslint . --ext .js,.ts",
     "test": "bash scripts/tests.sh",
     "deploy": "bash scripts/deploy.sh",
     "validate": "node -c extension.js && echo \"✅ Validation passed\"",
-    "clean": "rm -rf builds/* logs/deploy/*.log"
+    "clean": "rm -rf builds/* logs/deploy/*.log node_modules/.cache",
+    "prepackage": "npm run validate",
+    "postpackage": "echo \"📦 Package created successfully\""
   },
   "devDependencies": {
-    "@types/vscode": "^1.103.0",
-    "@vscode/test-electron": "^2.5.2",
-    "@vscode/vsce": "^2.32.0"
+    "@types/vscode": "^1.74.0",
+    "@vscode/test-electron": "^2.3.0",
+    "@vscode/vsce": "^2.19.0",
+    "eslint": "^8.0.0"
+  },
+  "dependencies": {
+    "jsdom": "^22.0.0"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/VuToV-Mykola/css-classes-from-html.git"
   },
-  "dependencies": {
-    "jsdom": "^26.1.0"
-  }
+  "bugs": {
+    "url": "https://github.com/VuToV-Mykola/css-classes-from-html/issues"
+  },
+  "homepage": "https://github.com/VuToV-Mykola/css-classes-from-html#readme",
+  "qna": "marketplace"
 }
