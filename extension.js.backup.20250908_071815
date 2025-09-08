@@ -18,51 +18,27 @@ let integrationEngine = null
 const configManager = {
   configPath: null,
 
-  initialize: function(extensionPath) {
+  initialize(extensionPath) {
     const configDir = path.join(extensionPath, ".vscode", "css-classes-config")
     this.configPath = path.join(configDir, "last-settings.json")
 
-    try {
-      if (!fs.existsSync(configDir)) {
-        fs.mkdirSync(configDir, {recursive: true})
-      }
-    } catch (error) {
       console.error("❌ Error creating config directory:", error.message)
     }
   },
 
-  loadConfig: function() {
-    try {
-      if (fs.existsSync(this.configPath)) {
-        const data = fs.readFileSync(this.configPath, "utf8")
-        return JSON.parse(data)
-      }
-    } catch (error) {
+  loadConfig() {
       console.error("❌ Error loading config:", error.message)
     }
     return this.getDefaultConfig()
   },
 
-  saveConfig: function(config) {
-    try {
-      const configDir = path.dirname(this.configPath)
-      if (!fs.existsSync(configDir)) {
-        fs.mkdirSync(configDir, {recursive: true})
-      }
-      const dataToSave = {
-        ...config,
-        timestamp: new Date().toISOString(),
-        version: "4.0.0"
-      }
-      fs.writeFileSync(this.configPath, JSON.stringify(dataToSave, null, 2), "utf8")
-      return true
-    } catch (error) {
+  saveConfig(config) {
       console.error("❌ Error saving config:", error.message)
       return false
     }
   },
 
-  getDefaultConfig: function() {
+  getDefaultConfig() {
     return {
       mode: "minimal",
       figmaLink: "",
@@ -71,7 +47,7 @@ const configManager = {
       selectedLayers: [],
       sidebarVisible: false,
       savedAt: new Date().toISOString(),
-      version: "4.0.0"
+      version: "0.0.7"
     }
   }
 }
