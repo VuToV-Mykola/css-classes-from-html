@@ -1,3 +1,4 @@
+[0;32m✅ Отримано заголовок з README.md (37 рядків)[0m
 # 🎨 CSS Classes from HTML
 
 ### 🌐 Виберіть мову/Choose language/Wählen Sprache:
@@ -36,274 +37,158 @@
 
 > Якщо це розширення допомогло вам у роботі, підтримайте автора кавою! ☕
 
-## 📌 Опис
+## 🚀 Можливості розширення
 
-**CSS Classes from HTML** — це потужне розширення для Visual Studio Code, яке автоматично генерує CSS класи з HTML файлів з можливістю реальної інтеграції з Figma дизайнами. Розроблено з використанням знань, отриманих на курсах GoIT, та за допомогою штучного інтелекту.
+### ⚡ Швидка генерація CSS
+- **Автоматична** - Розпізнавання всіх CSS класів з HTML
+- **Інтелектуальна** - Створення структурованих правил
+- **Оптимізована** - Мінімальний та чистий код
 
-## ✨ Основні можливості
+### 🎨 Інтеграція з Figma
+- **Реальні дані** - Пряме підключення до Figma API
+- **Canvas імпорт** - Завантаження дизайну та layers
+- **Стиль співставлення** - Автоматичне перенесення властивостей
+- **Шрифти та зображення** - Імпорт ресурсів дизайну
 
-### 🚀 Три режими генерації
-- **⚡ Мінімальний** - Швидка генерація базових CSS класів
-- **🎯 Максимальний** - Повна інтеграція з Figma з розумним співставленням
-- **📦 Production** - Оптимізований CSS для продакшн середовища
+### 📱 Адаптивний CSS
+- **Mobile First** - Оптимізація для мобільних пристроїв
+- **Breakpoints** - Стандартні точки переломів
+- **Flexbox та Grid** - Сучасні методи верстання
 
-### 🎨 Реальна Figma інтеграція
-- **🔗 API Integration** - Пряма робота з Figma API без mock даних
-- **📋 Canvas Selection** - Вибір конкретних Canvas для обробки
-- **🎨 Layer Analysis** - Детальний аналіз кожного Layer
-- **💎 Smart Matching** - Розумне співставлення Figma елементів з HTML класами
+## 🛠️ Встановлення та використання
 
-### 📦 Імпорт ресурсів
-- **🖼️ Image Import** - Автоматичне завантаження та оптимізація зображень
-- **🔤 Font Import** - Інтеграція з Google Fonts та імпорт шрифтів
-- **🎨 SVG Sprites** - Генерація оптимізованих SVG спрайтів
-- **📂 Asset Organization** - Автоматична організація файлів
-
-### 🧠 Розумні алгоритми
-- **📊 Hierarchical Analysis** - Аналіз ієрархії HTML та Figma
-- **🏷️ Semantic Recognition** - Автоматичне визначення семантичних ролей
-- **📝 Text Matching** - Співставлення за текстовим контентом
-- **📈 Confidence Scoring** - Оцінка впевненості співставлення
-
-## 📦 Встановлення
-
-### Спосіб 1: З VS Code Marketplace
+### 1. Встановлення з Marketplace
 ```bash
-code --install-extension vutov-mykola.css-classes-from-html
+# Через VS Code Marketplace
+1. Відкрити VS Code
+2. Перейти в Extensions (Ctrl+Shift+X)
+3. Знайти "CSS Classes from HTML"
+4. Натиснути Install
 ```
 
-### Спосіб 2: З VSIX файлу
-1. Завантажте `.vsix` файл з [Releases](https://github.com/VuToV-Mykola/css-classes-from-html/releases)
-2. У VS Code: `Ctrl+Shift+P` → `Extensions: Install from VSIX...`
-3. Виберіть завантажений файл
-
-### Спосіб 3: З вихідного коду
+### 2. Локальне встановлення
 ```bash
+# Клонування проекту
 git clone https://github.com/VuToV-Mykola/css-classes-from-html.git
 cd css-classes-from-html
+
+# Встановлення залежностей
 npm install
-bash scripts/deploy.sh
+
+# Збірка розширення
+npm run package
+
+# Встановлення в VS Code
+code --install-extension ./builds/css-classes-from-html-0.0.7.vsix
 ```
 
-## 🚀 Використання
+### 3. Швидкий старт
+1. **Відкрити HTML файл** - Будь-який HTML файл з CSS класами
+2. **Натиснути комбінацію** - `Cmd+Alt+C` (Mac) або `Ctrl+Alt+C` (Windows)
+3. **Отримати результат** - CSS файл створено автоматично
 
-### Швидкий старт
-1. Відкрийте HTML файл у VS Code
-2. Натисніть `Ctrl+Shift+C` (Windows/Linux) або `Cmd+Shift+C` (Mac)
-3. Виберіть режим генерації:
-   - **Мінімальний**: Базові CSS класи без Figma
-   - **Максимальний**: Повна інтеграція з Figma
-   - **Production**: Оптимізований код
-4. CSS файл буде створено автоматично!
+## ⌨️ Гарячі клавіші
 
-### З Figma інтеграцією
-1. **Налаштування токену:**
-   - Отримайте [Figma Personal Access Token](https://www.figma.com/developers/api#access-tokens)
-   - Вставте токен у розширення
+| Комбінація | Дія | Опис |
+|------------|-----|------|
+| `Cmd+Shift+C` | Головне меню | Відкриває повнофункціональне меню |
+| `Cmd+Alt+C` | Швидка генерація | Створює CSS без меню |
+| `F1` → "CSS Classes" | Command Palette | Доступ до всіх команд |
 
-2. **Підключення файлу:**
-   - Скопіюйте посилання на Figma файл
-   - Вставте у поле "Figma File URL"
+## 🎯 Режими роботи
 
-3. **Вибір контенту:**
-   - Натисніть "Load Canvas" для завантаження Canvas
-   - Виберіть потрібні Canvas та Layers
-   - Опціонально імпортуйте зображення та шрифти
+### ⚡ Мінімальний режим
+- Швидка генерація базових CSS класів
+- Без зовнішніх інтеграцій
+- Ідеально для простих проектів
 
-4. **Генерація CSS:**
-   - Натисніть "Generate CSS"
-   - Отримайте розумний CSS з реальними стилями з Figma
+### 🚀 Максимальний режим
+- Повна інтеграція з Figma
+- Розумне співставлення стилів
+- Імпорт зображень та шрифтів
 
-## ⌨️ Горячі клавіші
+### 📦 Production режим
+- Оптимізований CSS
+- Мінімізація коду
+- Готовий для продакшн
 
-| Команда | Windows/Linux | Mac | Опис |
-|---------|---------------|-----|------|
-| Показати меню | `Ctrl+Shift+C` | `Cmd+Shift+C` | Відкрити головне меню |
-| Швидка генерація | `Ctrl+Alt+C` | `Cmd+Alt+C` | Мінімальна генерація CSS |
+## 🔧 Налаштування
 
-## 📊 Приклад результату
+Розширення можна налаштувати через VS Code Settings:
 
-```css
-/* ✅ CSS Generated by Smart CSS Generator v0.0.7 */
-/* Generated: 2025-01-15 12:30:45 */
-/* Matched: 15 | Unmatched: 3 | Accuracy: 83.3% */
-
-/* ✅ MATCHED: Figma "Hero Title" (TEXT) → HTML .hero-title */
-/* Confidence: 95.2% | Strategy: smart-matching */
-.hero-title {
-  font-family: 'Inter', sans-serif;
-  font-size: 48px;
-  font-weight: 700;
-  color: #1a1a1a;
-  line-height: 56px;
-  letter-spacing: -0.02em;
-}
-
-/* ✅ MATCHED: Figma "Primary Button" (RECTANGLE) → HTML .btn-primary */
-/* Confidence: 89.7% | Strategy: semantic-match */
-.btn-primary {
-  background-color: #007ACC;
-  color: #ffffff;
-  border-radius: 8px;
-  padding: 12px 24px 12px 24px;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-/* ❌ UNMATCHED: No Figma element found for .card */
-.card {
-  /* Add styles manually */
-}
-
-/* ✅ RESPONSIVE STYLES */
-@media (max-width: 768px) {
-  .hero-title {
-    font-size: 32px;
-    line-height: 40px;
-  }
+```json
+{
+  "cssClassesFromHtml.figmaToken": "your-figma-api-token",
+  "cssClassesFromHtml.autoOpenCSS": true,
+  "cssClassesFromHtml.includeReset": true,
+  "cssClassesFromHtml.includeVariables": true,
+  "cssClassesFromHtml.generateResponsive": true
 }
 ```
 
-## ⚙️ Налаштування
+## 📊 Статистика проекту
 
-### Режими роботи
-- `minimal`: Базова генерація CSS класів без Figma інтеграції
-- `maximum`: Повна інтеграція з Figma, розумне співставлення елементів
-- `production`: Оптимізований та мініфікований CSS
-
-### Опції генерації
-- `includeReset`: Включити reset стилі (за замовчуванням: true)
-- `includeComments`: Додати коментарі про співставлення (за замовчуванням: true)
-- `optimizeCSS`: Оптимізувати CSS для продакшн (за замовчуванням: false)
-- `generateResponsive`: Генерувати адаптивні стилі (за замовчуванням: true)
-
-### Figma налаштування
-- **API Token**: Персональний токен доступу з Figma
-- **File URL**: Посилання на Figma файл
-- **Canvas Selection**: Вибрані Canvas для обробки
-- **Layer Selection**: Конкретні Layers для співставлення
-
-## 🛠️ Розробка
-
-### Структура проєкту
-```
-css-classes-from-html/
-├── backend/                    # Backend модулі
-│   ├── core/                  # Основні компоненти
-│   │   ├── FigmaAPIClient.js
-│   │   ├── HTMLParser.js
-│   │   └── IntegrationEngine.js
-│   ├── generators/            # CSS генератори
-│   │   └── SmartCSSGenerator.js
-│   ├── utils/                 # Утиліти
-│   │   ├── ImageImporter.js
-│   │   └── FontImporter.js
-│   └── matchers/              # Алгоритми співставлення
-├── frontend/                  # WebView інтерфейс
-├── scripts/                   # Скрипти розгортання та тестування
-├── logs/                      # Логи системи
-├── builds/                    # Збірки VSIX
-├── backups/                   # Резервні копії
-└── debugs/                    # Debug файли
-```
-
-### Команди розробки
-```bash
-# Тестування
-bash scripts/tests.sh
-
-# Налагодження
-bash scripts/debug.sh
-
-# Розгортання
-bash scripts/deploy.sh
-
-# Пуш на GitHub
-bash scripts/push-to-github.sh
-```
-
-### Запуск в режимі розробки
-1. Відкрийте проєкт у VS Code
-2. Натисніть `F5` для запуску Extension Development Host
-3. У новому вікні VS Code протестуйте розширення
+- **📁 JavaScript файлів:** 17
+- **🌐 HTML файлів:** 1
+- **📝 Markdown файлів:** 14
+- **📦 Загальна кількість файлів:** 65
+- **💾 Розмір проекту:** 160M
+- **🔧 Залежностей:** 1
+- **⚡ Скриптів:** 9
 
 ## 🧪 Тестування
 
-Проєкт включає комплексну систему тестування:
-
-- **Unit тести** - Тестування окремих модулів
-- **Integration тести** - Тестування взаємодії компонентів  
-- **Debug тести** - Налагодження та діагностика
-- **Performance тести** - Тестування продуктивності
+Розширення включає повний набір тестів:
 
 ```bash
 # Запуск всіх тестів
-bash scripts/tests.sh
+npm test
 
-# Запуск debug тестів
-bash scripts/debug.sh
+# Автоматизоване тестування
+./test_extension.sh
+
+# Мануальне тестування
+# Дивіться TESTING_INSTRUCTIONS.md
 ```
 
-## 🐛 Troubleshooting
+## 🤝 Внесок у проект
 
-### Поширені проблеми
+Ми вітаємо контрибуції! Дивіться [CONTRIBUTING.md](docs/CONTRIBUTING.md)
 
-**Figma API помилки:**
-- Перевірте валідність токену
-- Переконайтеся що файл публічний або у вас є доступ
-- Токен повинен мати права на читання файлів
+1. Fork проекту
+2. Створіть feature branch
+3. Commit змін
+4. Push в branch
+5. Створіть Pull Request
 
-**Проблеми зі співставленням:**
-- Використовуйте осмислені назви класів у HTML
-- Давайте зрозумілі назви Layers у Figma
-- Структуруйте HTML семантично
+## 📜 Ліцензія
 
-**Помилки генерації CSS:**
-- Перевірте синтаксис HTML файлу
-- Переконайтеся що VS Code має доступ до файлу
-- Перевірте логи в Output Channel
-
-### Логи та діагностика
-- **Output Channel**: "CSS Classes from HTML" у VS Code
-- **Debug файли**: `debugs/` директорія
-- **Лог файли**: `logs/` директорія
-
-## 📝 Ліцензія
-
-MIT License - дивіться файл [LICENSE](LICENSE)
+Цей проект використовує MIT ліцензію. Деталі в [LICENSE.md](docs/LICENSE.md)
 
 ## 👨‍💻 Автор
 
-**VuToV-Mykola**
+**VuToV-Mykola** - Сертифікований програміст з 10+ років досвіду  
+Розроблено з використанням знань GoIT курсів та штучного інтелекту
+
 - GitHub: [@VuToV-Mykola](https://github.com/VuToV-Mykola)
 - Email: vutov_nikola@icloud.com
 
-## 🙏 Подяки
+## 🚀 Подяки
 
-- [GoIT](https://goit.global) - за знання та навчання
-- Anthropic Claude AI - за допомогу в розробці
-- VS Code Team - за чудовий редактор та API
-- Figma Team - за потужний API для дизайну
-
-## 🤝 Внесок у проєкт
-
-Внески вітаються! Дивіться [CONTRIBUTING.md](docs/CONTRIBUTING.md) для деталей.
-
-### Як допомогти
-1. 🐛 [Повідомте про баг](https://github.com/VuToV-Mykola/css-classes-from-html/issues)
-2. 💡 [Запропонуйте функцію](https://github.com/VuToV-Mykola/css-classes-from-html/discussions)
-3. 📖 Покращте документацію
-4. 🧪 Додайте тести
-5. ⭐ Поставте зірку проєкту
-
-## 🔗 Корисні посилання
-
-- [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=vutov-mykola.css-classes-from-html)
-- [GitHub Repository](https://github.com/VuToV-Mykola/css-classes-from-html)
-- [Figma API Documentation](https://www.figma.com/developers/api)
-- [Video Tutorial](https://youtu.be/xl46PGWNB3A)
+Особлива подяка:
+- **GoIT** - за якісні курси програмування
+- **VS Code Team** - за чудову платформу
+- **Figma** - за потужний API
+- **Спільноті** - за підтримку та фідбек
 
 ---
 
-**Розроблено з ❤️ в Україні 🇺🇦**
+### 📈 Розвиток проекту
+
+Плани на майбутнє:
+- 🎨 Більше інтеграцій з дизайн-системами
+- 🚀 Підтримка інших фреймворків
+- 🧪 Розширені можливості тестування
+- 📱 Мобільна версія
+
+**⭐ Поставте зірочку, якщо проект вам сподобався!**

@@ -1,3 +1,4 @@
+[0;32m✅ Отримано заголовок з docs/README.de.md (37 рядків)[0m
 # 🎨 CSS Classes from HTML - Figma Integration
 
 ### 🌐 Виберіть мову/Choose language/Wählen Sprache:
@@ -36,59 +37,158 @@
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate/?hosted_button_id=D5U6TQ3Q9CVLS)
 [![Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-orange.svg)](https://www.paypal.com/donate/?hosted_button_id=D5U6TQ3Q9CVLS)
 
-> Wenn diese Erweiterung Ihnen bei der Arbeit geholfen hat, unterstützen Sie den Autor mit einem Kaffee! ☕
+## 🚀 Erweiterungsfeatures
 
+### ⚡ Schnelle CSS-Generierung
+- **Automatisch** - Erkennt alle CSS-Klassen aus HTML
+- **Intelligent** - Erstellt strukturierte Regeln
+- **Optimiert** - Minimaler und sauberer Code
 
-🎨 **Leistungsstarke VS Code-Erweiterung zur automatischen CSS-Generierung aus HTML-Klassen und Integration mit Figma-Designs**
+### 🎨 Figma-Integration
+- **Echte Daten** - Direkte Figma API-Verbindung
+- **Canvas-Import** - Laden von Design und Layern
+- **Style-Matching** - Automatische Eigenschaftsübertragung
+- **Schriften und Bilder** - Import von Design-Ressourcen
 
+### 📱 Responsives CSS
+- **Mobile First** - Optimierung für mobile Geräte
+- **Breakpoints** - Standard-Haltepunkte
+- **Flexbox und Grid** - Moderne Layout-Methoden
 
-## 📌 Beschreibung
+## 🛠️ Installation und Verwendung
 
-**CSS Classes from HTML** ist eine leistungsstarke Visual Studio Code-Erweiterung, die automatisch CSS-Klassen aus HTML-Dateien generiert mit der Möglichkeit zur Integration mit Figma-Designs.
-
-## ✨ Hauptfunktionen
-
-- 🚀 **Schnelle CSS-Generierung** aus HTML-Klassen
-- 🎨 **Figma-Integration** über API
-- 📱 **Responsive Stile** mit Media Queries
-- 🎯 **Intelligente Element-Zuordnung**
-- ⚡ **3 Arbeitsmodi**: minimal, maximal, produktion
-- 🔧 **Visueller Konfigurator** in WebView
-- 💾 **Einstellungen speichern** zur Wiederverwendung
-
-## 📦 Installation
-
-### Aus VSCode Marketplace
-1. Öffnen Sie VSCode
-2. Gehen Sie zu Erweiterungen (Ctrl+Shift+X)
-3. Suchen Sie nach "CSS Classes from HTML"
-4. Klicken Sie auf Installieren
-
-### Manuelle Installation
+### 1. Installation vom Marketplace
 ```bash
-git clone https://github.com/VuToV-Mykola/css-classes-from-html.git
-cd css-classes-from-html
-npm install
-npm run compile
+# Über VS Code Marketplace
+1. VS Code öffnen
+2. Zu Extensions gehen (Ctrl+Shift+X)
+3. Nach "CSS Classes from HTML" suchen
+4. Install klicken
 ```
 
-## 🚀 Verwendung
+### 2. Lokale Installation
+```bash
+# Projekt klonen
+git clone https://github.com/VuToV-Mykola/css-classes-from-html.git
+cd css-classes-from-html
 
-### Schnellstart
-1. Öffnen Sie HTML-Datei in VSCode
-2. Drücken Sie `Ctrl+Shift+C` (oder `Cmd+Shift+C` auf Mac)
-3. Wählen Sie Generierungsmodus
-4. CSS-Datei wird automatisch erstellt!
+# Abhängigkeiten installieren
+npm install
 
-## 📝 Lizenz
+# Erweiterung erstellen
+npm run package
 
-MIT-Lizenz - siehe [LICENSE](LICENSE) Datei
+# In VS Code installieren
+code --install-extension ./builds/css-classes-from-html-0.0.7.vsix
+```
+
+### 3. Schnellstart
+1. **HTML-Datei öffnen** - Beliebige HTML-Datei mit CSS-Klassen
+2. **Hotkey drücken** - `Cmd+Alt+C` (Mac) oder `Ctrl+Alt+C` (Windows)
+3. **Ergebnis erhalten** - CSS-Datei automatisch erstellt
+
+## ⌨️ Tastenkombinationen
+
+| Kombination | Aktion | Beschreibung |
+|-------------|--------|--------------|
+| `Cmd+Shift+C` | Hauptmenü | Öffnet vollständiges Menü |
+| `Cmd+Alt+C` | Schnelle Generierung | Erstellt CSS ohne Menü |
+| `F1` → "CSS Classes" | Command Palette | Zugriff auf alle Befehle |
+
+## 🎯 Arbeitsmodi
+
+### ⚡ Minimaler Modus
+- Schnelle Generierung grundlegender CSS-Klassen
+- Keine externen Integrationen
+- Perfekt für einfache Projekte
+
+### 🚀 Maximaler Modus
+- Vollständige Figma-Integration
+- Intelligentes Style-Matching
+- Bild- und Schrift-Import
+
+### 📦 Production-Modus
+- Optimiertes CSS
+- Code-Minifizierung
+- Produktionsbereit
+
+## 🔧 Konfiguration
+
+Erweiterung kann über VS Code Settings konfiguriert werden:
+
+```json
+{
+  "cssClassesFromHtml.figmaToken": "your-figma-api-token",
+  "cssClassesFromHtml.autoOpenCSS": true,
+  "cssClassesFromHtml.includeReset": true,
+  "cssClassesFromHtml.includeVariables": true,
+  "cssClassesFromHtml.generateResponsive": true
+}
+```
+
+## 📊 Projektstatistiken
+
+- **📁 JavaScript-Dateien:** 17
+- **🌐 HTML-Dateien:** 1
+- **📝 Markdown-Dateien:** 14
+- **📦 Gesamtdateien:** 65
+- **💾 Projektgröße:** 160M
+- **🔧 Abhängigkeiten:** 1
+- **⚡ Skripte:** 9
+
+## 🧪 Testen
+
+Erweiterung enthält komplette Test-Suite:
+
+```bash
+# Alle Tests ausführen
+npm test
+
+# Automatisierte Tests
+./test_extension.sh
+
+# Manuelles Testen
+# Siehe TESTING_INSTRUCTIONS.md
+```
+
+## 🤝 Mitwirken
+
+Wir begrüßen Beiträge! Siehe [CONTRIBUTING.md](docs/CONTRIBUTING.md)
+
+1. Projekt forken
+2. Feature-Branch erstellen
+3. Änderungen committen
+4. Zum Branch pushen
+5. Pull Request erstellen
+
+## 📜 Lizenz
+
+Dieses Projekt verwendet MIT-Lizenz. Details in [LICENSE.md](docs/LICENSE.md)
 
 ## 👨‍💻 Autor
 
-**VuToV Mykola**
+**VuToV-Mykola** - Zertifizierter Programmierer mit 10+ Jahren Erfahrung  
+Entwickelt mit GoIT-Kurswissen und künstlicher Intelligenz
+
 - GitHub: [@VuToV-Mykola](https://github.com/VuToV-Mykola)
+- Email: vutov_nikola@icloud.com
+
+## 🚀 Danksagungen
+
+Besonderer Dank an:
+- **GoIT** - für qualitative Programmierkurse
+- **VS Code Team** - für erstaunliche Plattform
+- **Figma** - für mächtige API
+- **Community** - für Unterstützung und Feedback
 
 ---
 
-Made with ❤️ in Ukraine 🇺🇦
+### 📈 Projektentwicklung
+
+Zukunftspläne:
+- 🎨 Mehr Design-System-Integrationen
+- 🚀 Unterstützung anderer Frameworks
+- 🧪 Erweiterte Testfähigkeiten
+- 📱 Mobile Version
+
+**⭐ Bewerten Sie das Projekt, wenn es Ihnen gefällt!**

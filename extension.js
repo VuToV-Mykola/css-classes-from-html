@@ -420,28 +420,47 @@ async function handleImportImages(panel, message) {
       throw new Error("Image Importer not available")
     }
     
+    if (!integrationEngine || !message.figmaToken) {
+      throw new Error("Figma token and integration engine required")
+    }
+    
     outputChannel?.appendLine("🖼️ Starting image import...")
     
     const importer = new ImageImporter({
       outputDir: "images",
-      optimizeImages: true
+      optimizeImages: true,
+      formats: ["png", "jpg", "svg"],
+      scales: [1, 2]
     })
     
-    // ✅ FIX: Реальний імпорт зображень (заглушка до реальної реалізації)
-    const mockStats = {
-      imagesCount: 5,
-      filesCount: 15,
-      totalSize: "2.3MB",
-      outputDirectory: "images"
+    // ✅ FIX: Оновлення токену в integration engine
+    integrationEngine.updateOptions({
+      figmaToken: message.figmaToken
+    })
+    
+    const fileId = integrationEngine.extractFileIdFromFigmaLink(message.figmaLink)
+    if (!fileId) {
+      throw new Error("Invalid Figma link format")
     }
+    
+    // ✅ FIX: Реальний імпорт зображень
+    const result = await importer.importImages(
+      integrationEngine.figmaClient,
+      fileId,
+      message.selectedLayers || []
+    )
+    
+    const stats = importer.getImportStats(result.images)
     
     panel.webview.postMessage({
       command: "imagesImported",
       success: true,
-      stats: mockStats
+      stats: stats,
+      images: result.images.length,
+      cssFile: result.cssFile
     })
     
-    outputChannel?.appendLine("✅ Images imported successfully")
+    outputChannel?.appendLine(`✅ Images imported successfully: ${stats.imagesCount} images, ${stats.totalSize}`)
     
   } catch (error) {
     outputChannel?.appendLine(`❌ Error importing images: ${error.message}`)
@@ -462,23 +481,49 @@ async function handleImportFonts(panel, message) {
       throw new Error("Font Importer not available")
     }
     
+    if (!integrationEngine || !message.figmaToken) {
+      throw new Error("Figma token and integration engine required")
+    }
+    
     outputChannel?.appendLine("🔤 Starting font import...")
     
-    // ✅ FIX: Реальний імпорт шрифтів (заглушка до реальної реалізації)
-    const mockStats = {
-      totalFonts: 3,
-      availableOnGoogleFonts: 2,
-      successRate: "66.7",
-      outputDirectory: "."
+    const importer = new FontImporter({
+      outputDir: ".",
+      includeAllWeights: true,
+      includeAllStyles: true,
+      display: "swap"
+    })
+    
+    // ✅ FIX: Оновлення токену в integration engine
+    integrationEngine.updateOptions({
+      figmaToken: message.figmaToken
+    })
+    
+    const fileId = integrationEngine.extractFileIdFromFigmaLink(message.figmaLink)
+    if (!fileId) {
+      throw new Error("Invalid Figma link format")
     }
+    
+    // ✅ FIX: Реальний імпорт шрифтів
+    const result = await importer.importFonts(
+      integrationEngine.figmaClient,
+      fileId,
+      message.selectedLayers || []
+    )
+    
+    const stats = importer.getImportStats(result.fonts)
     
     panel.webview.postMessage({
       command: "fontsImported",
       success: true,
-      stats: mockStats
+      stats: stats,
+      fonts: result.fonts.length,
+      cssFile: result.cssFile,
+      htmlFile: result.htmlFile,
+      imports: result.imports
     })
     
-    outputChannel?.appendLine("✅ Fonts imported successfully")
+    outputChannel?.appendLine(`✅ Fonts imported successfully: ${stats.totalFonts} fonts, ${stats.successRate}% available on Google Fonts`)
     
   } catch (error) {
     outputChannel?.appendLine(`❌ Error importing fonts: ${error.message}`)
@@ -663,7 +708,7 @@ async function handleGenerateCSS(panel, settings) {
 /**
  * ✅ FIX: Швидка генерація CSS
  */
-async function quickGenerateCSS(args = null) {
+async function quickGenerateCSS() {
   try {
     outputChannel?.appendLine("⚡ Quick CSS generation started...")
     

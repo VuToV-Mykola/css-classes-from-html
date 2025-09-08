@@ -164,18 +164,16 @@
     "validate": "node -c extension.js && echo \"✅ Validation passed\"",
     "clean": "rm -rf builds/* logs/deploy/*.log node_modules/.cache",
     "prepackage": "npm run validate",
-    "postpackage": "echo \"📦 Package created successfully\"",
-    "docs": "bash scripts/auto-generate-docs.sh",
-    "manager": "bash scripts/project-manager.sh"
-  },
-  "dependencies": {
-    "jsdom": "^22.0.0"
+    "postpackage": "echo \"📦 Package created successfully\""
   },
   "devDependencies": {
     "@types/vscode": "^1.74.0",
     "@vscode/test-electron": "^2.3.0",
     "@vscode/vsce": "^2.19.0",
     "eslint": "^8.0.0"
+  },
+  "dependencies": {
+    "jsdom": "^22.0.0"
   },
   "repository": {
     "type": "git",

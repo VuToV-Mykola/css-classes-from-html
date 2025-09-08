@@ -1,3 +1,4 @@
+[0;32m✅ Отримано заголовок з docs/README.en.md (37 рядків)[0m
 # 🎨 CSS Classes from HTML
 
 ### 🌐 Виберіть мову/Choose language/Wählen Sprache:
@@ -35,42 +36,158 @@
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate/?hosted_button_id=D5U6TQ3Q9CVLS)
 [![Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-orange.svg)](https://www.paypal.com/donate/?hosted_button_id=D5U6TQ3Q9CVLS)
 
-> If this extension helped you in your work, support the author with a coffee! ☕
+## 🚀 Extension Features
 
-## 📌 Description
+### ⚡ Fast CSS Generation
+- **Automatic** - Recognizes all CSS classes from HTML
+- **Intelligent** - Creates structured rules
+- **Optimized** - Minimal and clean code
 
-Automatic CSS class generation from HTML files with Figma integration. Developed with knowledge gained from GoIT courses and AI assistance.
+### 🎨 Figma Integration
+- **Real data** - Direct Figma API connection
+- **Canvas import** - Loading design and layers
+- **Style matching** - Automatic property transfer
+- **Fonts and images** - Design resource import
 
-## ✨ Features
+### 📱 Responsive CSS
+- **Mobile First** - Mobile device optimization
+- **Breakpoints** - Standard breakpoints
+- **Flexbox and Grid** - Modern layout methods
 
-- 🚀 **Three generation modes**: Minimal, Maximum, Production
-- 🎨 **Figma integration**: Import styles directly from designs
-- 📱 **Responsive styles**: Automatic media queries generation
-- 🔧 **Optimization**: Minification and production optimization
-- 💾 **Settings persistence**: Automatic configuration saving
+## 🛠️ Installation and Usage
 
-## 📦 Installation
-
-### Method 1: From VS Code Marketplace
+### 1. Install from Marketplace
 ```bash
-code --install-extension vutov-mykola.css-classes-from-html
+# Through VS Code Marketplace
+1. Open VS Code
+2. Go to Extensions (Ctrl+Shift+X)
+3. Search for "CSS Classes from HTML"
+4. Click Install
 ```
 
-### Method 2: From VSIX file
-1. Download `.vsix` file from [Releases](https://github.com/VuToV-Mykola/css-classes-from-html/releases)
-2. In VS Code: `Ctrl+Shift+P` → `Extensions: Install from VSIX...`
-
-### Method 3: From source code
+### 2. Local Installation
 ```bash
+# Clone project
 git clone https://github.com/VuToV-Mykola/css-classes-from-html.git
 cd css-classes-from-html
+
+# Install dependencies
 npm install
+
+# Build extension
+npm run package
+
+# Install in VS Code
+code --install-extension ./builds/css-classes-from-html-0.0.7.vsix
 ```
 
-## 🚀 Usage
+### 3. Quick Start
+1. **Open HTML file** - Any HTML file with CSS classes
+2. **Press hotkey** - `Cmd+Alt+C` (Mac) or `Ctrl+Alt+C` (Windows)
+3. **Get result** - CSS file created automatically
 
-1. Open HTML file in VS Code
-2. Press `Ctrl+Shift+P` (Windows/Linux) or `Cmd+Shift+P` (Mac)
-3. Select `CSS Classes: Show Main Menu`
-4. Choose generation mode:
-   - **Minimal**: Basic CSS classes
+## ⌨️ Hotkeys
+
+| Combination | Action | Description |
+|-------------|--------|-------------|
+| `Cmd+Shift+C` | Main menu | Opens full-featured menu |
+| `Cmd+Alt+C` | Quick generation | Creates CSS without menu |
+| `F1` → "CSS Classes" | Command Palette | Access to all commands |
+
+## 🎯 Work Modes
+
+### ⚡ Minimal Mode
+- Fast generation of basic CSS classes
+- No external integrations
+- Perfect for simple projects
+
+### 🚀 Maximum Mode
+- Full Figma integration
+- Smart style matching
+- Image and font import
+
+### 📦 Production Mode
+- Optimized CSS
+- Code minification
+- Production ready
+
+## 🔧 Configuration
+
+Extension can be configured through VS Code Settings:
+
+```json
+{
+  "cssClassesFromHtml.figmaToken": "your-figma-api-token",
+  "cssClassesFromHtml.autoOpenCSS": true,
+  "cssClassesFromHtml.includeReset": true,
+  "cssClassesFromHtml.includeVariables": true,
+  "cssClassesFromHtml.generateResponsive": true
+}
+```
+
+## 📊 Project Statistics
+
+- **📁 JavaScript files:** 17
+- **🌐 HTML files:** 1
+- **📝 Markdown files:** 14
+- **📦 Total files:** 65
+- **💾 Project size:** 160M
+- **🔧 Dependencies:** 1
+- **⚡ Scripts:** 9
+
+## 🧪 Testing
+
+Extension includes complete test suite:
+
+```bash
+# Run all tests
+npm test
+
+# Automated testing
+./test_extension.sh
+
+# Manual testing
+# See TESTING_INSTRUCTIONS.md
+```
+
+## 🤝 Contributing
+
+We welcome contributions! See [CONTRIBUTING.md](docs/CONTRIBUTING.md)
+
+1. Fork the project
+2. Create feature branch
+3. Commit changes
+4. Push to branch
+5. Create Pull Request
+
+## 📜 License
+
+This project uses MIT license. Details in [LICENSE.md](docs/LICENSE.md)
+
+## 👨‍💻 Author
+
+**VuToV-Mykola** - Certified programmer with 10+ years experience  
+Developed using GoIT course knowledge and artificial intelligence
+
+- GitHub: [@VuToV-Mykola](https://github.com/VuToV-Mykola)
+- Email: vutov_nikola@icloud.com
+
+## 🚀 Acknowledgments
+
+Special thanks to:
+- **GoIT** - for quality programming courses
+- **VS Code Team** - for amazing platform
+- **Figma** - for powerful API
+- **Community** - for support and feedback
+
+---
+
+### 📈 Project Development
+
+Future plans:
+- 🎨 More design system integrations
+- 🚀 Other framework support
+- 🧪 Enhanced testing capabilities
+- 📱 Mobile version
+
+**⭐ Star the project if you like it!**

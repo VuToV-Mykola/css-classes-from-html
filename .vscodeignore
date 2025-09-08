@@ -1,116 +1,62 @@
-# Файли які будуть ігноруватись при пакуванні
+# ✅ ОПТИМІЗОВАНИЙ .vscodeignore для css-classes-from-html
+# Файли які виключаються з VSCode розширення при пакуванні
+
+# Системні директорії
 .vscode/**
 .git/**
-node_modules/.bin/**
-node_modules/@types/**
-node_modules/@vscode/test-electron/**
-node_modules/eslint/**
-node_modules/@vscode/vsce/**
-node_modules/*/test/**
-node_modules/*/tests/**
-node_modules/*/doc/**
-node_modules/*/docs/**
-node_modules/*/example/**
-node_modules/*/examples/**
-*.ts
-*.map
-*.tsbuildinfo
+.github/**
+node_modules/**
+
+# Dev/Build файли
 *.log
-npm-debug.log
-yarn-debug.log
-yarn-error.log
+*.map
+*.ts
+*.tsbuildinfo
 .DS_Store
 Thumbs.db
 *.vsix
 *.zip
 *.tar.gz
-coverage/**
+
+# Тестування та покриття
 test/**
 tests/**
+coverage/**
 **/*.test.js
 **/*.spec.js
+.nyc_output
 
+# Тимчасові директорії
 tmp/**
 temp/**
 .history/
-.idea/
-.vscode-test/
+.cache/
 out/**
 dist/**
 build/**
-.cache/
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+builds/**
+
+# Конфігурація середовища
+.env*
 .eslintrc.js
-.prettierrc.js
-webpack.config.js
+.prettierrc.json
+.stylelintrc.json
 tsconfig.json
 jsconfig.json
-.gitignore
-.npmignore
-.yarnignore
-.editorconfig
+webpack.config.js
+
+# Логи та звіти
+logs/**
+debugs/**
+backups/**
+*.md
+!README.md
+
+# CI/CD
 .travis.yml
 .appveyor.yml
 .codeclimate.yml
 .coveralls.yml
-.nyc_output
-.build/*
-# .vscodeignore - виключаємо зайві файли з пакування
 
-# Документація та звіти (залишаємо тільки основні)
-ARCHITECTURE.md
-CLEANUP_REPORT.md
-OPTIMIZATION_REPORT.md
-PROJECT_COMPLETION_REPORT.md
-SECURITY.md
-SIMPLY_CHOCOLATE_GUIDE.md
-
-# GitHub workflows (не потрібні для роботи розширення)
-.github/
-
-# Логи та тестові дані
-log/
-output/
-test/
-
-# Dev файли
-build-vsix.js
-deploy.sh
-.eslintrc.js
-.stylelintrc.json
-
-# Node modules (вже включені в dependencies)
-node_modules/
-
-# Source maps та TypeScript файли
-*.map
-*.ts
-
-# macOS системні файли
-.DS_Store
-
-# Linux резервні копії
-*~
-
-# Windows резервні копії
-Thumbs.db
-
-# IDE файли
-.vscode/
-.idea/
-
-# Git
-.git/
-.gitignore
-
-# npm
-npm-debug.log
-.npmrc
-
-# CI/CD
-.travis.yml
-appveyor.yml
+# Скрипти розробки
+scripts/**
