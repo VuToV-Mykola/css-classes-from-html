@@ -409,7 +409,7 @@ menu_git_operations() {
                 cd "$PROJECT_ROOT"
                 git add --all
                 git commit -m "$commit_message"
-                git push
+                git push --force
                 print_success "Зміни відправлені в репозиторій!"
             else
                 print_error "Повідомлення коміту не може бути порожнім!"
