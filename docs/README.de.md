@@ -1,4 +1,5 @@
 [0;32m✅ Отримано заголовок з docs/README.de.md (37 рядків)[0m
+[0;32m✅ Отримано заголовок з docs/README.de.md (37 рядків)[0m
 # 🎨 CSS Classes from HTML - Figma Integration
 
 ### 🌐 Виберіть мову/Choose language/Wählen Sprache:
@@ -35,7 +36,6 @@
 ## 💖 Unterstützen Sie den Autor
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate/?hosted_button_id=D5U6TQ3Q9CVLS)
-[![Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-orange.svg)](https://www.paypal.com/donate/?hosted_button_id=D5U6TQ3Q9CVLS)
 
 ## 🚀 Erweiterungsfeatures
 
@@ -130,11 +130,11 @@ Erweiterung kann über VS Code Settings konfiguriert werden:
 
 - **📁 JavaScript-Dateien:** 17
 - **🌐 HTML-Dateien:** 1
-- **📝 Markdown-Dateien:** 14
-- **📦 Gesamtdateien:** 65
+- **📝 Markdown-Dateien:** 15
+- **📦 Gesamtdateien:** 75
 - **💾 Projektgröße:** 160M
 - **🔧 Abhängigkeiten:** 1
-- **⚡ Skripte:** 9
+- **⚡ Skripte:** 11
 
 ## 🧪 Testen
 

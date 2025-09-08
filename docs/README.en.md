@@ -1,4 +1,5 @@
 [0;32m✅ Отримано заголовок з docs/README.en.md (37 рядків)[0m
+[0;32m✅ Отримано заголовок з docs/README.en.md (37 рядків)[0m
 # 🎨 CSS Classes from HTML
 
 ### 🌐 Виберіть мову/Choose language/Wählen Sprache:
@@ -129,11 +130,11 @@ Extension can be configured through VS Code Settings:
 
 - **📁 JavaScript files:** 17
 - **🌐 HTML files:** 1
-- **📝 Markdown files:** 14
-- **📦 Total files:** 65
+- **📝 Markdown files:** 15
+- **📦 Total files:** 75
 - **💾 Project size:** 160M
 - **🔧 Dependencies:** 1
-- **⚡ Scripts:** 9
+- **⚡ Scripts:** 11
 
 ## 🧪 Testing
 

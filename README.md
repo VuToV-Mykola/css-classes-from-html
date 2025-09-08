@@ -1,4 +1,5 @@
 [0;32m✅ Отримано заголовок з README.md (37 рядків)[0m
+[0;32m✅ Отримано заголовок з README.md (37 рядків)[0m
 # 🎨 CSS Classes from HTML
 
 ### 🌐 Виберіть мову/Choose language/Wählen Sprache:
@@ -34,8 +35,6 @@
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate/?hosted_button_id=D5U6TQ3Q9CVLS)
 [![Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-PayPal-orange.svg)](https://www.paypal.com/donate/?hosted_button_id=D5U6TQ3Q9CVLS)
-
-> Якщо це розширення допомогло вам у роботі, підтримайте автора кавою! ☕
 
 ## 🚀 Можливості розширення
 
@@ -130,11 +129,11 @@ code --install-extension ./builds/css-classes-from-html-0.0.7.vsix
 
 - **📁 JavaScript файлів:** 17
 - **🌐 HTML файлів:** 1
-- **📝 Markdown файлів:** 14
-- **📦 Загальна кількість файлів:** 65
+- **📝 Markdown файлів:** 15
+- **📦 Загальна кількість файлів:** 75
 - **💾 Розмір проекту:** 160M
 - **🔧 Залежностей:** 1
-- **⚡ Скриптів:** 9
+- **⚡ Скриптів:** 11
 
 ## 🧪 Тестування
 
