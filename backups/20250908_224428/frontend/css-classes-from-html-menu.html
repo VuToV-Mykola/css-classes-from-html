@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Classes from HTML v4.0</title>
+    <style>
+        /* ✅ FIX: Компактний інтерфейс */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #007ACC;
+            --primary-dark: #005a9e;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+            --bg: #1e1e1e;
+            --bg-secondary: #252526;
+            --bg-tertiary: #2d2d30;
+            --text: #cccccc;
+            --text-secondary: #8c8c8c;
+            --border: #3c3c3c;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            font-size: 12px;
+            line-height: 1.3;
+        }
+
+        /* ✅ FIX: Компактний header */
+        .header {
+            background: var(--bg-secondary);
+            padding: 0.8rem;
+            border-bottom: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.1rem;
+            color: var(--primary);
+            margin-bottom: 0.2rem;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+        }
+
+        .main-container {
+            padding: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            max-height: calc(100vh - 140px);
+            overflow-y: auto;
+        }
+
+        /* ✅ FIX: Компактний mode selector */
+        .mode-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.6rem;
+        }
+
+        .mode-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            position: relative;
+        }
+
+        .mode-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-1px);
+        }
+
+        .mode-card.selected {
+            border-color: var(--success);
+            background: var(--bg-tertiary);
+        }
+
+        .mode-card.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 0.4rem;
+            right: 0.4rem;
+            background: var(--success);
+            color: white;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+        }
+
+        .mode-icon {
+            font-size: 1.2rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .mode-title {
+            font-weight: 500;
+            font-size: 0.8rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .mode-description {
+            color: var(--text-secondary);
+            font-size: 0.65rem;
+        }
+
+        /* ✅ FIX: Компактні секції */
+        .section {
+            background: var(--bg-secondary);
+            border-radius: 6px;
+            padding: 0.8rem;
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .section-title {
+            color: var(--primary);
+            margin-bottom: 0.6rem;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .input-group {
+            margin-bottom: 0.6rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.3rem;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.5rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* ✅ FIX: Компактні списки */
+        .canvas-list, .layers-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            margin-bottom: 0.6rem;
+        }
+
+        .canvas-item, .layer-item {
+            display: flex;
+            align-items: center;
+            padding: 0.6rem;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.1s ease;
+        }
+
+        .canvas-item:last-child, .layer-item:last-child {
+            border-bottom: none;
+        }
+
+        .canvas-item:hover, .layer-item:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .canvas-item.selected, .layer-item.selected {
+            background: var(--bg-tertiary);
+            border-left: 2px solid var(--success);
+        }
+
+        .checkbox {
+            margin-right: 0.5rem;
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: 500;
+            color: var(--text);
+            font-size: 0.8rem;
+            margin-bottom: 0.1rem;
+        }
+
+        .item-meta {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+        }
+
+        /* ✅ FIX: Компактні кнопки */
+        .btn {
+            padding: 0.5rem 0.8rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            margin: 0.1rem;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: var(--bg);
+            border-color: var(--primary);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        /* ✅ FIX: Компактні дії */
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            padding: 0.8rem;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            position: sticky;
+            bottom: 0;
+            flex-wrap: wrap;
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 0.4rem;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.6rem;
+        }
+
+        .controls-group {
+            display: flex;
+            gap: 0.3rem;
+        }
+
+        /* ✅ FIX: Статус повідомлення */
+        .status {
+            text-align: center;
+            padding: 0.6rem;
+            margin: 0.6rem 0;
+            border-radius: 4px;
+            display: none;
+            font-size: 0.75rem;
+        }
+
+        .status.show {
+            display: block;
+        }
+
+        .status.success {
+            background: rgba(76, 175, 80, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .status.error {
+            background: rgba(244, 67, 54, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+
+        .status.warning {
+            background: rgba(255, 152, 0, 0.1);
+            border: 1px solid var(--warning);
+            color: var(--warning);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid var(--text-secondary);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ✅ FIX: Стилі для імпорту */
+        .import-section {
+            border: 1px dashed var(--border);
+            border-radius: 6px;
+            padding: 0.8rem;
+            text-align: center;
+            margin-top: 0.6rem;
+        }
+
+        .import-stats {
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            padding: 0.6rem;
+            margin: 0.6rem 0;
+            font-size: 0.7rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.4rem;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+        }
+
+        .stat-value {
+            color: var(--success);
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .mode-selector {
+                grid-template-columns: 1fr;
+            }
+            
+            .actions {
+                flex-direction: column;
+                gap: 0.3rem;
+            }
+            
+            .controls-row {
+                flex-direction: column;
+                gap: 0.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎨 CSS Classes from HTML v4.0</h1>
+        <p>Реальна інтеграція з Figma • Імпорт зображень та шрифтів • Розумне співставлення</p>
+    </div>
+
+    <div class="main-container">
+        <!-- ✅ FIX: Компактний Mode Selection -->
+        <div class="mode-selector" id="modeSelector">
+            <div class="mode-card" data-mode="minimal">
+                <div class="mode-icon">⚡</div>
+                <div class="mode-title">Мінімальний</div>
+                <div class="mode-description">Базова генерація CSS</div>
+            </div>
+            
+            <div class="mode-card" data-mode="maximum">
+                <div class="mode-icon">🚀</div>
+                <div class="mode-title">Максимальний</div>
+                <div class="mode-description">Повна Figma інтеграція</div>
+            </div>
+            
+            <div class="mode-card" data-mode="production">
+                <div class="mode-icon">📦</div>
+                <div class="mode-title">Production</div>
+                <div class="mode-description">Оптимізований CSS</div>
+            </div>
+        </div>
+
+        <!-- ✅ FIX: Компактні Figma налаштування -->
+        <div class="section" id="figmaSection">
+            <h2 class="section-title">🎨 Figma Integration</h2>
+            
+            <div class="input-group">
+                <label for="figmaLink">Figma File URL</label>
+                <input type="text" id="figmaLink" placeholder="https://www.figma.com/file/..." required>
+            </div>
+
+            <div class="input-group">
+                <label for="figmaToken">Figma API Token <span style="color: var(--danger);">*</span></label>
+                <input type="password" id="figmaToken" placeholder="Get from figma.com/developers/api" required>
+            </div>
+
+            <div class="controls-row">
+                <button class="btn btn-primary" id="loadCanvasBtn">📋 Load Canvas</button>
+                <a href="https://www.figma.com/developers/api#access-tokens" target="_blank" class="btn btn-secondary" style="text-decoration: none;">🔑 Get Token</a>
+            </div>
+        </div>
+
+        <!-- ✅ FIX: Canvas Selection -->
+        <div class="section" id="canvasSection">
+            <h2 class="section-title">📋 Canvas Selection</h2>
+            <div class="canvas-list" id="canvasList"></div>
+            <div class="controls-row">
+                <div class="controls-group">
+                    <button class="btn btn-secondary" id="selectAllCanvasBtn">✅ All</button>
+                    <button class="btn btn-secondary" id="clearCanvasBtn">❌ Clear</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ✅ FIX: Layers Selection -->
+        <div class="section" id="layersSection">
+            <h2 class="section-title">🎨 Layers Selection</h2>
+            <div class="layers-list" id="layersList"></div>
+            <div class="controls-row">
+                <div class="controls-group">
+                    <button class="btn btn-secondary" id="selectAllLayersBtn">✅ All</button>
+                    <button class="btn btn-secondary" id="clearLayersBtn">❌ Clear</button>
+                </div>
+                <div class="controls-group">
+                    <button class="btn btn-secondary" id="copyStylesBtn">📋 Copy Styles</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ✅ FIX: Новий Import Section -->
+        <div class="section import-section" id="importSection">
+            <h2 class="section-title">📦 Asset Import</h2>
+            
+            <div class="controls-row">
+                <button class="btn btn-success" id="importImagesBtn">🖼️ Import Images</button>
+                <button class="btn btn-warning" id="importFontsBtn">🔤 Import Fonts</button>
+            </div>
+            
+            <div class="import-stats" id="importStats" style="display: none;">
+                <div class="stats-grid"></div>
+            </div>
+        </div>
+
+        <!-- ✅ FIX: Status Messages -->
+        <div id="status" class="status"></div>
+    </div>
+
+    <!-- ✅ FIX: Компактні Action Buttons -->
+    <div class="actions">
+        <button class="btn btn-secondary" id="loadLastBtn">📂 Load Last</button>
+        <button class="btn btn-secondary" id="saveBtn">💾 Save</button>
+        <button class="btn btn-secondary" id="clearBtn">🗑️ Clear</button>
+        <button class="btn btn-primary" id="generateBtn" disabled>🚀 Generate CSS</button>
+    </div>
+
+    <script>
+        // ✅ FIX: Виправлений JavaScript БЕЗ Mock даних
+        const vscode = acquireVsCodeApi();
+        
+        let state = {
+            mode: null,
+            figmaLink: '',
+            figmaToken: '',
+            selectedCanvases: [],
+            selectedLayers: [],
+            importStats: {
+                images: null,
+                fonts: null
+            }
+        };
+
+        // ✅ FIX: Ініціалізація
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Initializing CSS Classes v4.0...');
+            initializeUI();
+            loadLastSettings();
+        });
+
+        function initializeUI() {
+            console.log('🔧 Setting up event handlers...');
+            
+            // ✅ FIX: Mode selection
+            document.querySelectorAll('.mode-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    selectMode(this.dataset.mode);
+                });
+            });
+
+            // ✅ FIX: Main buttons
+            setupButtonHandlers([
+                { id: 'loadLastBtn', handler: loadLastSettings },
+                { id: 'saveBtn', handler: saveSettings },
+                { id: 'clearBtn', handler: clearSettings },
+                { id: 'generateBtn', handler: generateCSS },
+                { id: 'loadCanvasBtn', handler: loadFigmaCanvases },
+                { id: 'selectAllCanvasBtn', handler: selectAllCanvas },
+                { id: 'clearCanvasBtn', handler: clearCanvasSelection },
+                { id: 'selectAllLayersBtn', handler: selectAllLayers },
+                { id: 'clearLayersBtn', handler: clearLayersSelection },
+                { id: 'copyStylesBtn', handler: copyStylesToClipboard },
+                { id: 'importImagesBtn', handler: importImages },
+                { id: 'importFontsBtn', handler: importFonts }
+            ]);
+
+            // ✅ FIX: Input handlers
+            setupInputHandlers([
+                { id: 'figmaLink', handler: (value) => { state.figmaLink = value; } },
+                { id: 'figmaToken', handler: (value) => { state.figmaToken = value; } }
+            ]);
+
+            console.log('✅ All event handlers connected');
+        }
+
+        function setupButtonHandlers(buttons) {
+            buttons.forEach(({ id, handler }) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('click', handler);
+                }
+            });
+        }
+
+        function setupInputHandlers(inputs) {
+            inputs.forEach(({ id, handler }) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('input', (e) => handler(e.target.value));
+                }
+            });
+        }
+
+        // ✅ FIX: Mode selection
+        function selectMode(mode) {
+            console.log(`🎯 Selecting mode: ${mode}`);
+            
+            document.querySelectorAll('.mode-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector(`[data-mode="${mode}"]`).classList.add('selected');
+            
+            state.mode = mode;
+            
+            // ✅ FIX: Show/hide sections based on mode
+            const sections = ['figmaSection', 'importSection'];
+            const showFigma = mode !== 'minimal';
+            
+            sections.forEach(sectionId => {
+                const section = document.getElementById(sectionId);
+                if (section) {
+                    section.style.display = showFigma ? 'block' : 'none';
+                    section.classList.toggle('active', showFigma);
+                }
+            });
+            
+            document.getElementById('generateBtn').disabled = false;
+            showStatus(`Режим "${getModeName(mode)}" вибрано`, 'success');
+        }
+
+        function getModeName(mode) {
+            const names = {
+                minimal: 'Мінімальний',
+                maximum: 'Максимальний',
+                production: 'Production'
+            };
+            return names[mode] || mode;
+        }
+
+        // ✅ FIX: Figma integration WITHOUT Mock data
+        function loadFigmaCanvases() {
+            console.log('📋 Loading REAL Figma canvases...');
+            
+            if (!state.figmaLink.trim()) {
+                showStatus('❌ Введіть посилання на Figma файл', 'error');
+                return;
+            }
+
+            if (!state.figmaToken.trim()) {
+                showStatus('❌ Figma API токен обов\'язковий', 'error');
+                return;
+            }
+            
+            showStatus('<span class="loading"></span> Завантаження Canvas з Figma...', 'warning');
+            
+            vscode.postMessage({
+                command: 'getFigmaCanvases',
+                figmaLink: state.figmaLink.trim(),
+                figmaToken: state.figmaToken.trim()
+            });
+        }
+
+        function displayCanvases(canvases) {
+            console.log(`📋 Displaying ${canvases.length} real canvases`);
+            
+            const container = document.getElementById('canvasList');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            if (canvases.length === 0) {
+                container.innerHTML = '<div class="status warning show">❌ Не знайдено Canvas</div>';
+                return;
+            }
+            
+            canvases.forEach(canvas => {
+                const item = document.createElement('div');
+                item.className = 'canvas-item';
+                item.dataset.id = canvas.id;
+                item.innerHTML = `
+                    <input type="checkbox" class="checkbox canvas-checkbox" data-canvas-id="${canvas.id}">
+                    <div class="item-info">
+                        <div class="item-name">${canvas.name}</div>
+                        <div class="item-meta">${canvas.childrenCount || 0} елементів • ${canvas.complexity || 0}/10</div>
+                    </div>
+                `;
+                
+                const checkbox = item.querySelector('.canvas-checkbox');
+                checkbox.addEventListener('change', function() {
+                    handleCanvasSelection(canvas, this.checked);
+                });
+                
+                container.appendChild(item);
+            });
+            
+            document.getElementById('canvasSection').style.display = 'block';
+            document.getElementById('canvasSection').classList.add('active');
+        }
+
+        function handleCanvasSelection(canvas, isSelected) {
+            console.log(`🎯 Canvas ${canvas.name} ${isSelected ? 'selected' : 'deselected'}`);
+            
+            if (isSelected) {
+                if (!state.selectedCanvases.find(c => c.id === canvas.id)) {
+                    state.selectedCanvases.push(canvas);
+                }
+            } else {
+                state.selectedCanvases = state.selectedCanvases.filter(c => c.id !== canvas.id);
+                state.selectedLayers = state.selectedLayers.filter(l => l.canvasId !== canvas.id);
+            }
+            
+            updateCanvasVisuals();
+            
+            if (state.selectedCanvases.length > 0) {
+                loadLayersForSelectedCanvases();
+            } else {
+                hideLayersSection();
+            }
+        }
+
+        function updateCanvasVisuals() {
+            state.selectedCanvases.forEach(canvas => {
+                const item = document.querySelector(`[data-id="${canvas.id}"]`);
+                if (item) item.classList.add('selected');
+            });
+        }
+
+        function loadLayersForSelectedCanvases() {
+            if (state.selectedCanvases.length === 0) return;
+            
+            console.log('🎨 Loading REAL layers for selected canvases...');
+            showStatus('<span class="loading"></span> Завантаження Layers з Figma...', 'warning');
+            
+            const canvasIds = state.selectedCanvases.map(c => c.id);
+            
+            vscode.postMessage({
+                command: 'getFigmaLayers',
+                figmaLink: state.figmaLink,
+                figmaToken: state.figmaToken,
+                canvasIds: canvasIds
+            });
+        }
+
+        function displayLayers(layers) {
+            console.log(`🎨 Displaying ${layers.length} real layers`);
+            
+            const container = document.getElementById('layersList');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            if (layers.length === 0) {
+                container.innerHTML = '<div class="status warning show">❌ Не знайдено Layers</div>';
+                return;
+            }
+            
+            layers.forEach(layer => {
+                const item = document.createElement('div');
+                item.className = 'layer-item';
+                item.dataset.id = layer.id;
+                
+                const indent = '&nbsp;'.repeat((layer.depth || 0) * 2);
+                
+                item.innerHTML = `
+                    <input type="checkbox" class="checkbox layer-checkbox" data-layer-id="${layer.id}">
+                    <div class="item-info">
+                        <div class="item-name">${indent}${getLayerIcon(layer.type)} ${layer.name}</div>
+                        <div class="item-meta">${layer.type} • ${layer.canvasName || 'Unknown'}</div>
+                    </div>
+                `;
+                
+                const checkbox = item.querySelector('.layer-checkbox');
+                checkbox.addEventListener('change', function() {
+                    handleLayerSelection(layer, this.checked);
+                });
+                
+                container.appendChild(item);
+            });
+            
+            document.getElementById('layersSection').style.display = 'block';
+            document.getElementById('layersSection').classList.add('active');
+        }
+
+        function getLayerIcon(type) {
+            const icons = {
+                'TEXT': '🔤',
+                'RECTANGLE': '🟦',
+                'FRAME': '🖼️',
+                'GROUP': '📁',
+                'COMPONENT': '⚙️',
+                'INSTANCE': '🔗',
+                'VECTOR': '✏️',
+                'IMAGE': '🖼️'
+            };
+            return icons[type] || '📄';
+        }
+
+        function handleLayerSelection(layer, isSelected) {
+            if (isSelected) {
+                if (!state.selectedLayers.find(l => l.id === layer.id)) {
+                    state.selectedLayers.push(layer);
+                }
+            } else {
+                state.selectedLayers = state.selectedLayers.filter(l => l.id !== layer.id);
+            }
+            
+            updateLayerVisuals();
+            loadStylesForSelectedLayers();
+        }
+
+        function updateLayerVisuals() {
+            state.selectedLayers.forEach(layer => {
+                const item = document.querySelector(`[data-id="${layer.id}"]`);
+                if (item) item.classList.add('selected');
+            });
+        }
+
+        function loadStylesForSelectedLayers() {
+            if (state.selectedLayers.length === 0) return;
+            
+            const layerIds = state.selectedLayers.map(l => l.id);
+            
+            vscode.postMessage({
+                command: 'getLayerStyles',
+                figmaLink: state.figmaLink,
+                figmaToken: state.figmaToken,
+                layerIds: layerIds
+            });
+        }
+
+        // ✅ FIX: Asset Import functions
+        function importImages() {
+            if (!validateFigmaData()) return;
+            
+            showStatus('<span class="loading"></span> Імпорт зображень з Figma...', 'warning');
+            
+            vscode.postMessage({
+                command: 'importImages',
+                figmaLink: state.figmaLink,
+                figmaToken: state.figmaToken,
+                selectedLayers: state.selectedLayers.map(l => l.id)
+            });
+        }
+
+        function importFonts() {
+            if (!validateFigmaData()) return;
+            
+            showStatus('<span class="loading"></span> Імпорт шрифтів з Figma...', 'warning');
+            
+            vscode.postMessage({
+                command: 'importFonts',
+                figmaLink: state.figmaLink,
+                figmaToken: state.figmaToken,
+                selectedLayers: state.selectedLayers.map(l => l.id)
+            });
+        }
+
+        function validateFigmaData() {
+            if (!state.figmaLink.trim()) {
+                showStatus('❌ Потрібне посилання на Figma файл', 'error');
+                return false;
+            }
+            if (!state.figmaToken.trim()) {
+                showStatus('❌ Потрібен Figma API токен', 'error');
+                return false;
+            }
+            return true;
+        }
+
+        function displayImportStats(type, stats) {
+            const container = document.getElementById('importStats');
+            const grid = container.querySelector('.stats-grid');
+            
+            if (!stats) return;
+            
+            let statsHTML = '';
+            
+            if (type === 'images') {
+                statsHTML = `
+                    <div class="stat-item">
+                        <span class="stat-label">🖼️ Images:</span>
+                        <span class="stat-value">${stats.imagesCount || 0}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">📁 Files:</span>
+                        <span class="stat-value">${stats.filesCount || 0}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">💾 Size:</span>
+                        <span class="stat-value">${stats.totalSize || '0 KB'}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">📂 Directory:</span>
+                        <span class="stat-value">${stats.outputDirectory || 'images'}</span>
+                    </div>
+                `;
+            } else if (type === 'fonts') {
+                statsHTML = `
+                    <div class="stat-item">
+                        <span class="stat-label">🔤 Fonts:</span>
+                        <span class="stat-value">${stats.totalFonts || 0}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">✅ Available:</span>
+                        <span class="stat-value">${stats.availableOnGoogleFonts || 0}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">📊 Success Rate:</span>
+                        <span class="stat-value">${stats.successRate || 0}%</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">📂 Directory:</span>
+                        <span class="stat-value">${stats.outputDirectory || '.'}</span>
+                    </div>
+                `;
+            }
+            
+            grid.innerHTML = statsHTML;
+            container.style.display = 'block';
+            
+            state.importStats[type] = stats;
+        }
+
+        // ✅ FIX: Control functions
+        function selectAllCanvas() {
+            document.querySelectorAll('.canvas-checkbox').forEach(cb => {
+                if (!cb.checked) {
+                    cb.checked = true;
+                    cb.dispatchEvent(new Event('change'));
+                }
+            });
+        }
+
+        function clearCanvasSelection() {
+            document.querySelectorAll('.canvas-checkbox').forEach(cb => {
+                if (cb.checked) {
+                    cb.checked = false;
+                    cb.dispatchEvent(new Event('change'));
+                }
+            });
+        }
+
+        function selectAllLayers() {
+            document.querySelectorAll('.layer-checkbox').forEach(cb => {
+                if (!cb.checked) {
+                    cb.checked = true;
+                    cb.dispatchEvent(new Event('change'));
+                }
+            });
+        }
+
+        function clearLayersSelection() {
+            document.querySelectorAll('.layer-checkbox').forEach(cb => {
+                if (cb.checked) {
+                    cb.checked = false;
+                    cb.dispatchEvent(new Event('change'));
+                }
+            });
+        }
+
+        function hideLayersSection() {
+            const layersSection = document.getElementById('layersSection');
+            if (layersSection) {
+                layersSection.style.display = 'none';
+                layersSection.classList.remove('active');
+            }
+        }
+
+        function copyStylesToClipboard() {
+            if (state.selectedLayers.length === 0) {
+                showStatus('❌ Немає вибраних Layers для копіювання стилів', 'warning');
+                return;
+            }
+            
+            let cssContent = '/* ✅ Стилі з вибраних Figma Layers */\n';
+            cssContent += `/* Згенеровано: ${new Date().toLocaleString()} */\n\n`;
+            
+            state.selectedLayers.forEach(layer => {
+                const className = layer.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+                cssContent += `/* ${layer.name} (${layer.type}) */\n`;
+                cssContent += `.${className} {\n`;
+                cssContent += `  /* ✅ Add styles for ${layer.name} here */\n`;
+                cssContent += `}\n\n`;
+            });
+            
+            vscode.postMessage({
+                command: 'copyToClipboard',
+                content: cssContent
+            });
+        }
+
+        // ✅ FIX: Settings management
+        function loadLastSettings() {
+            console.log('📂 Loading last settings...');
+            showStatus('<span class="loading"></span> Завантаження налаштувань...', 'warning');
+            vscode.postMessage({ command: 'loadLastSettings' });
+        }
+
+        function saveSettings() {
+            console.log('💾 Saving settings...');
+            showStatus('<span class="loading"></span> Збереження налаштувань...', 'warning');
+            vscode.postMessage({
+                command: 'saveCurrentSettings',
+                settings: state
+            });
+        }
+
+        function clearSettings() {
+            console.log('🗑️ Clearing settings...');
+            
+            state = {
+                mode: null,
+                figmaLink: '',
+                figmaToken: '',
+                selectedCanvases: [],
+                selectedLayers: [],
+                importStats: { images: null, fonts: null }
+            };
+            
+            // ✅ FIX: Clear UI
+            document.querySelectorAll('.mode-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            document.getElementById('figmaLink').value = '';
+            document.getElementById('figmaToken').value = '';
+            document.getElementById('canvasList').innerHTML = '';
+            document.getElementById('layersList').innerHTML = '';
+            document.getElementById('importStats').style.display = 'none';
+            
+            ['canvasSection', 'layersSection', 'figmaSection', 'importSection'].forEach(id => {
+                const section = document.getElementById(id);
+                if (section) {
+                    section.style.display = 'none';
+                    section.classList.remove('active');
+                }
+            });
+            
+            document.getElementById('generateBtn').disabled = true;
+            
+            showStatus('✅ Налаштування очищено', 'success');
+            vscode.postMessage({ command: 'clearSettings' });
+        }
+
+        function generateCSS() {
+            if (!state.mode) {
+                showStatus('❌ Виберіть режим генерації', 'error');
+                return;
+            }
+            
+            console.log('🚀 Generating CSS...');
+            showStatus('<span class="loading"></span> Генерація CSS...', 'warning');
+            
+            vscode.postMessage({
+                command: 'generateCSS',
+                settings: state
+            });
+        }
+
+        // ✅ FIX: Message handling from VSCode
+        window.addEventListener('message', event => {
+            const message = event.data;
+            console.log(`📨 Received: ${message.command}`);
+            
+            switch (message.command) {
+                case 'lastSettingsLoaded':
+                    if (message.settings) {
+                        applySettings(message.settings);
+                        showStatus('✅ Налаштування завантажено', 'success');
+                    }
+                    break;
+                    
+                case 'settingsSaved':
+                    showStatus(message.success ? '✅ Налаштування збережено' : '❌ Помилка збереження', 
+                               message.success ? 'success' : 'error');
+                    break;
+                    
+                case 'figmaCanvases':
+                    if (message.canvases && message.canvases.length > 0) {
+                        displayCanvases(message.canvases);
+                        showStatus(`✅ Завантажено ${message.canvases.length} Canvas`, 'success');
+                    } else {
+                        showStatus(`❌ ${message.error || 'Не вдалося завантажити Canvas'}`, 'error');
+                    }
+                    break;
+                    
+                case 'figmaLayers':
+                    if (message.layers && message.layers.length > 0) {
+                        displayLayers(message.layers);
+                        showStatus(`✅ Завантажено ${message.layers.length} Layers`, 'success');
+                    } else {
+                        showStatus(`❌ ${message.error || 'Не вдалося завантажити Layers'}`, 'error');
+                    }
+                    break;
+                    
+                case 'imagesImported':
+                    if (message.success && message.stats) {
+                        displayImportStats('images', message.stats);
+                        showStatus(`✅ Зображення імпортовано: ${message.stats.imagesCount} файлів`, 'success');
+                    } else {
+                        showStatus(`❌ Помилка імпорту зображень: ${message.error}`, 'error');
+                    }
+                    break;
+                    
+                case 'fontsImported':
+                    if (message.success && message.stats) {
+                        displayImportStats('fonts', message.stats);
+                        showStatus(`✅ Шрифти імпортовано: ${message.stats.totalFonts} шрифтів`, 'success');
+                    } else {
+                        showStatus(`❌ Помилка імпорту шрифтів: ${message.error}`, 'error');
+                    }
+                    break;
+                    
+                case 'clipboardCopied':
+                    showStatus(message.success ? '✅ Скопійовано в буфер обміну!' : '❌ Помилка копіювання', 
+                               message.success ? 'success' : 'error');
+                    break;
+                    
+                case 'generationComplete':
+                    if (message.success) {
+                        let statusText = '✅ CSS згенеровано успішно!';
+                        if (message.figmaData) {
+                            statusText += ` • Співставлено: ${message.figmaData.matchedCount}/${message.figmaData.elementsCount}`;
+                        }
+                        showStatus(statusText, 'success');
+                    } else {
+                        showStatus(`❌ Помилка: ${message.error}`, 'error');
+                    }
+                    break;
+                    
+                case 'error':
+                    showStatus(`❌ Помилка: ${message.message}`, 'error');
+                    break;
+            }
+        });
+
+        function applySettings(settings) {
+            if (!settings) return;
+            
+            console.log('🔧 Applying settings:', settings);
+            
+            if (settings.mode) selectMode(settings.mode);
+            if (settings.figmaLink) {
+                document.getElementById('figmaLink').value = settings.figmaLink;
+                state.figmaLink = settings.figmaLink;
+            }
+            if (settings.figmaToken) {
+                document.getElementById('figmaToken').value = settings.figmaToken;
+                state.figmaToken = settings.figmaToken;
+            }
+            if (settings.selectedCanvases) state.selectedCanvases = settings.selectedCanvases;
+            if (settings.selectedLayers) state.selectedLayers = settings.selectedLayers;
+            if (settings.importStats) state.importStats = settings.importStats;
+        }
+
+        function showStatus(message, type = 'success') {
+            const status = document.getElementById('status');
+            if (!status) return;
+            
+            status.className = `status ${type} show`;
+            status.innerHTML = message;
+            
+            console.log(`📢 Status: ${message}`);
+            
+            if (!message.includes('loading')) {
+                setTimeout(() => {
+                    status.classList.remove('show');
+                }, 4000);
+            }
+        }
+
+        // ✅ FIX: Initial status
+        setTimeout(() => {
+            showStatus('📄 Відкрийте HTML файл та виберіть режим генерації', 'warning');
+        }, 1000);
+    </script>
+</body>
+</html>

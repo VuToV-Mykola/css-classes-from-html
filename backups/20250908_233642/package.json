@@ -16,7 +16,8 @@
   "categories": [
     "Other",
     "Snippets",
-    "Formatters"
+    "Formatters",
+    "Extension Packs"
   ],
   "keywords": [
     "css",
@@ -31,7 +32,9 @@
     "integration",
     "vscode-extension",
     "web-development",
-    "css-generator"
+    "css-generator",
+    "responsive",
+    "bootstrap"
   ],
   "main": "./extension.js",
   "icon": "assets/icon.png",
@@ -41,6 +44,7 @@
   },
   "activationEvents": [
     "onLanguage:html",
+    "onLanguage:css",
     "onCommand:css-classes.showMenu",
     "onCommand:css-classes.showMenuFromContext",
     "onCommand:css-classes.quickGenerate",
@@ -156,26 +160,32 @@
     }
   },
   "scripts": {
-    "build": "echo \"✅ Build completed for v0.0.7\"",
+    "build": "echo \"✅ Build completed for v0.0.7\" && npm run validate",
     "package": "vsce package --out ./builds/",
-    "lint": "eslint . --ext .js,.ts",
+    "lint": "eslint . --ext .js,.ts --fix",
     "test": "bash scripts/tests.sh",
     "deploy": "bash scripts/deploy.sh",
-    "validate": "node -c extension.js && echo \"✅ Validation passed\"",
+    "validate": "node -c extension.js && echo \"✅ Extension validation passed\"",
     "clean": "rm -rf builds/* logs/deploy/*.log node_modules/.cache",
     "prepackage": "npm run validate",
     "postpackage": "echo \"📦 Package created successfully\"",
     "docs": "bash scripts/auto-generate-docs.sh",
-    "manager": "bash scripts/project-manager.sh"
+    "manager": "bash scripts/project-manager.sh",
+    "fix": "bash scripts/ultimate-fix-and-setup.sh",
+    "start": "npm run build && npm run package"
   },
   "dependencies": {
-    "jsdom": "^22.0.0"
+    "jsdom": "^23.0.0",
+    "axios": "^1.6.0",
+    "https": "^1.0.0"
   },
   "devDependencies": {
     "@types/vscode": "^1.74.0",
+    "@types/node": "^20.0.0",
     "@vscode/test-electron": "^2.3.0",
-    "@vscode/vsce": "^2.19.0",
-    "eslint": "^8.0.0"
+    "@vscode/vsce": "^2.22.0",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.0"
   },
   "repository": {
     "type": "git",

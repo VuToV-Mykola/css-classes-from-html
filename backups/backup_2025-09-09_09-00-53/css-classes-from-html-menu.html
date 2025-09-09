@@ -1,0 +1,1280 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Classes from HTML v2.1.0</title>
+    <style>
+      /* ✅ FIX: Компактний адаптивний інтерфейс - лінія 8-600 ✅ */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --primary: #007acc;
+        --primary-dark: #005a9e;
+        --success: #4caf50;
+        --warning: #ff9800;
+        --danger: #f44336;
+        --info: #2196f3;
+        --bg: #1e1e1e;
+        --bg-secondary: #252526;
+        --bg-tertiary: #2d2d30;
+        --text: #cccccc;
+        --text-secondary: #8c8c8c;
+        --border: #3c3c3c;
+        --shadow: rgba(0, 0, 0, 0.3);
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        font-size: 13px;
+        line-height: 1.4;
+      }
+
+      /* ✅ FIX: Контекстна панель HTML файлу - лінія 40-85 ✅ */
+      .html-context-bar {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: white;
+        padding: 0.8rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 2px 10px var(--shadow);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+
+      .html-context-info {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+      }
+
+      .html-context-icon {
+        font-size: 1.5rem;
+      }
+
+      .html-context-details {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .html-context-label {
+        font-size: 0.75rem;
+        opacity: 0.9;
+      }
+
+      .html-context-filename {
+        font-size: 1rem;
+        font-weight: 600;
+      }
+
+      .html-context-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .btn-context {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        padding: 0.4rem 0.8rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        transition: all 0.2s ease;
+      }
+
+      .btn-context:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-1px);
+      }
+
+      /* Заголовок */
+      .header {
+        background: var(--bg-secondary);
+        padding: 1rem;
+        text-align: center;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .header h1 {
+        font-size: 1.2rem;
+        color: var(--primary);
+        margin-bottom: 0.3rem;
+      }
+
+      .header p {
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+      }
+
+      .main-container {
+        padding: 1rem;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      /* ✅ FIX: Вибір режиму - лінія 125-180 ✅ */
+      .mode-selector {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 0.8rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .mode-card {
+        background: var(--bg-secondary);
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        padding: 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .mode-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 0;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, var(--primary), transparent);
+        transition: width 0.3s ease;
+        opacity: 0.1;
+      }
+
+      .mode-card:hover::before {
+        width: 100%;
+      }
+
+      .mode-card:hover {
+        border-color: var(--primary);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px var(--shadow);
+      }
+
+      .mode-card.selected {
+        border-color: var(--success);
+        background: var(--bg-tertiary);
+      }
+
+      .mode-card.selected::after {
+        content: "✓";
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        background: var(--success);
+        color: white;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+      }
+
+      .mode-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .mode-title {
+        font-weight: 600;
+        font-size: 1rem;
+        margin-bottom: 0.3rem;
+        color: var(--text);
+      }
+
+      .mode-description {
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+      }
+
+      /* Секції */
+      .section {
+        background: var(--bg-secondary);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+      }
+
+      .section:hover {
+        box-shadow: 0 2px 8px var(--shadow);
+      }
+
+      .section-title {
+        color: var(--primary);
+        margin-bottom: 0.8rem;
+        font-size: 1rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .input-group {
+        margin-bottom: 0.8rem;
+      }
+
+      .input-group label {
+        display: block;
+        margin-bottom: 0.4rem;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+      }
+
+      .input-group input,
+      .input-group select {
+        width: 100%;
+        padding: 0.6rem;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border);
+        color: var(--text);
+        border-radius: 4px;
+        font-size: 0.85rem;
+        transition: all 0.2s ease;
+      }
+
+      .input-group input:focus,
+      .input-group select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.2);
+      }
+
+      /* ✅ FIX: Списки Canvas та Layers - лінія 260-310 ✅ */
+      .list-container {
+        background: var(--bg-tertiary);
+        border-radius: 6px;
+        padding: 0.5rem;
+        max-height: 300px;
+        overflow-y: auto;
+        margin-bottom: 0.8rem;
+      }
+
+      .list-item {
+        display: flex;
+        align-items: center;
+        padding: 0.6rem;
+        margin-bottom: 0.3rem;
+        background: var(--bg-secondary);
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .list-item:hover {
+        background: var(--bg);
+        transform: translateX(2px);
+      }
+
+      .list-item.selected {
+        background: var(--bg);
+        border-left: 3px solid var(--success);
+      }
+
+      .list-item input[type="checkbox"] {
+        margin-right: 0.8rem;
+        cursor: pointer;
+      }
+
+      .list-item-info {
+        flex: 1;
+      }
+
+      .list-item-name {
+        font-weight: 500;
+        color: var(--text);
+        font-size: 0.85rem;
+      }
+
+      .list-item-meta {
+        font-size: 0.7rem;
+        color: var(--text-secondary);
+        margin-top: 0.2rem;
+      }
+
+      /* Кнопки */
+      .btn {
+        padding: 0.6rem 1rem;
+        border: none;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px var(--shadow);
+      }
+
+      .btn:active {
+        transform: translateY(0);
+      }
+
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .btn-primary {
+        background: var(--primary);
+        color: white;
+      }
+
+      .btn-primary:hover:not(:disabled) {
+        background: var(--primary-dark);
+      }
+
+      .btn-success {
+        background: var(--success);
+        color: white;
+      }
+
+      .btn-warning {
+        background: var(--warning);
+        color: white;
+      }
+
+      .btn-danger {
+        background: var(--danger);
+        color: white;
+      }
+
+      .btn-secondary {
+        background: var(--bg-tertiary);
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+
+      .btn-secondary:hover:not(:disabled) {
+        background: var(--bg);
+        border-color: var(--primary);
+      }
+
+      /* ✅ FIX: Статус повідомлення - лінія 375-420 ✅ */
+      .status {
+        padding: 0.8rem;
+        margin: 1rem 0;
+        border-radius: 6px;
+        display: none;
+        font-size: 0.85rem;
+        animation: slideIn 0.3s ease;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .status.show {
+        display: block;
+      }
+
+      .status.success {
+        background: rgba(76, 175, 80, 0.1);
+        border: 1px solid var(--success);
+        color: var(--success);
+      }
+
+      .status.error {
+        background: rgba(244, 67, 54, 0.1);
+        border: 1px solid var(--danger);
+        color: var(--danger);
+      }
+
+      .status.warning {
+        background: rgba(255, 152, 0, 0.1);
+        border: 1px solid var(--warning);
+        color: var(--warning);
+      }
+
+      .status.info {
+        background: rgba(33, 150, 243, 0.1);
+        border: 1px solid var(--info);
+        color: var(--info);
+      }
+
+      /* Панель дій */
+      .actions-panel {
+        background: var(--bg-secondary);
+        border-top: 1px solid var(--border);
+        padding: 1rem;
+        position: sticky;
+        bottom: 0;
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      /* Контрольні групи */
+      .controls-row {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.8rem;
+        flex-wrap: wrap;
+      }
+
+      .controls-group {
+        display: flex;
+        gap: 0.4rem;
+      }
+
+      /* Loading індикатор */
+      .loading {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border: 2px solid var(--text-secondary);
+        border-radius: 50%;
+        border-top-color: var(--primary);
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .html-context-bar {
+          flex-direction: column;
+          gap: 0.5rem;
+          text-align: center;
+        }
+
+        .mode-selector {
+          grid-template-columns: 1fr;
+        }
+
+        .controls-row {
+          flex-direction: column;
+        }
+
+        .actions-panel {
+          flex-direction: column;
+        }
+
+        .btn {
+          width: 100%;
+          justify-content: center;
+        }
+      }
+
+      /* Tabs для секцій */
+      .tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        border-bottom: 2px solid var(--border);
+      }
+
+      .tab {
+        padding: 0.6rem 1rem;
+        background: transparent;
+        border: none;
+        color: var(--text-secondary);
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s ease;
+        font-size: 0.85rem;
+      }
+
+      .tab:hover {
+        color: var(--text);
+      }
+
+      .tab.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      /* Progress bar */
+      .progress {
+        height: 4px;
+        background: var(--bg-tertiary);
+        border-radius: 2px;
+        overflow: hidden;
+        margin: 1rem 0;
+      }
+
+      .progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary), var(--success));
+        width: 0;
+        transition: width 0.3s ease;
+        animation: shimmer 2s linear infinite;
+      }
+
+      @keyframes shimmer {
+        0% {
+          background-position: -200% 0;
+        }
+        100% {
+          background-position: 200% 0;
+        }
+      }
+
+      /* Tooltip */
+      .tooltip {
+        position: relative;
+        display: inline-block;
+      }
+
+      .tooltip .tooltiptext {
+        visibility: hidden;
+        background-color: var(--bg-tertiary);
+        color: var(--text);
+        text-align: center;
+        border-radius: 4px;
+        padding: 0.4rem 0.6rem;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%;
+        left: 50%;
+        margin-left: -60px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        font-size: 0.75rem;
+        white-space: nowrap;
+      }
+
+      .tooltip:hover .tooltiptext {
+        visibility: visible;
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ✅ FIX: Контекстна панель HTML файлу - лінія 595-609 ✅ -->
+    <div class="html-context-bar" id="htmlContextBar">
+      <div class="html-context-info">
+        <div class="html-context-icon">📄</div>
+        <div class="html-context-details">
+          <div class="html-context-label">Поточний HTML файл:</div>
+          <div class="html-context-filename" id="currentHTMLFile">Не вибрано</div>
+        </div>
+      </div>
+      <div class="html-context-actions">
+        <button class="btn-context" id="selectHTMLBtn" onclick="selectHTMLFile()">
+          📂 Вибрати файл
+        </button>
+        <button class="btn-context" id="refreshHTMLBtn" onclick="refreshHTMLContext()">
+          🔄 Оновити
+        </button>
+      </div>
+    </div>
+
+    <div class="header">
+      <h1>🎨 CSS Classes from HTML v2.1.0</h1>
+      <p>Автоматична генерація CSS • Реальна інтеграція з Figma • Розумне співставлення</p>
+
+      <!-- Status повідомлення -->
+      <div id="status" class="status"></div>
+
+      <!-- Progress bar -->
+      <div class="progress" id="progressContainer" style="display: none">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+    </div>
+
+    <div class="main-container">
+      <!-- Вибір режиму -->
+      <div class="mode-selector" id="modeSelector">
+        <div class="mode-card" data-mode="minimal" onclick="selectMode('minimal')">
+          <div class="mode-icon">⚡</div>
+          <div class="mode-title">Мінімальний</div>
+          <div class="mode-description">Базова генерація CSS класів</div>
+        </div>
+
+        <div class="mode-card" data-mode="maximum" onclick="selectMode('maximum')">
+          <div class="mode-icon">🚀</div>
+          <div class="mode-title">Максимальний</div>
+          <div class="mode-description">Повна Figma інтеграція</div>
+        </div>
+
+        <div class="mode-card" data-mode="production" onclick="selectMode('production')">
+          <div class="mode-icon">📦</div>
+          <div class="mode-title">Production</div>
+          <div class="mode-description">Оптимізований CSS</div>
+        </div>
+      </div>
+
+      <!-- Tabs навігація -->
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('basic')">⚙️ Основні</button>
+        <button class="tab" onclick="switchTab('figma')">🎨 Figma</button>
+        <button class="tab" onclick="switchTab('advanced')">🔧 Розширені</button>
+      </div>
+
+      <!-- Tab: Основні налаштування -->
+      <div class="tab-content active" id="basicTab">
+        <div class="section">
+          <h2 class="section-title">⚙️ Основні налаштування</h2>
+
+          <div class="input-group">
+            <label for="cssFileName">Назва CSS файлу</label>
+            <input type="text" id="cssFileName" placeholder="styles.css" value="styles.css">
+          </div>
+
+          <div class="controls-row">
+            <label class="tooltip">
+              <input type="checkbox" id="includeReset" checked>
+              Включити Reset стилі
+              <span class="tooltiptext">Додає базові reset стилі</span>
+            </label>
+            <label class="tooltip">
+              <input type="checkbox" id="includeVariables" checked>
+              CSS змінні
+              <span class="tooltiptext">Додає CSS custom properties</span>
+            </label>
+            <label class="tooltip">
+              <input type="checkbox" id="includeResponsive" checked>
+              Responsive стилі
+              <span class="tooltiptext">Додає media queries</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Figma інтеграція -->
+      <div class="tab-content" id="figmaTab">
+        <div class="section">
+          <h2 class="section-title">🎨 Figma Integration</h2>
+
+          <div class="input-group">
+            <label for="figmaLink">Figma File URL</label>
+            <input type="text" id="figmaLink" placeholder="https://www.figma.com/file/...">
+          </div>
+
+          <div class="input-group">
+            <label for="figmaToken"
+              >Figma API Token <span style="color: var(--danger)">*</span></label
+            >
+            <input type="password" id="figmaToken" placeholder="Get from figma.com/developers/api">
+          </div>
+
+          <div class="controls-row">
+            <button class="btn btn-primary" onclick="loadFigmaCanvases()">
+              📋 Завантажити Canvas
+            </button>
+            <a
+              href="https://www.figma.com/developers/api#access-tokens"
+              target="_blank"
+              class="btn btn-secondary">
+              🔑 Отримати Token
+            </a>
+          </div>
+        </div>
+
+        <!-- Canvas список -->
+        <div class="section" id="canvasSection" style="display: none">
+          <h2 class="section-title">📋 Canvas Selection</h2>
+          <div class="list-container" id="canvasList"></div>
+          <div class="controls-row">
+            <div class="controls-group">
+              <button class="btn btn-secondary" onclick="selectAllCanvas()">✅ Всі</button>
+              <button class="btn btn-secondary" onclick="clearCanvasSelection()"
+                >❌ Очистити</button
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Layers список -->
+        <div class="section" id="layersSection" style="display: none">
+          <h2 class="section-title">🎨 Layers Selection</h2>
+          <div class="list-container" id="layersList"></div>
+          <div class="controls-row">
+            <div class="controls-group">
+              <button class="btn btn-secondary" onclick="selectAllLayers()">✅ Всі</button>
+              <button class="btn btn-secondary" onclick="clearLayersSelection()"
+                >❌ Очистити</button
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Розширені налаштування -->
+      <div class="tab-content" id="advancedTab">
+        <div class="section">
+          <h2 class="section-title">🔧 Розширені налаштування</h2>
+
+          <div class="input-group">
+            <label for="confidenceThreshold">Поріг співпадіння</label>
+            <input type="range" id="confidenceThreshold" min="0" max="100" value="70">
+            <span id="confidenceValue">70%</span>
+          </div>
+
+          <div class="input-group">
+            <label for="outputFormat">Формат виводу</label>
+            <select id="outputFormat">
+              <option value="expanded">Розгорнутий</option>
+              <option value="compressed">Стиснутий</option>
+              <option value="minified">Мініфікований</option>
+            </select>
+          </div>
+
+          <div class="controls-row">
+            <button class="btn btn-warning" onclick="importImages()"> 🖼️ Імпорт зображень </button>
+            <button class="btn btn-warning" onclick="importFonts()"> 🔤 Імпорт шрифтів </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Панель дій -->
+    <div class="actions-panel">
+      <button class="btn btn-secondary" onclick="loadLastSettings()">📂 Завантажити</button>
+      <button class="btn btn-secondary" onclick="saveSettings()">💾 Зберегти</button>
+      <button class="btn btn-secondary" onclick="clearSettings()">🗑️ Очистити</button>
+      <button class="btn btn-primary" id="generateBtn" onclick="generateCSS()">
+        🚀 Генерувати CSS
+      </button>
+    </div>
+
+    <script>
+      // ✅ FIX: VSCode API та глобальні змінні - лінія 780-790 ✅
+      const vscode = acquireVsCodeApi()
+
+      let state = {
+        mode: "minimal",
+        currentHTMLFile: null,
+        figmaLink: "",
+        figmaToken: "",
+        selectedCanvases: [],
+        selectedLayers: [],
+        settings: {}
+      }
+
+      // ✅ FIX: Ініціалізація при завантаженні - лінія 793-810 ✅
+      window.addEventListener("DOMContentLoaded", () => {
+        console.log("🚀 Initializing CSS Classes Menu v2.1.0...")
+
+        // Слухаємо повідомлення від extension
+        window.addEventListener("message", handleMessage)
+
+        // Запитуємо початковий контекст
+        vscode.postMessage({command: "getInitialContext"})
+
+        // Налаштування слайдера
+        const slider = document.getElementById("confidenceThreshold")
+        const value = document.getElementById("confidenceValue")
+        if (slider) {
+          slider.addEventListener("input", function () {
+            value.textContent = this.value + "%"
+          })
+        }
+      })
+
+      // ✅ FIX: Обробка повідомлень від extension - лінія 813-890 ✅
+      function handleMessage(event) {
+        const message = event.data
+        console.log("📨 Received:", message.command)
+
+        switch (message.command) {
+          case "initializeContext":
+          case "updateHTMLContext":
+            if (message.htmlFile) {
+              state.currentHTMLFile = message.htmlFile
+              updateHTMLDisplay(message.fileName || message.htmlFile)
+              showStatus(`📄 HTML файл: ${message.fileName}`, "info")
+            }
+            if (message.config) {
+              applySettings(message.config)
+            }
+            break
+
+          case "htmlFileSelected":
+            state.currentHTMLFile = message.htmlFile
+            updateHTMLDisplay(message.fileName)
+            showStatus(`✅ Файл вибрано: ${message.fileName}`, "success")
+            break
+
+          case "lastSettingsLoaded":
+            if (message.settings) {
+              applySettings(message.settings)
+              if (message.settings.currentHTMLFile) {
+                state.currentHTMLFile = message.settings.currentHTMLFile
+                updateHTMLDisplay(message.settings.currentHTMLFileName)
+              }
+              showStatus("✅ Налаштування завантажено", "success")
+            }
+            break
+
+          case "figmaCanvases":
+            if (message.success && message.canvases) {
+              displayCanvases(message.canvases)
+              showStatus(`✅ Завантажено ${message.canvases.length} Canvas`, "success")
+            } else {
+              showStatus(message.error || "Помилка завантаження Canvas", "error")
+            }
+            break
+
+          case "figmaLayers":
+            if (message.success && message.layers) {
+              displayLayers(message.layers)
+              showStatus(`✅ Завантажено ${message.layers.length} Layers`, "success")
+            } else {
+              showStatus(message.error || "Помилка завантаження Layers", "error")
+            }
+            break
+
+          case "generationComplete":
+            hideProgress()
+            if (message.success) {
+              showStatus("✅ CSS згенеровано успішно!", "success")
+            } else {
+              showStatus(message.error || "Помилка генерації", "error")
+            }
+            break
+
+          case "error":
+            hideProgress()
+            showStatus(message.message, "error")
+            break
+        }
+      }
+
+      // ✅ FIX: Функції роботи з HTML контекстом - лінія 893-920 ✅
+      function selectHTMLFile() {
+        vscode.postMessage({command: "selectHTMLFile"})
+      }
+
+      function refreshHTMLContext() {
+        vscode.postMessage({command: "refreshHTMLContext"})
+        showStatus("🔄 Оновлення контексту...", "info")
+      }
+
+      function updateHTMLDisplay(fileName) {
+        const element = document.getElementById("currentHTMLFile")
+        if (element) {
+          element.textContent = fileName || "Не вибрано"
+          element.style.color = fileName ? "white" : "rgba(255,255,255,0.7)"
+        }
+
+        // Активуємо кнопку генерації якщо є файл
+        const generateBtn = document.getElementById("generateBtn")
+        if (generateBtn) {
+          generateBtn.disabled = !fileName
+        }
+      }
+
+      // Вибір режиму
+      function selectMode(mode) {
+        state.mode = mode
+
+        // Оновлення візуального стану
+        document.querySelectorAll(".mode-card").forEach(card => {
+          card.classList.remove("selected")
+        })
+        document.querySelector(`[data-mode="${mode}"]`).classList.add("selected")
+
+        // Показ/приховування секцій залежно від режиму
+        if (mode === "maximum") {
+          switchTab("figma")
+        } else {
+          switchTab("basic")
+        }
+
+        showStatus(`Режим "${getModeTitle(mode)}" вибрано`, "success")
+      }
+
+      function getModeTitle(mode) {
+        const titles = {
+          minimal: "Мінімальний",
+          maximum: "Максимальний",
+          production: "Production"
+        }
+        return titles[mode] || mode
+      }
+
+      // Переключення табів
+      function switchTab(tabName) {
+        // Оновлення табів
+        document.querySelectorAll(".tab").forEach(tab => {
+          tab.classList.remove("active")
+        })
+        document.querySelectorAll(".tab-content").forEach(content => {
+          content.classList.remove("active")
+        })
+
+        // Активація вибраного
+        const tabButton = Array.from(document.querySelectorAll(".tab")).find(
+          t =>
+            t.textContent.toLowerCase().includes(tabName.toLowerCase()) ||
+            t.onclick.toString().includes(tabName)
+        )
+        if (tabButton) tabButton.classList.add("active")
+
+        const tabContent = document.getElementById(tabName + "Tab")
+        if (tabContent) tabContent.classList.add("active")
+      }
+
+      // ✅ FIX: Генерація CSS з контекстом - лінія 965-985 ✅
+      function generateCSS() {
+        if (!state.currentHTMLFile && !state.mode) {
+          showStatus("❌ Виберіть HTML файл та режим генерації", "error")
+          return
+        }
+
+        showProgress("Генерація CSS...")
+
+        const settings = {
+          mode: state.mode,
+          htmlFile: state.currentHTMLFile,
+          figmaLink: document.getElementById("figmaLink").value,
+          figmaToken: document.getElementById("figmaToken").value,
+          includeReset: document.getElementById("includeReset").checked,
+          includeVariables: document.getElementById("includeVariables").checked,
+          includeResponsive: document.getElementById("includeResponsive").checked,
+          outputFormat: document.getElementById("outputFormat").value,
+          confidenceThreshold: document.getElementById("confidenceThreshold").value,
+          selectedCanvases: state.selectedCanvases,
+          selectedLayers: state.selectedLayers
+        }
+
+        vscode.postMessage({
+          command: "generateCSS",
+          settings: settings
+        })
+      }
+
+      // Figma функції
+      function loadFigmaCanvases() {
+        const figmaLink = document.getElementById("figmaLink").value
+        const figmaToken = document.getElementById("figmaToken").value
+
+        if (!figmaLink || !figmaToken) {
+          showStatus("❌ Введіть Figma URL та API Token", "error")
+          return
+        }
+
+        showProgress("Завантаження Canvas з Figma...")
+
+        vscode.postMessage({
+          command: "getFigmaCanvases",
+          figmaLink: figmaLink,
+          figmaToken: figmaToken
+        })
+      }
+
+      function displayCanvases(canvases) {
+        const container = document.getElementById("canvasList")
+        container.innerHTML = ""
+
+        canvases.forEach(canvas => {
+          const item = createListItem(canvas, "canvas")
+          container.appendChild(item)
+        })
+
+        document.getElementById("canvasSection").style.display = "block"
+        hideProgress()
+      }
+
+      function displayLayers(layers) {
+        const container = document.getElementById("layersList")
+        container.innerHTML = ""
+
+        layers.forEach(layer => {
+          const item = createListItem(layer, "layer")
+          container.appendChild(item)
+        })
+
+        document.getElementById("layersSection").style.display = "block"
+        hideProgress()
+      }
+
+      function createListItem(data, type) {
+        const div = document.createElement("div")
+        div.className = "list-item"
+        div.dataset.id = data.id
+
+        const checkbox = document.createElement("input")
+        checkbox.type = "checkbox"
+        checkbox.dataset.id = data.id
+        checkbox.onchange = () => handleItemSelection(data, checkbox.checked, type)
+
+        const info = document.createElement("div")
+        info.className = "list-item-info"
+
+        const name = document.createElement("div")
+        name.className = "list-item-name"
+        name.textContent = data.name
+
+        const meta = document.createElement("div")
+        meta.className = "list-item-meta"
+        meta.textContent = `${data.type || "Unknown"} • ${data.childrenCount || 0} елементів`
+
+        info.appendChild(name)
+        info.appendChild(meta)
+
+        div.appendChild(checkbox)
+        div.appendChild(info)
+
+        return div
+      }
+
+      function handleItemSelection(item, isSelected, type) {
+        if (type === "canvas") {
+          if (isSelected) {
+            state.selectedCanvases.push(item)
+          } else {
+            state.selectedCanvases = state.selectedCanvases.filter(c => c.id !== item.id)
+          }
+
+          if (state.selectedCanvases.length > 0) {
+            loadLayersForCanvases()
+          }
+        } else if (type === "layer") {
+          if (isSelected) {
+            state.selectedLayers.push(item)
+          } else {
+            state.selectedLayers = state.selectedLayers.filter(l => l.id !== item.id)
+          }
+        }
+      }
+
+      function loadLayersForCanvases() {
+        const canvasIds = state.selectedCanvases.map(c => c.id)
+
+        vscode.postMessage({
+          command: "getFigmaLayers",
+          figmaLink: document.getElementById("figmaLink").value,
+          figmaToken: document.getElementById("figmaToken").value,
+          canvasIds: canvasIds
+        })
+      }
+
+      // Функції вибору
+      function selectAllCanvas() {
+        document.querySelectorAll('#canvasList input[type="checkbox"]').forEach(cb => {
+          if (!cb.checked) {
+            cb.checked = true
+            cb.dispatchEvent(new Event("change"))
+          }
+        })
+      }
+
+      function clearCanvasSelection() {
+        document.querySelectorAll('#canvasList input[type="checkbox"]').forEach(cb => {
+          if (cb.checked) {
+            cb.checked = false
+            cb.dispatchEvent(new Event("change"))
+          }
+        })
+        state.selectedCanvases = []
+        document.getElementById("layersSection").style.display = "none"
+      }
+
+      function selectAllLayers() {
+        document.querySelectorAll('#layersList input[type="checkbox"]').forEach(cb => {
+          if (!cb.checked) {
+            cb.checked = true
+            cb.dispatchEvent(new Event("change"))
+          }
+        })
+      }
+
+      function clearLayersSelection() {
+        document.querySelectorAll('#layersList input[type="checkbox"]').forEach(cb => {
+          if (cb.checked) {
+            cb.checked = false
+            cb.dispatchEvent(new Event("change"))
+          }
+        })
+        state.selectedLayers = []
+      }
+
+      // Імпорт функції
+      function importImages() {
+        if (!state.figmaLink || !state.figmaToken) {
+          showStatus("❌ Спочатку налаштуйте Figma інтеграцію", "error")
+          return
+        }
+
+        showProgress("Імпорт зображень...")
+
+        vscode.postMessage({
+          command: "importImages",
+          figmaLink: state.figmaLink,
+          figmaToken: state.figmaToken,
+          selectedLayers: state.selectedLayers.map(l => l.id)
+        })
+      }
+
+      function importFonts() {
+        if (!state.figmaLink || !state.figmaToken) {
+          showStatus("❌ Спочатку налаштуйте Figma інтеграцію", "error")
+          return
+        }
+
+        showProgress("Імпорт шрифтів...")
+
+        vscode.postMessage({
+          command: "importFonts",
+          figmaLink: state.figmaLink,
+          figmaToken: state.figmaToken,
+          selectedLayers: state.selectedLayers.map(l => l.id)
+        })
+      }
+
+      // Налаштування
+      function loadLastSettings() {
+        vscode.postMessage({command: "loadLastSettings"})
+        showStatus("⏳ Завантаження налаштувань...", "info")
+      }
+
+      function saveSettings() {
+        const settings = {
+          mode: state.mode,
+          currentHTMLFile: state.currentHTMLFile,
+          figmaLink: document.getElementById("figmaLink").value,
+          figmaToken: document.getElementById("figmaToken").value,
+          includeReset: document.getElementById("includeReset").checked,
+          includeVariables: document.getElementById("includeVariables").checked,
+          includeResponsive: document.getElementById("includeResponsive").checked,
+          outputFormat: document.getElementById("outputFormat").value,
+          confidenceThreshold: document.getElementById("confidenceThreshold").value,
+          selectedCanvases: state.selectedCanvases,
+          selectedLayers: state.selectedLayers
+        }
+
+        vscode.postMessage({
+          command: "saveCurrentSettings",
+          settings: settings
+        })
+
+        showStatus("💾 Збереження налаштувань...", "info")
+      }
+
+      function clearSettings() {
+        // Очищення форми
+        document.getElementById("figmaLink").value = ""
+        document.getElementById("figmaToken").value = ""
+        document.getElementById("includeReset").checked = true
+        document.getElementById("includeVariables").checked = true
+        document.getElementById("includeResponsive").checked = true
+        document.getElementById("outputFormat").value = "expanded"
+        document.getElementById("confidenceThreshold").value = 70
+        document.getElementById("confidenceValue").textContent = "70%"
+
+        // Очищення стану
+        state = {
+          mode: "minimal",
+          currentHTMLFile: state.currentHTMLFile, // Зберігаємо HTML файл
+          figmaLink: "",
+          figmaToken: "",
+          selectedCanvases: [],
+          selectedLayers: [],
+          settings: {}
+        }
+
+        // Очищення візуальних елементів
+        document.querySelectorAll(".mode-card").forEach(card => {
+          card.classList.remove("selected")
+        })
+        document.getElementById("canvasSection").style.display = "none"
+        document.getElementById("layersSection").style.display = "none"
+
+        showStatus("✅ Налаштування очищено", "success")
+      }
+
+      function applySettings(settings) {
+        if (!settings) return
+
+        if (settings.mode) selectMode(settings.mode)
+        if (settings.figmaLink) document.getElementById("figmaLink").value = settings.figmaLink
+        if (settings.figmaToken) document.getElementById("figmaToken").value = settings.figmaToken
+        if (settings.includeReset !== undefined)
+          document.getElementById("includeReset").checked = settings.includeReset
+        if (settings.includeVariables !== undefined)
+          document.getElementById("includeVariables").checked = settings.includeVariables
+        if (settings.includeResponsive !== undefined)
+          document.getElementById("includeResponsive").checked = settings.includeResponsive
+        if (settings.outputFormat)
+          document.getElementById("outputFormat").value = settings.outputFormat
+        if (settings.confidenceThreshold) {
+          document.getElementById("confidenceThreshold").value = settings.confidenceThreshold
+          document.getElementById("confidenceValue").textContent =
+            settings.confidenceThreshold + "%"
+        }
+        if (settings.selectedCanvases) state.selectedCanvases = settings.selectedCanvases
+        if (settings.selectedLayers) state.selectedLayers = settings.selectedLayers
+      }
+
+      // UI допоміжні функції
+      function showStatus(message, type = "info") {
+        const status = document.getElementById("status")
+        status.className = `status ${type} show`
+        status.textContent = message
+
+        setTimeout(() => {
+          status.classList.remove("show")
+        }, 3000)
+      }
+
+      function showProgress(message) {
+        const container = document.getElementById("progressContainer")
+        const bar = document.getElementById("progressBar")
+
+        if (container) {
+          container.style.display = "block"
+          bar.style.width = "70%"
+        }
+
+        showStatus(message, "info")
+      }
+
+      function hideProgress() {
+        const container = document.getElementById("progressContainer")
+        if (container) {
+          container.style.display = "none"
+        }
+      }
+
+      // ✅ FIX: Початкова ініціалізація - лінія 1290 ✅
+      console.log("✅ CSS Classes Menu v2.1.0 loaded")
+    </script>
+  </body>
+</html>

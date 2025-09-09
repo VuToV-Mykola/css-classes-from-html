@@ -1,8 +1,8 @@
 {
   "name": "css-classes-from-html",
-  "displayName": "CSS Classes from HTML v0.0.7",
+  "displayName": "CSS Classes from HTML v2.1.0",
   "description": "Автоматична генерація CSS класів з HTML файлів з реальною інтеграцією Figma",
-  "version": "0.0.7",
+  "version": "2.1.0",
   "publisher": "vutov-mykola",
   "author": {
     "name": "VuToV-Mykola",
@@ -16,7 +16,8 @@
   "categories": [
     "Other",
     "Snippets",
-    "Formatters"
+    "Formatters",
+    "Extension Packs"
   ],
   "keywords": [
     "css",
@@ -28,10 +29,7 @@
     "ui",
     "design",
     "automation",
-    "integration",
-    "vscode-extension",
-    "web-development",
-    "css-generator"
+    "integration"
   ],
   "main": "./extension.js",
   "icon": "assets/icon.png",
@@ -41,10 +39,11 @@
   },
   "activationEvents": [
     "onLanguage:html",
+    "onLanguage:css",
     "onCommand:css-classes.showMenu",
     "onCommand:css-classes.showMenuFromContext",
     "onCommand:css-classes.quickGenerate",
-    "onCommand:extension.cssClassesFromHtml"
+    "onCommand:css-classes.selectHTMLFile"
   ],
   "contributes": {
     "commands": [
@@ -56,7 +55,7 @@
       },
       {
         "command": "css-classes.showMenuFromContext",
-        "title": "Generate CSS from HTML",
+        "title": "Generate CSS from THIS HTML",
         "category": "CSS Classes from HTML",
         "icon": "$(output)"
       },
@@ -67,45 +66,55 @@
         "icon": "$(rocket)"
       },
       {
-        "command": "extension.cssClassesFromHtml",
-        "title": "CSS Classes from HTML: Generate CSS",
-        "category": "CSS Classes from HTML"
+        "command": "css-classes.selectHTMLFile",
+        "title": "Select HTML File for Generation",
+        "category": "CSS Classes from HTML",
+        "icon": "$(file-code)"
       }
     ],
     "menus": {
       "explorer/context": [
         {
           "command": "css-classes.showMenuFromContext",
-          "when": "resourceExtname == .html",
+          "when": "resourceExtname == .html || resourceExtname == .htm",
           "group": "navigation@1"
         }
       ],
       "editor/context": [
         {
           "command": "css-classes.showMenuFromContext",
-          "when": "editorLangId == html",
+          "when": "resourceLangId == html",
           "group": "navigation@1"
+        },
+        {
+          "command": "css-classes.quickGenerate",
+          "when": "resourceLangId == html",
+          "group": "navigation@2"
         }
       ],
       "editor/title": [
         {
           "command": "css-classes.quickGenerate",
-          "when": "editorLangId == html",
+          "when": "resourceLangId == html",
           "group": "navigation@1"
         }
       ],
       "commandPalette": [
         {
           "command": "css-classes.showMenu",
-          "when": "editorLangId == html"
+          "when": "true"
         },
         {
           "command": "css-classes.showMenuFromContext",
-          "when": "editorLangId == html"
+          "when": "resourceLangId == html"
         },
         {
           "command": "css-classes.quickGenerate",
-          "when": "editorLangId == html"
+          "when": "resourceLangId == html"
+        },
+        {
+          "command": "css-classes.selectHTMLFile",
+          "when": "true"
         }
       ]
     },
@@ -113,14 +122,18 @@
       {
         "command": "css-classes.showMenu",
         "key": "ctrl+shift+c",
-        "mac": "cmd+shift+c",
-        "when": "editorLangId == html"
+        "mac": "cmd+shift+c"
       },
       {
         "command": "css-classes.quickGenerate",
         "key": "ctrl+alt+c",
         "mac": "cmd+alt+c",
-        "when": "editorLangId == html"
+        "when": "resourceLangId == html"
+      },
+      {
+        "command": "css-classes.selectHTMLFile",
+        "key": "ctrl+shift+h",
+        "mac": "cmd+shift+h"
       }
     ],
     "configuration": {
@@ -151,31 +164,42 @@
           "type": "boolean",
           "default": true,
           "description": "Generate responsive media queries"
+        },
+        "cssClassesFromHtml.defaultHTMLFile": {
+          "type": "string",
+          "default": "",
+          "description": "Default HTML file path for CSS generation"
         }
       }
     }
   },
   "scripts": {
-    "build": "echo \"✅ Build completed for v0.0.7\"",
+    "build": "echo \"✅ Build completed for v2.1.0\" && npm run validate",
     "package": "vsce package --out ./builds/",
-    "lint": "eslint . --ext .js,.ts",
+    "lint": "eslint . --ext .js,.ts --fix",
     "test": "bash scripts/tests.sh",
     "deploy": "bash scripts/deploy.sh",
-    "validate": "node -c extension.js && echo \"✅ Validation passed\"",
+    "validate": "node -c extension.js && echo \"✅ Extension validation passed\"",
     "clean": "rm -rf builds/* logs/deploy/*.log node_modules/.cache",
     "prepackage": "npm run validate",
     "postpackage": "echo \"📦 Package created successfully\"",
     "docs": "bash scripts/auto-generate-docs.sh",
-    "manager": "bash scripts/project-manager.sh"
+    "manager": "bash scripts/project-manager.sh",
+    "fix": "bash scripts/ultimate-fix-and-setup.sh",
+    "start": "npm run build && npm run package"
   },
   "dependencies": {
-    "jsdom": "^22.0.0"
+    "axios": "^1.6.0",
+    "https": "^1.0.0",
+    "jsdom": "^23.2.0"
   },
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "@types/vscode": "^1.74.0",
     "@vscode/test-electron": "^2.3.0",
-    "@vscode/vsce": "^2.19.0",
-    "eslint": "^8.0.0"
+    "@vscode/vsce": "^2.22.0",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.0"
   },
   "repository": {
     "type": "git",
@@ -184,6 +208,5 @@
   "bugs": {
     "url": "https://github.com/VuToV-Mykola/css-classes-from-html/issues"
   },
-  "homepage": "https://github.com/VuToV-Mykola/css-classes-from-html#readme",
-  "qna": "marketplace"
+  "homepage": "https://github.com/VuToV-Mykola/css-classes-from-html#readme"
 }

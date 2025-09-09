@@ -156,24 +156,30 @@
     }
   },
   "scripts": {
-    "build": "echo \"✅ Build completed for v0.0.7\"",
+    "build": "echo \"✅ Build completed for v0.0.7\" && npm run validate",
     "package": "vsce package --out ./builds/",
     "lint": "eslint . --ext .js,.ts",
     "test": "bash scripts/tests.sh",
     "deploy": "bash scripts/deploy.sh",
-    "validate": "node -c extension.js && echo \"✅ Validation passed\"",
+    "validate": "node -c extension.js && node -c backend/core/IntegrationEngine.js && echo \"✅ Validation passed\"",
     "clean": "rm -rf builds/* logs/deploy/*.log node_modules/.cache",
     "prepackage": "npm run validate",
-    "postpackage": "echo \"📦 Package created successfully\""
+    "postpackage": "echo \"📦 Package created successfully\"",
+    "docs": "bash scripts/auto-generate-docs.sh",
+    "manager": "bash scripts/project-manager.sh"
+  },
+  "dependencies": {
+    "jsdom": "^22.0.0",
+    "axios": "^1.5.0",
+    "https": "^1.0.0"
   },
   "devDependencies": {
     "@types/vscode": "^1.74.0",
+    "@types/node": "^18.0.0",
     "@vscode/test-electron": "^2.3.0",
     "@vscode/vsce": "^2.19.0",
-    "eslint": "^8.0.0"
-  },
-  "dependencies": {
-    "jsdom": "^22.0.0"
+    "eslint": "^8.0.0",
+    "typescript": "^5.0.0"
   },
   "repository": {
     "type": "git",
