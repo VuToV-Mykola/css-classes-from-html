@@ -3231,73 +3231,6 @@
           .replace(/-+/g, '-')             // Замінюємо множинні дефіси на один
       }
 
-      // ✅ FIX: Функція для ієрархічного сортування стилів, як в displayLayers
-      window.sortStylesHierarchically = function(styles) {
-        if (!state.allLayers || state.allLayers.length === 0) {
-          // Якщо немає layers, використовуємо стару логіку
-          return [...styles].sort((a, b) => {
-            const aLevel = (Array.isArray(a.htmlPath) ? a.htmlPath.length : (a.level ?? 0))
-            const bLevel = (Array.isArray(b.htmlPath) ? b.htmlPath.length : (b.level ?? 0))
-            if (aLevel !== bLevel) return aLevel - bLevel
-            const aPath = Array.isArray(a.htmlPath) ? a.htmlPath.join('/') : (a.htmlPath || '')
-            const bPath = Array.isArray(b.htmlPath) ? b.htmlPath.join('/') : (b.htmlPath || '')
-            return aPath.localeCompare(bPath)
-          })
-        }
-
-        // Створюємо мапу layers для швидкого пошуку
-        const layersMap = new Map()
-        state.allLayers.forEach(layer => {
-          layersMap.set(layer.id, layer)
-        })
-
-        // Додаємо інформацію про позицію до стилів
-        const stylesWithPosition = styles.map(style => {
-          const layer = layersMap.get(style.layerId || style.id)
-          return {
-            ...style,
-            y: layer?.y || layer?.absoluteBoundingBox?.y || 0,
-            x: layer?.x || layer?.absoluteBoundingBox?.x || 0,
-            parentId: layer?.parentId || null
-          }
-        })
-
-        // ✅ FIX: Використовуємо ту ж логіку сортування, що й в displayLayers
-        const sortByPosition = (a, b) => {
-          // Спочатку за Y позицією (зверху вниз)
-          const aY = a.y || 0
-          const bY = b.y || 0
-          if (Math.abs(aY - bY) > 10) {
-            return aY - bY
-          }
-          // Якщо Y позиції близькі, сортуємо за X (зліва направо)
-          const aX = a.x || 0
-          const bX = b.x || 0
-          return aX - bX
-        }
-
-        // Сортуємо за позицією
-        return stylesWithPosition.sort(sortByPosition)
-      }
-
-      // ✅ FIX: Функція для обчислення рівня вкладеності layer
-      window.calculateLayerDepth = function(layerId, layers) {
-        const layer = layers.find(l => l.id === layerId)
-        if (!layer || !layer.parentId) return 0
-        
-        let depth = 0
-        let currentParentId = layer.parentId
-        
-        while (currentParentId) {
-          depth++
-          const parent = layers.find(l => l.id === currentParentId)
-          if (!parent) break
-          currentParentId = parent.parentId
-        }
-        
-        return depth
-      }
-
       window.renderLayerStyles = function(styles) {
         const container = document.getElementById("stylesContent")
         container.innerHTML = ""
@@ -3312,8 +3245,15 @@
         
         console.log(`📋 Rendering styles for ${filteredStyles.length}/${styles.length} layers (only selected)`)
 
-        // ✅ FIX: Використовуємо ту ж ієрархічну логіку, що й в displayLayers
-        const sorted = sortStylesHierarchically(filteredStyles)
+        // Сортування за ієрархією HTML, якщо надано (htmlPath або level)
+        const sorted = [...filteredStyles].sort((a, b) => {
+          const aLevel = (Array.isArray(a.htmlPath) ? a.htmlPath.length : (a.level ?? 0))
+          const bLevel = (Array.isArray(b.htmlPath) ? b.htmlPath.length : (b.level ?? 0))
+          if (aLevel !== bLevel) return aLevel - bLevel
+          const aPath = Array.isArray(a.htmlPath) ? a.htmlPath.join('/') : (a.htmlPath || '')
+          const bPath = Array.isArray(b.htmlPath) ? b.htmlPath.join('/') : (b.htmlPath || '')
+          return aPath.localeCompare(bPath)
+        })
 
         sorted.forEach(s => {
           const block = document.createElement("div")
@@ -3330,21 +3270,9 @@
             classNameDisplay = ` <code style="background:var(--bg-tertiary); padding:2px 6px; border-radius:3px; font-size:11px; color:var(--primary);">.${className}</code>`
           }
           
-          // ✅ FIX: Додаємо візуальний індикатор ієрархії
-          let hierarchyIndicator = ''
-          if (s.parentId) {
-            // Знаходимо рівень вкладеності
-            const layer = state.allLayers?.find(l => l.id === s.layerId || l.id === s.id)
-            if (layer) {
-              const depth = calculateLayerDepth(layer.id, state.allLayers)
-              const indent = '&nbsp;'.repeat(depth * 2)
-              hierarchyIndicator = `<span style="color:var(--text-secondary); font-family:monospace;">${indent}</span>`
-            }
-          }
-          
           // У заголовку показуємо старе ім'я (originalName), якщо воно є
           const displayName = s.originalName || s.name || s.layerId
-          header.innerHTML = `<span>${hierarchyIndicator}🔹 ${displayName}${classNameDisplay}${pathLabel}</span>`
+          header.innerHTML = `<span>🔹 ${displayName}${classNameDisplay}${pathLabel}</span>`
 
           const copyBtn = document.createElement("button")
           copyBtn.className = "btn btn-secondary"
