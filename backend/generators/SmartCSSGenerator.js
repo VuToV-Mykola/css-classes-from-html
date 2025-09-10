@@ -766,9 +766,7 @@ class SmartCSSGenerator {
 
       css += `.${selector} {\n`;
 
-      if (styles.size === 0) {
-        css += '  /* Add styles manually */\n';
-      } else {
+      if (styles.size > 0) {
         styles.forEach((value, property) => {
           css += `  ${property}: ${value};\n`;
         });

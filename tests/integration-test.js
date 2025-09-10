@@ -21,7 +21,7 @@ try {
         </main>
     </div>`;
     
-    const result = parser.parseHTML(testHTML);
+    const result = parser.parseToHierarchy(testHTML);
     
     if (!result.hierarchy || result.hierarchy.size === 0) {
         throw new Error('HTML parsing failed - no elements found');
