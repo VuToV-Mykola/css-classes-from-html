@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест CSS Classes Extension v0.0.7</title>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="main-title">Тест CSS Classes from HTML v0.0.7</h1>
+            <p class="subtitle">Перевірка завантаження backend модулів та Integration Engine</p>
+        </header>
+        
+        <main class="content">
+            <section class="test-section">
+                <h2 class="section-title">Backend модулі</h2>
+                
+                <div class="module-card figma-card">
+                    <h3 class="card-title">FigmaAPIClient</h3>
+                    <p class="card-description">API клієнт для роботи з Figma</p>
+                    <div class="status-indicator" id="figma-status">Перевірка...</div>
+                </div>
+                
+                <div class="module-card engine-card">
+                    <h3 class="card-title">IntegrationEngine</h3>
+                    <p class="card-description">Головний движок інтеграції</p>
+                    <div class="status-indicator" id="engine-status">Перевірка...</div>
+                </div>
+                
+                <div class="module-card parser-card">
+                    <h3 class="card-title">HTMLParser</h3>
+                    <p class="card-description">Парсер HTML структури</p>
+                    <div class="status-indicator" id="parser-status">Перевірка...</div>
+                </div>
+                
+                <div class="module-card generator-card">
+                    <h3 class="card-title">SmartCSSGenerator</h3>
+                    <p class="card-description">Розумний генератор CSS</p>
+                    <div class="status-indicator" id="generator-status">Перевірка...</div>
+                </div>
+            </section>
+            
+            <section class="actions-section">
+                <h2 class="section-title">Дії для тестування</h2>
+                <div class="action-buttons">
+                    <button class="test-button btn-primary">Швидка генерація (Cmd+Alt+C)</button>
+                    <button class="test-button btn-secondary">Головне меню (Cmd+Shift+C)</button>
+                    <button class="test-button btn-info">Діагностика модулів</button>
+                </div>
+            </section>
+        </main>
+        
+        <footer class="footer">
+            <p class="footer-text">CSS Classes from HTML v0.0.7 | Backend Integration Test</p>
+            <p class="footer-note">Перевірте Output Channel "CSS Classes from HTML" для детальної інформації</p>
+        </footer>
+    </div>
+</body>
+</html>

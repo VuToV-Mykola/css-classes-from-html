@@ -2,142 +2,142 @@
 // Автоматична генерація CSS класів з HTML файлів з реальною інтеграцією Figma
 // Версія з виправленою проблемою завантаження backend модулів
 
-const vscode = require("vscode");
-const path = require("path");
-const fs = require("fs");
+const vscode = require('vscode');
+const path = require('path');
+const fs = require('fs');
 
 // =======================================
 // 🔧 СИСТЕМА ЗАВАНТАЖЕННЯ МОДУЛІВ
 // =======================================
 
 class ModuleLoader {
-    constructor() {
-        this.loadedModules = {};
-        this.loadingErrors = [];
-        this.outputChannel = null;
-    }
+  constructor() {
+    this.loadedModules = {};
+    this.loadingErrors = [];
+    this.outputChannel = null;
+  }
 
-    setOutputChannel(channel) {
-        this.outputChannel = channel;
-        this.log("Module loader initialized");
-    }
+  setOutputChannel(channel) {
+    this.outputChannel = channel;
+    this.log('Module loader initialized');
+  }
 
-    log(message) {
-        const timestamp = new Date().toLocaleTimeString();
-        const logMessage = `[${timestamp}] ${message}`;
+  log(message) {
+    const timestamp = new Date().toLocaleTimeString();
+    const logMessage = `[${timestamp}] ${message}`;
         
-        console.log(logMessage);
-        if (this.outputChannel) {
-            this.outputChannel.appendLine(logMessage);
-        }
+    console.log(logMessage);
+    if (this.outputChannel) {
+      this.outputChannel.appendLine(logMessage);
     }
+  }
 
-    /**
+  /**
      * Безпечне завантаження модуля з детальним логуванням
      */
-    safeRequire(modulePath, moduleName) {
-        try {
-            // Перевіряємо чи існує файл
-            const fullPath = path.resolve(__dirname, modulePath);
-            if (!fs.existsSync(fullPath)) {
-                throw new Error(`Module file not found: ${fullPath}`);
-            }
+  safeRequire(modulePath, moduleName) {
+    try {
+      // Перевіряємо чи існує файл
+      const fullPath = path.resolve(__dirname, modulePath);
+      if (!fs.existsSync(fullPath)) {
+        throw new Error(`Module file not found: ${fullPath}`);
+      }
 
-            // Завантажуємо модуль
-            const module = require(modulePath);
+      // Завантажуємо модуль
+      const module = require(modulePath);
             
-            if (typeof module !== 'function' && typeof module !== 'object') {
-                throw new Error(`Invalid module export type: ${typeof module}`);
-            }
+      if (typeof module !== 'function' && typeof module !== 'object') {
+        throw new Error(`Invalid module export type: ${typeof module}`);
+      }
 
-            this.loadedModules[moduleName] = module;
-            this.log(`✅ ${moduleName} loaded successfully from ${modulePath}`);
-            return module;
+      this.loadedModules[moduleName] = module;
+      this.log(`✅ ${moduleName} loaded successfully from ${modulePath}`);
+      return module;
 
-        } catch (error) {
-            const errorMsg = `❌ Failed to load ${moduleName}: ${error.message}`;
-            this.log(errorMsg);
-            this.loadingErrors.push({
-                moduleName,
-                modulePath,
-                error: error.message,
-                timestamp: new Date().toISOString()
-            });
-            return null;
-        }
+    } catch (error) {
+      const errorMsg = `❌ Failed to load ${moduleName}: ${error.message}`;
+      this.log(errorMsg);
+      this.loadingErrors.push({
+        moduleName,
+        modulePath,
+        error: error.message,
+        timestamp: new Date().toISOString()
+      });
+      return null;
     }
+  }
 
-    /**
+  /**
      * Завантаження всіх backend модулів
      */
-    loadAllBackendModules() {
-        this.log("🚀 Starting backend modules loading...");
+  loadAllBackendModules() {
+    this.log('🚀 Starting backend modules loading...');
 
-        const modules = {
-            FigmaAPIClient: "./backend/core/FigmaAPIClient.js",
-            HTMLParser: "./backend/core/HTMLParser.js", 
-            IntegrationEngine: "./backend/core/IntegrationEngine.js",
-            SmartCSSGenerator: "./backend/generators/SmartCSSGenerator.js",
-            ImageImporter: "./backend/utils/ImageImporter.js",
-            FontImporter: "./backend/utils/FontImporter.js"
-        };
+    const modules = {
+      FigmaAPIClient: './backend/core/FigmaAPIClient.js',
+      HTMLParser: './backend/core/HTMLParser.js', 
+      IntegrationEngine: './backend/core/IntegrationEngine.js',
+      SmartCSSGenerator: './backend/generators/SmartCSSGenerator.js',
+      ImageImporter: './backend/utils/ImageImporter.js',
+      FontImporter: './backend/utils/FontImporter.js'
+    };
 
-        let successCount = 0;
-        let totalCount = Object.keys(modules).length;
+    let successCount = 0;
+    let totalCount = Object.keys(modules).length;
 
-        for (const [name, path] of Object.entries(modules)) {
-            if (this.safeRequire(path, name)) {
-                successCount++;
-            }
-        }
-
-        const isSuccess = successCount === totalCount;
-        this.log(`📊 Module loading summary: ${successCount}/${totalCount} modules loaded`);
-        
-        if (isSuccess) {
-            this.log("✅ All backend modules loaded successfully - Full integration available!");
-        } else {
-            this.log("⚠️ Some backend modules missing - Working in basic mode");
-            this.log("📋 Loading errors:");
-            this.loadingErrors.forEach(error => {
-                this.log(`   • ${error.moduleName}: ${error.error}`);
-            });
-        }
-
-        return {
-            success: isSuccess,
-            loadedCount: successCount,
-            totalCount: totalCount,
-            modules: this.loadedModules,
-            errors: this.loadingErrors
-        };
+    for (const [name, path] of Object.entries(modules)) {
+      if (this.safeRequire(path, name)) {
+        successCount++;
+      }
     }
 
-    /**
+    const isSuccess = successCount === totalCount;
+    this.log(`📊 Module loading summary: ${successCount}/${totalCount} modules loaded`);
+        
+    if (isSuccess) {
+      this.log('✅ All backend modules loaded successfully - Full integration available!');
+    } else {
+      this.log('⚠️ Some backend modules missing - Working in basic mode');
+      this.log('📋 Loading errors:');
+      this.loadingErrors.forEach(error => {
+        this.log(`   • ${error.moduleName}: ${error.error}`);
+      });
+    }
+
+    return {
+      success: isSuccess,
+      loadedCount: successCount,
+      totalCount: totalCount,
+      modules: this.loadedModules,
+      errors: this.loadingErrors
+    };
+  }
+
+  /**
      * Отримання завантаженого модуля
      */
-    getModule(name) {
-        return this.loadedModules[name] || null;
-    }
+  getModule(name) {
+    return this.loadedModules[name] || null;
+  }
 
-    /**
+  /**
      * Перевірка чи всі модулі завантажено
      */
-    allModulesLoaded() {
-        const requiredModules = ['FigmaAPIClient', 'IntegrationEngine', 'HTMLParser'];
-        return requiredModules.every(name => this.loadedModules[name]);
-    }
+  allModulesLoaded() {
+    const requiredModules = ['FigmaAPIClient', 'IntegrationEngine', 'HTMLParser'];
+    return requiredModules.every(name => this.loadedModules[name]);
+  }
 
-    /**
+  /**
      * Отримання статистики завантаження
      */
-    getLoadingStats() {
-        return {
-            loadedModules: Object.keys(this.loadedModules),
-            loadingErrors: this.loadingErrors,
-            allLoaded: this.allModulesLoaded()
-        };
-    }
+  getLoadingStats() {
+    return {
+      loadedModules: Object.keys(this.loadedModules),
+      loadingErrors: this.loadingErrors,
+      allLoaded: this.allModulesLoaded()
+    };
+  }
 }
 
 // Глобальний екземпляр завантажувача модулів
@@ -157,64 +157,64 @@ let extensionContext = null;
 // =======================================
 
 const configManager = {
-    configPath: null,
+  configPath: null,
 
-    initialize(extensionPath) {
-        const configDir = path.join(extensionPath, ".vscode", "css-classes-config");
-        this.configPath = path.join(configDir, "last-settings.json");
+  initialize(extensionPath) {
+    const configDir = path.join(extensionPath, '.vscode', 'css-classes-config');
+    this.configPath = path.join(configDir, 'last-settings.json');
 
-        try {
-            if (!fs.existsSync(configDir)) {
-                fs.mkdirSync(configDir, {recursive: true});
-            }
-        } catch (error) {
-            console.error("❌ Error creating config directory:", error.message);
-        }
-    },
-
-    loadConfig() {
-        try {
-            if (fs.existsSync(this.configPath)) {
-                const data = fs.readFileSync(this.configPath, "utf8");
-                return JSON.parse(data);
-            }
-        } catch (error) {
-            console.error("❌ Error loading config:", error.message);
-        }
-        return this.getDefaultConfig();
-    },
-
-    saveConfig(config) {
-        try {
-            const configDir = path.dirname(this.configPath);
-            if (!fs.existsSync(configDir)) {
-                fs.mkdirSync(configDir, {recursive: true});
-            }
-            const dataToSave = {
-                ...config,
-                timestamp: new Date().toISOString(),
-                version: "2.0.1"
-            };
-            fs.writeFileSync(this.configPath, JSON.stringify(dataToSave, null, 2), "utf8");
-            return true;
-        } catch (error) {
-            console.error("❌ Error saving config:", error.message);
-            return false;
-        }
-    },
-
-    getDefaultConfig() {
-        return {
-            mode: "minimal",
-            figmaLink: "",
-            figmaToken: "",
-            selectedCanvases: [],
-            selectedLayers: [],
-            sidebarVisible: false,
-            savedAt: new Date().toISOString(),
-            version: "2.0.1"
-        };
+    try {
+      if (!fs.existsSync(configDir)) {
+        fs.mkdirSync(configDir, {recursive: true});
+      }
+    } catch (error) {
+      console.error('❌ Error creating config directory:', error.message);
     }
+  },
+
+  loadConfig() {
+    try {
+      if (fs.existsSync(this.configPath)) {
+        const data = fs.readFileSync(this.configPath, 'utf8');
+        return JSON.parse(data);
+      }
+    } catch (error) {
+      console.error('❌ Error loading config:', error.message);
+    }
+    return this.getDefaultConfig();
+  },
+
+  saveConfig(config) {
+    try {
+      const configDir = path.dirname(this.configPath);
+      if (!fs.existsSync(configDir)) {
+        fs.mkdirSync(configDir, {recursive: true});
+      }
+      const dataToSave = {
+        ...config,
+        timestamp: new Date().toISOString(),
+        version: '2.0.1'
+      };
+      fs.writeFileSync(this.configPath, JSON.stringify(dataToSave, null, 2), 'utf8');
+      return true;
+    } catch (error) {
+      console.error('❌ Error saving config:', error.message);
+      return false;
+    }
+  },
+
+  getDefaultConfig() {
+    return {
+      mode: 'minimal',
+      figmaLink: '',
+      figmaToken: '',
+      selectedCanvases: [],
+      selectedLayers: [],
+      sidebarVisible: false,
+      savedAt: new Date().toISOString(),
+      version: '2.0.1'
+    };
+  }
 };
 
 // =======================================
@@ -225,177 +225,177 @@ const configManager = {
  * Головна функція активації розширення
  */
 function activate(context) {
-    console.log("🚀 CSS Classes from HTML v2.0.1 FIXED activating...");
-    extensionContext = context;
+  console.log('🚀 CSS Classes from HTML v2.0.1 FIXED activating...');
+  extensionContext = context;
     
-    try {
-        // 1. Ініціалізація output channel
-        outputChannel = vscode.window.createOutputChannel("CSS Classes from HTML");
-        outputChannel.show(true);
-        outputChannel.appendLine("🚀 Extension starting...");
+  try {
+    // 1. Ініціалізація output channel
+    outputChannel = vscode.window.createOutputChannel('CSS Classes from HTML');
+    outputChannel.show(true);
+    outputChannel.appendLine('🚀 Extension starting...');
 
-        // 2. Налаштування модульного завантажувача
-        moduleLoader.setOutputChannel(outputChannel);
+    // 2. Налаштування модульного завантажувача
+    moduleLoader.setOutputChannel(outputChannel);
         
-        // 3. Ініціалізація конфігурації
-        configManager.initialize(context.extensionPath);
+    // 3. Ініціалізація конфігурації
+    configManager.initialize(context.extensionPath);
         
-        // 4. Завантаження backend модулів
-        outputChannel.appendLine("📦 Loading backend modules...");
-        const moduleResult = moduleLoader.loadAllBackendModules();
+    // 4. Завантаження backend модулів
+    outputChannel.appendLine('📦 Loading backend modules...');
+    const moduleResult = moduleLoader.loadAllBackendModules();
         
-        // 5. Створення Integration Engine якщо модулі завантажено
-        if (moduleResult.success) {
-            try {
-                const IntegrationEngine = moduleLoader.getModule('IntegrationEngine');
-                if (IntegrationEngine) {
-                    integrationEngine = new IntegrationEngine({
-                        figmaToken: "",
-                        confidenceThreshold: 0.7,
-                        generateResponsive: true,
-                        mode: "minimal"
-                    });
-                    outputChannel.appendLine("✅ Integration Engine initialized - Full Figma integration available");
-                } else {
-                    throw new Error("IntegrationEngine module is null");
-                }
-            } catch (error) {
-                outputChannel.appendLine(`❌ Integration Engine initialization failed: ${error.message}`);
-                integrationEngine = null;
-            }
+    // 5. Створення Integration Engine якщо модулі завантажено
+    if (moduleResult.success) {
+      try {
+        const IntegrationEngine = moduleLoader.getModule('IntegrationEngine');
+        if (IntegrationEngine) {
+          integrationEngine = new IntegrationEngine({
+            figmaToken: '',
+            confidenceThreshold: 0.7,
+            generateResponsive: true,
+            mode: 'minimal'
+          });
+          outputChannel.appendLine('✅ Integration Engine initialized - Full Figma integration available');
         } else {
-            outputChannel.appendLine("⚠️ Backend modules not fully loaded - Working in basic mode");
-            outputChannel.appendLine("📋 Module loading details:");
-            moduleResult.errors.forEach(error => {
-                outputChannel.appendLine(`   • ${error.moduleName}: ${error.error}`);
-            });
+          throw new Error('IntegrationEngine module is null');
         }
-
-        // 6. Реєстрація команд
-        const commands = registerAllCommands(context);
-        outputChannel.appendLine(`✅ Registered ${commands.length} commands successfully`);
-        
-        // 7. Додавання ресурсів до subscriptions
-        context.subscriptions.push(...commands, outputChannel);
-        
-        // 8. Показ вітального повідомлення
-        showWelcomeMessage(moduleResult);
-        
-        outputChannel.appendLine("✅ Extension fully activated!");
-        
-        return {
-            success: true,
-            commandsCount: commands.length,
-            version: "2.0.1",
-            moduleStats: moduleResult
-        };
-        
-    } catch (error) {
-        const errorMessage = `💥 Fatal error during activation: ${error.message}`;
-        console.error(errorMessage);
-        console.error("Stack trace:", error.stack);
-        
-        if (outputChannel) {
-            outputChannel.appendLine(errorMessage);
-            outputChannel.appendLine(`Stack: ${error.stack}`);
-        }
-        
-        vscode.window.showErrorMessage(`CSS Classes from HTML activation failed: ${error.message}`);
-        throw error;
+      } catch (error) {
+        outputChannel.appendLine(`❌ Integration Engine initialization failed: ${error.message}`);
+        integrationEngine = null;
+      }
+    } else {
+      outputChannel.appendLine('⚠️ Backend modules not fully loaded - Working in basic mode');
+      outputChannel.appendLine('📋 Module loading details:');
+      moduleResult.errors.forEach(error => {
+        outputChannel.appendLine(`   • ${error.moduleName}: ${error.error}`);
+      });
     }
+
+    // 6. Реєстрація команд
+    const commands = registerAllCommands(context);
+    outputChannel.appendLine(`✅ Registered ${commands.length} commands successfully`);
+        
+    // 7. Додавання ресурсів до subscriptions
+    context.subscriptions.push(...commands, outputChannel);
+        
+    // 8. Показ вітального повідомлення
+    showWelcomeMessage(moduleResult);
+        
+    outputChannel.appendLine('✅ Extension fully activated!');
+        
+    return {
+      success: true,
+      commandsCount: commands.length,
+      version: '2.0.1',
+      moduleStats: moduleResult
+    };
+        
+  } catch (error) {
+    const errorMessage = `💥 Fatal error during activation: ${error.message}`;
+    console.error(errorMessage);
+    console.error('Stack trace:', error.stack);
+        
+    if (outputChannel) {
+      outputChannel.appendLine(errorMessage);
+      outputChannel.appendLine(`Stack: ${error.stack}`);
+    }
+        
+    vscode.window.showErrorMessage(`CSS Classes from HTML activation failed: ${error.message}`);
+    throw error;
+  }
 }
 
 /**
  * Реєстрація всіх команд
  */
 function registerAllCommands(context) {
-    const commands = [];
+  const commands = [];
     
-    // Команда 1: Головне меню
-    commands.push(vscode.commands.registerCommand("css-classes.showMenu", async () => {
-        outputChannel?.appendLine("🎯 Command 'css-classes.showMenu' executed");
-        await openMainMenu(context);
-    }));
+  // Команда 1: Головне меню
+  commands.push(vscode.commands.registerCommand('css-classes.showMenu', async () => {
+    outputChannel?.appendLine('🎯 Command \'css-classes.showMenu\' executed');
+    await openMainMenu(context);
+  }));
     
-    // Команда 2: Меню з контексту
-    commands.push(vscode.commands.registerCommand("css-classes.showMenuFromContext", async (uri) => {
-        outputChannel?.appendLine("🎯 Command 'css-classes.showMenuFromContext' executed");
-        outputChannel?.appendLine(`📂 URI: ${uri ? uri.fsPath : 'undefined'}`);
-        await openMainMenu(context);
-    }));
+  // Команда 2: Меню з контексту
+  commands.push(vscode.commands.registerCommand('css-classes.showMenuFromContext', async (uri) => {
+    outputChannel?.appendLine('🎯 Command \'css-classes.showMenuFromContext\' executed');
+    outputChannel?.appendLine(`📂 URI: ${uri ? uri.fsPath : 'undefined'}`);
+    await openMainMenu(context);
+  }));
     
-    // Команда 3: Швидка генерація
-    commands.push(vscode.commands.registerCommand("css-classes.quickGenerate", async () => {
-        outputChannel?.appendLine("🎯 Command 'css-classes.quickGenerate' executed");
-        await quickGenerateCSS();
-    }));
+  // Команда 3: Швидка генерація
+  commands.push(vscode.commands.registerCommand('css-classes.quickGenerate', async () => {
+    outputChannel?.appendLine('🎯 Command \'css-classes.quickGenerate\' executed');
+    await quickGenerateCSS();
+  }));
     
-    // Команда 4: Зворотна сумісність
-    commands.push(vscode.commands.registerCommand("extension.cssClassesFromHtml", async () => {
-        outputChannel?.appendLine("🎯 Command 'extension.cssClassesFromHtml' executed");
-        await openMainMenu(context);
-    }));
+  // Команда 4: Зворотна сумісність
+  commands.push(vscode.commands.registerCommand('extension.cssClassesFromHtml', async () => {
+    outputChannel?.appendLine('🎯 Command \'extension.cssClassesFromHtml\' executed');
+    await openMainMenu(context);
+  }));
     
-    return commands;
+  return commands;
 }
 
 /**
  * Показ вітального повідомлення
  */
 async function showWelcomeMessage(moduleResult) {
-    const statusText = moduleResult.success ? 
-        "✅ Повна інтеграція з Figma доступна!" : 
-        "⚠️ Базовий режим (деякі модулі не завантажено)";
+  const statusText = moduleResult.success ? 
+    '✅ Повна інтеграція з Figma доступна!' : 
+    '⚠️ Базовий режим (деякі модулі не завантажено)';
     
-    const message = `🚀 CSS Classes from HTML готовий!\n${statusText}`;
+  const message = `🚀 CSS Classes from HTML готовий!\n${statusText}`;
     
-    const choice = await vscode.window.showInformationMessage(
-        message,
-        'Відкрити меню',
-        'Швидка генерація', 
-        'Детальна діагностика'
-    );
+  const choice = await vscode.window.showInformationMessage(
+    message,
+    'Відкрити меню',
+    'Швидка генерація', 
+    'Детальна діагностика'
+  );
     
-    switch (choice) {
-        case 'Відкрити меню':
-            vscode.commands.executeCommand('css-classes.showMenu');
-            break;
-        case 'Швидка генерація':
-            vscode.commands.executeCommand('css-classes.quickGenerate');
-            break;
-        case 'Детальна діагностика':
-            showDiagnosticInfo(moduleResult);
-            break;
-    }
+  switch (choice) {
+  case 'Відкрити меню':
+    vscode.commands.executeCommand('css-classes.showMenu');
+    break;
+  case 'Швидка генерація':
+    vscode.commands.executeCommand('css-classes.quickGenerate');
+    break;
+  case 'Детальна діагностика':
+    showDiagnosticInfo(moduleResult);
+    break;
+  }
 }
 
 /**
  * Показ діагностичної інформації
  */
 function showDiagnosticInfo(moduleResult) {
-    outputChannel?.appendLine("\n🔍 DIAGNOSTIC INFORMATION");
-    outputChannel?.appendLine("=" .repeat(50));
-    outputChannel?.appendLine(`Loaded modules: ${moduleResult.loadedCount}/${moduleResult.totalCount}`);
-    outputChannel?.appendLine(`All modules loaded: ${moduleResult.success}`);
-    outputChannel?.appendLine(`Integration Engine available: ${!!integrationEngine}`);
+  outputChannel?.appendLine('\n🔍 DIAGNOSTIC INFORMATION');
+  outputChannel?.appendLine('=' .repeat(50));
+  outputChannel?.appendLine(`Loaded modules: ${moduleResult.loadedCount}/${moduleResult.totalCount}`);
+  outputChannel?.appendLine(`All modules loaded: ${moduleResult.success}`);
+  outputChannel?.appendLine(`Integration Engine available: ${!!integrationEngine}`);
     
-    if (moduleResult.errors.length > 0) {
-        outputChannel?.appendLine("\n❌ MODULE LOADING ERRORS:");
-        moduleResult.errors.forEach(error => {
-            outputChannel?.appendLine(`• ${error.moduleName}:`);
-            outputChannel?.appendLine(`  Path: ${error.modulePath}`);
-            outputChannel?.appendLine(`  Error: ${error.error}`);
-            outputChannel?.appendLine(`  Time: ${error.timestamp}`);
-        });
-    }
-    
-    outputChannel?.appendLine("\n✅ LOADED MODULES:");
-    Object.keys(moduleResult.modules).forEach(moduleName => {
-        outputChannel?.appendLine(`• ${moduleName}: OK`);
+  if (moduleResult.errors.length > 0) {
+    outputChannel?.appendLine('\n❌ MODULE LOADING ERRORS:');
+    moduleResult.errors.forEach(error => {
+      outputChannel?.appendLine(`• ${error.moduleName}:`);
+      outputChannel?.appendLine(`  Path: ${error.modulePath}`);
+      outputChannel?.appendLine(`  Error: ${error.error}`);
+      outputChannel?.appendLine(`  Time: ${error.timestamp}`);
     });
+  }
     
-    outputChannel?.appendLine("=" .repeat(50));
-    outputChannel?.show();
+  outputChannel?.appendLine('\n✅ LOADED MODULES:');
+  Object.keys(moduleResult.modules).forEach(moduleName => {
+    outputChannel?.appendLine(`• ${moduleName}: OK`);
+  });
+    
+  outputChannel?.appendLine('=' .repeat(50));
+  outputChannel?.show();
 }
 
 // =======================================
@@ -406,56 +406,56 @@ function showDiagnosticInfo(moduleResult) {
  * Відкриття головного меню
  */
 async function openMainMenu(context) {
-    try {
-        outputChannel?.appendLine("📋 Opening main menu...");
+  try {
+    outputChannel?.appendLine('📋 Opening main menu...');
         
-        if (panel) {
-            panel.reveal(vscode.ViewColumn.One);
-            return;
-        }
-        
-        panel = vscode.window.createWebviewPanel(
-            'cssClassesMenu',
-            'CSS Classes from HTML v2.0.1',
-            vscode.ViewColumn.One,
-            {
-                enableScripts: true,
-                retainContextWhenHidden: true,
-                localResourceRoots: [vscode.Uri.file(context.extensionPath)]
-            }
-        );
-        
-        // Генерація HTML контенту
-        const htmlContent = generateWebViewHTML();
-        panel.webview.html = htmlContent;
-        
-        // Налаштування обробників
-        setupMessageHandlers(panel);
-        
-        panel.onDidDispose(() => {
-            panel = null;
-        });
-        
-        outputChannel?.appendLine("✅ Main menu opened successfully");
-        
-    } catch (error) {
-        const errorMessage = `❌ Error opening menu: ${error.message}`;
-        outputChannel?.appendLine(errorMessage);
-        vscode.window.showErrorMessage(errorMessage);
+    if (panel) {
+      panel.reveal(vscode.ViewColumn.One);
+      return;
     }
+        
+    panel = vscode.window.createWebviewPanel(
+      'cssClassesMenu',
+      'CSS Classes from HTML v2.0.1',
+      vscode.ViewColumn.One,
+      {
+        enableScripts: true,
+        retainContextWhenHidden: true,
+        localResourceRoots: [vscode.Uri.file(context.extensionPath)]
+      }
+    );
+        
+    // Генерація HTML контенту
+    const htmlContent = generateWebViewHTML();
+    panel.webview.html = htmlContent;
+        
+    // Налаштування обробників
+    setupMessageHandlers(panel);
+        
+    panel.onDidDispose(() => {
+      panel = null;
+    });
+        
+    outputChannel?.appendLine('✅ Main menu opened successfully');
+        
+  } catch (error) {
+    const errorMessage = `❌ Error opening menu: ${error.message}`;
+    outputChannel?.appendLine(errorMessage);
+    vscode.window.showErrorMessage(errorMessage);
+  }
 }
 
 /**
  * Генерація HTML для WebView
  */
 function generateWebViewHTML() {
-    const moduleStats = moduleLoader.getLoadingStats();
-    const statusColor = moduleStats.allLoaded ? '#4caf50' : '#ff9800';
-    const statusText = moduleStats.allLoaded ? 
-        'Повна інтеграція доступна' : 
-        'Базовий режим (деякі модулі не завантажено)';
+  const moduleStats = moduleLoader.getLoadingStats();
+  const statusColor = moduleStats.allLoaded ? '#4caf50' : '#ff9800';
+  const statusText = moduleStats.allLoaded ? 
+    'Повна інтеграція доступна' : 
+    'Базовий режим (деякі модулі не завантажено)';
 
-    return `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
@@ -585,21 +585,21 @@ function generateWebViewHTML() {
                 <div class="diagnostic-info">
                     <div><strong>Завантажені модулі:</strong></div>
                     ${moduleStats.loadedModules.map(name => 
-                        `<div class="module-status">
+    `<div class="module-status">
                             <span>${name}</span>
                             <span class="module-ok">✅ OK</span>
                         </div>`
-                    ).join('')}
+  ).join('')}
                     
                     ${moduleStats.loadingErrors.length > 0 ? 
-                        `<div style="margin-top: 1rem;"><strong>Помилки завантаження:</strong></div>
+    `<div style="margin-top: 1rem;"><strong>Помилки завантаження:</strong></div>
                         ${moduleStats.loadingErrors.map(error => 
-                            `<div class="module-status">
+    `<div class="module-status">
                                 <span>${error.moduleName}</span>
                                 <span class="module-error">❌ ${error.error}</span>
                             </div>`
-                        ).join('')}` : ''
-                    }
+  ).join('')}` : ''
+}
                 </div>
             </div>
         </div>
@@ -624,25 +624,25 @@ function generateWebViewHTML() {
  * Налаштування обробників повідомлень
  */
 function setupMessageHandlers(panel) {
-    panel.webview.onDidReceiveMessage(async message => {
-        try {
-            switch (message.command) {
-                case 'quickGenerate':
-                    await quickGenerateCSS();
-                    break;
-                case 'showDiagnostic':
-                    const stats = moduleLoader.getLoadingStats();
-                    showDiagnosticInfo({ 
-                        success: stats.allLoaded, 
-                        errors: stats.loadingErrors,
-                        modules: stats.loadedModules 
-                    });
-                    break;
-            }
-        } catch (error) {
-            outputChannel?.appendLine(`❌ Error handling message: ${error.message}`);
-        }
-    });
+  panel.webview.onDidReceiveMessage(async message => {
+    try {
+      switch (message.command) {
+      case 'quickGenerate':
+        await quickGenerateCSS();
+        break;
+      case 'showDiagnostic':
+        const stats = moduleLoader.getLoadingStats();
+        showDiagnosticInfo({ 
+          success: stats.allLoaded, 
+          errors: stats.loadingErrors,
+          modules: stats.loadedModules 
+        });
+        break;
+      }
+    } catch (error) {
+      outputChannel?.appendLine(`❌ Error handling message: ${error.message}`);
+    }
+  });
 }
 
 // =======================================
@@ -653,41 +653,41 @@ function setupMessageHandlers(panel) {
  * Швидка генерація CSS
  */
 async function quickGenerateCSS() {
-    try {
-        outputChannel?.appendLine("⚡ Quick CSS generation started...");
+  try {
+    outputChannel?.appendLine('⚡ Quick CSS generation started...');
         
-        const activeEditor = vscode.window.activeTextEditor;
-        if (!activeEditor || activeEditor.document.languageId !== 'html') {
-            vscode.window.showErrorMessage("Відкрийте HTML файл для генерації CSS");
-            return;
-        }
-        
-        const htmlContent = activeEditor.document.getText();
-        if (!htmlContent.trim()) {
-            vscode.window.showErrorMessage("HTML файл порожній");
-            return;
-        }
-        
-        const css = generateBasicCSS(htmlContent);
-        const htmlFilePath = activeEditor.document.uri.fsPath;
-        
-        await saveGeneratedCSS(css, htmlFilePath);
-        
-        vscode.window.showInformationMessage("✅ CSS згенеровано успішно!");
-        outputChannel?.appendLine("✅ Quick CSS generation completed");
-        
-    } catch (error) {
-        const errorMessage = `❌ Quick generation failed: ${error.message}`;
-        outputChannel?.appendLine(errorMessage);
-        vscode.window.showErrorMessage(errorMessage);
+    const activeEditor = vscode.window.activeTextEditor;
+    if (!activeEditor || activeEditor.document.languageId !== 'html') {
+      vscode.window.showErrorMessage('Відкрийте HTML файл для генерації CSS');
+      return;
     }
+        
+    const htmlContent = activeEditor.document.getText();
+    if (!htmlContent.trim()) {
+      vscode.window.showErrorMessage('HTML файл порожній');
+      return;
+    }
+        
+    const css = generateBasicCSS(htmlContent);
+    const htmlFilePath = activeEditor.document.uri.fsPath;
+        
+    await saveGeneratedCSS(css, htmlFilePath);
+        
+    vscode.window.showInformationMessage('✅ CSS згенеровано успішно!');
+    outputChannel?.appendLine('✅ Quick CSS generation completed');
+        
+  } catch (error) {
+    const errorMessage = `❌ Quick generation failed: ${error.message}`;
+    outputChannel?.appendLine(errorMessage);
+    vscode.window.showErrorMessage(errorMessage);
+  }
 }
 
 /**
  * Генерація базового CSS
  */
 function generateBasicCSS(htmlContent) {
-    let css = `/* ✅ CSS Generated by CSS Classes from HTML v2.0.1 */
+  let css = `/* ✅ CSS Generated by CSS Classes from HTML v2.0.1 */
 /* Generated: ${new Date().toLocaleString()} */
 
 /* Reset Styles */
@@ -717,18 +717,18 @@ body {
 
 `;
 
-    // Витягування класів з HTML
-    const classes = extractClassesFromHTML(htmlContent);
+  // Витягування класів з HTML
+  const classes = extractClassesFromHTML(htmlContent);
     
-    if (classes.length > 0) {
-        css += "/* Generated Classes */\n";
-        classes.forEach(className => {
-            css += `.${className} {\n  /* Add styles for ${className} here */\n}\n\n`;
-        });
-    }
+  if (classes.length > 0) {
+    css += '/* Generated Classes */\n';
+    classes.forEach(className => {
+      css += `.${className} {\n  /* Add styles for ${className} here */\n}\n\n`;
+    });
+  }
     
-    // Адаптивні стилі
-    css += `/* Responsive Styles */
+  // Адаптивні стилі
+  css += `/* Responsive Styles */
 @media (max-width: 768px) {
   .container {
     padding: 1rem;
@@ -752,52 +752,52 @@ body {
 }
 `;
 
-    return css;
+  return css;
 }
 
 /**
  * Витягування класів з HTML
  */
 function extractClassesFromHTML(htmlContent) {
-    try {
-        const classMatches = htmlContent.match(/class\s*=\s*["']([^"']+)["']/g) || [];
-        const allClasses = new Set();
+  try {
+    const classMatches = htmlContent.match(/class\s*=\s*["']([^"']+)["']/g) || [];
+    const allClasses = new Set();
 
-        classMatches.forEach(match => {
-            const classString = match.match(/["']([^"']+)["']/)[1];
-            const classes = classString.split(/\s+/).filter(cls => cls.trim());
-            classes.forEach(cls => allClasses.add(cls));
-        });
+    classMatches.forEach(match => {
+      const classString = match.match(/["']([^"']+)["']/)[1];
+      const classes = classString.split(/\s+/).filter(cls => cls.trim());
+      classes.forEach(cls => allClasses.add(cls));
+    });
 
-        return Array.from(allClasses).sort();
-    } catch (error) {
-        outputChannel?.appendLine(`❌ Error extracting classes: ${error.message}`);
-        return [];
-    }
+    return Array.from(allClasses).sort();
+  } catch (error) {
+    outputChannel?.appendLine(`❌ Error extracting classes: ${error.message}`);
+    return [];
+  }
 }
 
 /**
  * Збереження CSS файлу
  */
 async function saveGeneratedCSS(cssContent, htmlFilePath) {
-    try {
-        const cssFilePath = htmlFilePath.replace(/\.html?$/i, '.css');
+  try {
+    const cssFilePath = htmlFilePath.replace(/\.html?$/i, '.css');
         
-        await vscode.workspace.fs.writeFile(
-            vscode.Uri.file(cssFilePath),
-            Buffer.from(cssContent, 'utf8')
-        );
+    await vscode.workspace.fs.writeFile(
+      vscode.Uri.file(cssFilePath),
+      Buffer.from(cssContent, 'utf8')
+    );
         
-        outputChannel?.appendLine(`✅ CSS saved to: ${cssFilePath}`);
+    outputChannel?.appendLine(`✅ CSS saved to: ${cssFilePath}`);
         
-        // Відкриття згенерованого файлу
-        const document = await vscode.workspace.openTextDocument(cssFilePath);
-        await vscode.window.showTextDocument(document, vscode.ViewColumn.Beside);
+    // Відкриття згенерованого файлу
+    const document = await vscode.workspace.openTextDocument(cssFilePath);
+    await vscode.window.showTextDocument(document, vscode.ViewColumn.Beside);
         
-    } catch (error) {
-        outputChannel?.appendLine(`❌ Error saving CSS: ${error.message}`);
-        throw error;
-    }
+  } catch (error) {
+    outputChannel?.appendLine(`❌ Error saving CSS: ${error.message}`);
+    throw error;
+  }
 }
 
 // =======================================
@@ -805,24 +805,24 @@ async function saveGeneratedCSS(cssContent, htmlFilePath) {
 // =======================================
 
 function deactivate() {
-    console.log("🔄 CSS Classes from HTML deactivating...");
+  console.log('🔄 CSS Classes from HTML deactivating...');
     
-    try {
-        if (panel) {
-            panel.dispose();
-            panel = null;
-        }
-        
-        if (outputChannel) {
-            outputChannel.dispose();
-            outputChannel = null;
-        }
-        
-        console.log("✅ Extension deactivated successfully");
-        
-    } catch (error) {
-        console.error("❌ Error during deactivation:", error.message);
+  try {
+    if (panel) {
+      panel.dispose();
+      panel = null;
     }
+        
+    if (outputChannel) {
+      outputChannel.dispose();
+      outputChannel = null;
+    }
+        
+    console.log('✅ Extension deactivated successfully');
+        
+  } catch (error) {
+    console.error('❌ Error during deactivation:', error.message);
+  }
 }
 
 // =======================================
@@ -830,6 +830,6 @@ function deactivate() {
 // =======================================
 
 module.exports = {
-    activate,
-    deactivate
+  activate,
+  deactivate
 };

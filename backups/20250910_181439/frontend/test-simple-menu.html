@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Classes Test Menu</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #1e1e1e;
+            color: #cccccc;
+            margin: 0;
+            padding: 16px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .btn {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            margin: 4px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background: #005a9e;
+        }
+        #status {
+            margin: 16px 0;
+            padding: 8px;
+            border-radius: 4px;
+            background: #252526;
+        }
+        #htmlFile {
+            color: #ffa500;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 CSS Classes from HTML - Тест інтерфейсу</h1>
+        
+        <div id="status">
+            <p>Поточний HTML файл: <span id="htmlFile">Не вибрано</span></p>
+        </div>
+        
+        <div>
+            <button class="btn" onclick="selectHTMLFile()">📂 Вибрати HTML файл</button>
+            <button class="btn" onclick="generateCSS()">🚀 Згенерувати CSS</button>
+            <button class="btn" onclick="testMessage()">📨 Тестове повідомлення</button>
+        </div>
+        
+        <div id="log">
+            <h3>Лог подій:</h3>
+            <div id="logContent"></div>
+        </div>
+    </div>
+
+    <script>
+        let vscode;
+        
+        // Ініціалізація VS Code API
+        try {
+            vscode = acquireVsCodeApi();
+            log('✅ VS Code API ініціалізовано успішно');
+        } catch (error) {
+            log('❌ Помилка ініціалізації VS Code API: ' + error.message);
+            vscode = {
+                postMessage: (message) => {
+                    log('🔄 Відправлено повідомлення (симуляція): ' + JSON.stringify(message));
+                }
+            };
+        }
+
+        function log(message) {
+            const logContent = document.getElementById('logContent');
+            const time = new Date().toLocaleTimeString();
+            logContent.innerHTML += `<div>[${time}] ${message}</div>`;
+            console.log(`[${time}] ${message}`);
+        }
+
+        function selectHTMLFile() {
+            log('🖱️ Натиснуто кнопку вибору файлу');
+            vscode.postMessage({ command: 'selectHTMLFile' });
+        }
+
+        function generateCSS() {
+            log('🖱️ Натиснуто кнопку генерації CSS');
+            vscode.postMessage({ 
+                command: 'generateCSS',
+                settings: { mode: 'minimal' }
+            });
+        }
+
+        function testMessage() {
+            log('🖱️ Надсилання тестового повідомлення');
+            vscode.postMessage({ 
+                command: 'testMessage',
+                data: 'Hello from webview!'
+            });
+        }
+
+        function updateHTMLFile(filename) {
+            document.getElementById('htmlFile').textContent = filename || 'Не вибрано';
+            log('📄 Оновлено HTML файл: ' + (filename || 'видалено'));
+        }
+
+        // Обробник повідомлень від extension.js
+        window.addEventListener('message', function(event) {
+            const message = event.data;
+            log('📨 Отримано повідомлення: ' + message.command);
+            
+            switch (message.command) {
+                case 'htmlFileSelected':
+                    updateHTMLFile(message.fileName);
+                    log('✅ HTML файл вибрано: ' + message.fileName);
+                    break;
+                case 'initializeContext':
+                    if (message.htmlFile) {
+                        updateHTMLFile(message.fileName);
+                    }
+                    log('🔄 Контекст ініціалізовано');
+                    break;
+                case 'error':
+                    log('❌ Помилка: ' + message.message);
+                    break;
+                default:
+                    log('⚠️ Невідома команда: ' + message.command);
+            }
+        });
+
+        // Запит початкового контексту
+        log('🔄 Запитуємо початковий контекст...');
+        vscode.postMessage({ command: 'getInitialContext' });
+        
+        log('✅ Тестовий інтерфейс завантажено');
+    </script>
+</body>
+</html>
