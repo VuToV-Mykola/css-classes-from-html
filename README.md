@@ -28,5 +28,5 @@ MIT
 [![⬇️ Downloads](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/VuToV-Mykola/css-classes-from-html/main/assets/db/downloads-badge.json)](https://github.com/VuToV-Mykola/css-classes-from-html/releases)
 
 ## 📸 Скріншот проекту
-![Project Screenshot](https://github.com/VuToV-Mykola/css-classes-from-html/raw/HEAD/assets/screenshot.png)
+![Project Screenshot](./assets/screenshot.png)
 <!-- END:AUTOGEN -->
