@@ -43,14 +43,14 @@ class FontImporter {
   }
 
   /**
-   * ✅ FIX: Імпорт шрифтів з Figma файлу з оптимізацією для використаних параметрів
+   * ✅ FIX: Імпорт шрифтів з Figma файлу
    */
-  async importFonts(figmaClient, fileKey, selectedLayers = [], selectedCanvasIds = []) {
+  async importFonts(figmaClient, fileKey, selectedLayers = []) {
     try {
       console.log('🔤 Початок аналізу шрифтів з Figma...');
 
-      // ✅ FIX: Отримання всіх шрифтів з файлу (з фільтрацією по canvas/layers)
-      const figmaFonts = await this.getFontsFromCanvasesAndLayers(figmaClient, fileKey, selectedCanvasIds, selectedLayers);
+      // ✅ FIX: Отримання всіх шрифтів з файлу
+      const figmaFonts = await figmaClient.getFonts(fileKey);
 
       if (figmaFonts.length === 0) {
         console.log('⚠️ No fonts found in Figma file');
@@ -99,92 +99,6 @@ class FontImporter {
   }
 
   /**
-   * ✅ FIX: Отримання шрифтів тільки з вибраних canvas та layers
-   */
-  async getFontsFromCanvasesAndLayers(figmaClient, fileKey, selectedCanvasIds = [], selectedLayers = []) {
-    try {
-      // Отримуємо структуру файлу
-      const file = await figmaClient.getFile(fileKey);
-      const pages = file?.document?.children || [];
-      
-      // Фільтруємо сторінки за вибраними canvas
-      const targetPages = selectedCanvasIds.length > 0 
-        ? pages.filter(p => selectedCanvasIds.includes(p.id))
-        : pages;
-      
-      console.log(`🎯 Аналізуємо шрифти з ${targetPages.length} canvas(ів)`);
-      
-      const fontsUsage = new Map(); // font family -> { weights: Set, styles: Set }
-      
-      // Рекурсивний обхід для пошуку текстових елементів
-      const walkForFonts = (node, _parentId = null, canvasId = null) => {
-        if (!node) return;
-        
-        // Перевіряємо чи треба обробляти цей layer
-        if (selectedLayers.length > 0 && !selectedLayers.includes(node.id)) {
-          // Якщо є фільтр по layers і цей node не в списку - пропускаємо його дітей теж
-          return;
-        }
-        
-        // Якщо це текстовий елемент
-        if (node.type === 'TEXT' && node.style) {
-          const fontFamily = node.style.fontFamily;
-          const fontWeight = node.style.fontWeight || 400;
-          const isItalic = node.style.italic || false;
-          
-          if (fontFamily) {
-            if (!fontsUsage.has(fontFamily)) {
-              fontsUsage.set(fontFamily, {
-                weights: new Set(),
-                styles: new Set(),
-                canvasIds: new Set(),
-                usageCount: 0
-              });
-            }
-            
-            const fontData = fontsUsage.get(fontFamily);
-            fontData.weights.add(fontWeight);
-            fontData.styles.add(isItalic ? 'italic' : 'normal');
-            fontData.canvasIds.add(canvasId);
-            fontData.usageCount++;
-          }
-        }
-        
-        // Рекурсивно обходимо дочірні елементи
-        if (node.children) {
-          node.children.forEach(child => 
-            walkForFonts(child, node.id, canvasId || node.id)
-          );
-        }
-      };
-      
-      // Обходимо кожну вибрану сторінку
-      targetPages.forEach(page => {
-        console.log(`🔍 Сканування шрифтів на canvas: ${page.name} (${page.id})`);
-        walkForFonts(page, null, page.id);
-      });
-      
-      // Конвертуємо в масив з необхідною структурою
-      const figmaFonts = Array.from(fontsUsage.entries()).map(([family, data]) => ({
-        family: family,
-        weights: Array.from(data.weights).sort((a, b) => a - b),
-        styles: Array.from(data.styles),
-        canvasIds: Array.from(data.canvasIds),
-        usageCount: data.usageCount
-      }));
-      
-      console.log(`📊 Знайдено ${figmaFonts.length} унікальних шрифтів у вибраних canvas/layers`);
-      
-      return figmaFonts;
-      
-    } catch (error) {
-      console.error('❌ Error getting fonts from canvases:', error.message);
-      // ✅ FIX: Видалено fallback - використовуємо тільки реальні дані
-      return await figmaClient.getFonts(fileKey);
-    }
-  }
-
-  /**
    * ✅ FIX: Обробка окремого шрифту
    */
   async processFont(figmaFont, availableFonts) {
@@ -195,8 +109,8 @@ class FontImporter {
     const googleFontName = this.findGoogleFontMatch(fontFamily, availableFonts);
     const isAvailable = googleFontName !== null;
 
-    // ✅ FIX: Визначення варіантів (ваги та стилі) - лише використані
-    const variants = this.detectFontVariants(figmaFont.weights || [400], figmaFont.styles || ['normal']);
+    // ✅ FIX: Визначення варіантів (ваги та стилі)
+    const variants = this.detectFontVariants(figmaFont.weights || [400]);
 
     const fontData = {
       name: fontFamily,
@@ -353,34 +267,27 @@ class FontImporter {
   }
 
   /**
-   * ✅ FIX: Визначення варіантів шрифту - лише використані в Figma
+   * ✅ FIX: Визначення варіантів шрифту
    */
-  detectFontVariants(weights, styles = ['normal']) {
+  detectFontVariants(weights) {
     const variants = [];
 
     weights.forEach(weight => {
-      styles.forEach(style => {
-        if (style === 'normal') {
-          // ✅ FIX: Основний варіант
-          variants.push(weight.toString());
-        } else if (style === 'italic') {
-          // ✅ FIX: Курсивний варіант (лише якщо використовується)
-          variants.push(`${weight}italic`);
-        }
-      });
+      // ✅ FIX: Основний варіант
+      variants.push(weight.toString());
+
+      // ✅ FIX: Курсивний варіант (якщо включено)
+      if (this.includeAllStyles) {
+        variants.push(`${weight}italic`);
+      }
     });
 
-    // ✅ FIX: Додаємо стандартні ваги лише якщо включено і не конфліктує з оптимізацією
+    // ✅ FIX: Додаємо стандартні ваги якщо включено
     if (this.includeAllWeights) {
       const standardWeights = ['300', '400', '500', '600', '700'];
       standardWeights.forEach(weight => {
         if (!variants.includes(weight)) {
           variants.push(weight);
-          
-          // Додаємо курсивні варіанти для стандартних ваг якщо італік взагалі використовується
-          if (styles.includes('italic') && !variants.includes(`${weight}italic`)) {
-            variants.push(`${weight}italic`);
-          }
         }
       });
     }
@@ -546,23 +453,17 @@ class FontImporter {
   }
 
   /**
-   * ✅ FIX: HTML imports з оптимізованими preconnect
+   * ✅ FIX: HTML imports
    */
   generateHTMLImports(fonts) {
-    if (fonts.length === 0) return '';
-    
-    // ✅ FIX: Додаємо preconnect лише один раз на початку
-    let imports = '<!-- Google Fonts preconnect for performance -->\n';
-    imports += '<link rel="preconnect" href="https://fonts.googleapis.com">\n';
-    imports += '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n';
-    imports += '<!-- Font stylesheets -->\n';
-    
-    // ✅ FIX: Додаємо посилання на шрифти без дублювання preconnect
-    imports += fonts.map(font => 
-      `<link href="${font.url}" rel="stylesheet">`
-    ).join('\n');
-    
-    return imports;
+    return fonts
+      .map(
+        font =>
+          '<link rel="preconnect" href="https://fonts.googleapis.com">\n' +
+          '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n' +
+          `<link href="${font.url}" rel="stylesheet">`
+      )
+      .join('\n');
   }
 
   /**

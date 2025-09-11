@@ -537,7 +537,7 @@ class ImageImporter {
       
     } catch (error) {
       console.error('❌ Error getting images from canvases:', error.message);
-      // ✅ FIX: Видалено fallback - використовуємо тільки реальні дані
+      // Fallback до старого методу
       return await figmaClient.getAllImages(fileKey);
     }
   }

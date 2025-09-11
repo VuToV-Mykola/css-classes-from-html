@@ -9,11 +9,6 @@ const fs = require('fs');
 // ✅ FIX: Імпорт UniversalMatchingEngine для точного співставлення
 const UniversalMatchingEngine = require('./backend/matchers/UniversalMatchingEngine');
 
-// ✅ FIX: Імпорт нових розширених модулів
-const AdvancedHTMLParser = require('./backend/core/AdvancedHTMLParser');
-const AdvancedCSSGenerator = require('./backend/generators/AdvancedCSSGenerator');
-const AdvancedMatchingEngine = require('./backend/matchers/AdvancedMatchingEngine');
-
 // ✅ FIX: Інтернаціоналізація для extension.js
 const extensionTranslations = {
   uk: {
@@ -398,8 +393,6 @@ const configManager = {
       figmaToken: '',
       selectedCanvases: [],
       selectedLayers: [],
-      includeModernNormalize: false,
-      selectedStyleLibrary: null,
       sidebarVisible: false,
       savedAt: new Date().toISOString(),
       version: '2.1.0',
@@ -804,7 +797,7 @@ function setupMessageHandlers(panel) {
 
       switch (message.command) {
       case 'getInitialContext':
-        // Відповідь на запит початкового контексту від вебв'ю
+        // Відповідь на запит початкового контексту від вебв’ю
         panel.webview.postMessage({
           command: 'initializeContext',
           htmlFile: currentHTMLFile,
@@ -901,24 +894,6 @@ function setupMessageHandlers(panel) {
         break;
       }
 
-      // 🧩 Збереження вибраної бібліотеки стилів у файл
-      case 'saveStyleLibrary': {
-        await handleSaveStyleLibrary(panel, message.payload);
-        break;
-      }
-
-      // 🧩 Завантаження бібліотек стилів з диску
-      case 'loadStyleLibraries': {
-        await handleLoadStyleLibraries(panel, message.payload);
-        break;
-      }
-
-      // 🧩 Встановити вибрану бібліотеку стилів у налаштуваннях
-      case 'selectStyleLibrary': {
-        await handleSelectStyleLibrary(panel, message.payload);
-        break;
-      }
-
       case 'renameLayer':
         await handleRenameLayer(panel, message);
         break;
@@ -985,155 +960,63 @@ async function handleGenerateCSS(panel, settings) {
     outputChannel?.appendLine(`📊 HTML content length: ${htmlContent.length} characters`);
 
     let css = '';
-    // ✅ NEW: Підтримка утилітних класів з бібліотеки стилів
-    let customUtilityStyles = {};
-    try {
-      const lib = await loadSelectedStyleLibrary(settings || {});
-      if (lib && (lib.utilities || lib.styles || lib.classes)) {
-        customUtilityStyles = lib.utilities || lib.styles || lib.classes || {};
-        outputChannel?.appendLine(`✅ Loaded style library utilities: ${Object.keys(customUtilityStyles).length}`);
-      }
-    } catch (e) {
-      outputChannel?.appendLine(`⚠️ Failed to load style library: ${e.message}`);
-    }
 
     // Генерація відповідно до режиму
     if (settings.mode === 'minimal') {
       outputChannel?.appendLine('🔧 Generating basic CSS...');
-      css = generateBasicCSS(htmlContent, { ...settings, customUtilityStyles });
-    } else if (settings.mode === 'maximum' && integrationEngine) {
+      css = generateBasicCSS(htmlContent, settings);
+    } else if (settings.mode === 'maximum' && integrationEngine && universalMatchingEngine) {
       if (settings.figmaLink && settings.figmaToken) {
         const fileId = integrationEngine.extractFileIdFromFigmaLink(settings.figmaLink);
         if (fileId) {
-          outputChannel?.appendLine('🎯 Using AdvancedMatchingEngine for precise matching...');
+          outputChannel?.appendLine('🎯 Using UniversalMatchingEngine for precise matching...');
           
           // ✅ FIX: Отримуємо дані з Figma
-          integrationEngine.updateOptions({ figmaToken: settings.figmaToken });
+          const figmaData = await integrationEngine.fetchFigmaData(fileId, settings.figmaToken);
           
-          if (!integrationEngine.figmaClient) {
-            throw new Error('Figma client не ініціалізовано. Перевірте токен.');
-          }
-          
-          let figmaData = await integrationEngine.figmaClient.getFile(fileId);
-
-          // ✅ NEW: Застосовуємо фільтрацію за вибраними користувачем Canvas/Layer
-          const selectedCanvasIds = Array.isArray(settings.selectedCanvases) ? settings.selectedCanvases : [];
-          const selectedLayerIds = Array.isArray(settings.selectedLayers) ? settings.selectedLayers : [];
-
-          if ((selectedCanvasIds.length > 0) || (selectedLayerIds.length > 0)) {
-            try {
-              const filterFigmaDoc = (doc) => {
-                if (!doc || !doc.document) return doc;
-                const pages = Array.isArray(doc.document.children) ? doc.document.children : [];
-                const pageFilter = selectedCanvasIds.length > 0
-                  ? pages.filter(p => selectedCanvasIds.includes(p.id))
-                  : pages;
-
-                // Якщо задані конкретні layerIds — залишаємо лише піддерева, що містять їх
-                const filterByLayers = (node) => {
-                  if (!node) return null;
-                  const kids = Array.isArray(node.children) ? node.children : [];
-                  const filteredKids = kids
-                    .map(child => filterByLayers(child))
-                    .filter(Boolean);
-                  const selfSelected = selectedLayerIds.includes(node.id);
-                  if (selfSelected || filteredKids.length > 0 || selectedLayerIds.length === 0) {
-                    return { ...node, children: filteredKids };
-                  }
-                  return null;
-                };
-
-                const newPages = pageFilter.map(p => {
-                  if (selectedLayerIds.length === 0) return p;
-                  const filtered = filterByLayers(p);
-                  return filtered || null;
-                }).filter(Boolean);
-
-                return { ...doc, document: { ...doc.document, children: newPages } };
-              };
-
-              figmaData = filterFigmaDoc(figmaData);
-              outputChannel?.appendLine(`✅ Applied Figma filters: canvases=${selectedCanvasIds.length}, layers=${selectedLayerIds.length}`);
-            } catch (e) {
-              outputChannel?.appendLine(`⚠️ Failed to apply Figma filters: ${e.message}`);
-            }
-          }
-          
-          // ✅ FIX: Використовуємо AdvancedHTMLParser для правильного парсингу HTML
-          const htmlParser = new AdvancedHTMLParser();
-          const htmlData = htmlParser.parseHTML(htmlContent);
-          
-          // ✅ FIX: Використовуємо AdvancedMatchingEngine для точного співставлення
-          const advancedMatchingEngine = new AdvancedMatchingEngine({
-            thresholds: {
-              exact: 1.0,
-              high: 0.9,
-              medium: 0.7,
-              low: 0.5,
-              reject: 0.3
-            },
-            filters: {
-              canvasIds: selectedCanvasIds,
-              layerIds: selectedLayerIds
-            }
-          });
-          
-          const matchingResults = await advancedMatchingEngine.match(figmaData, htmlData);
+          // ✅ FIX: Використовуємо UniversalMatchingEngine для точного співставлення
+          const matchingResults = await universalMatchingEngine.match(figmaData, htmlContent);
           
           outputChannel?.appendLine(`📊 Matching results: ${matchingResults.length} elements matched`);
           
           // ✅ FIX: Генеруємо CSS з точними співставленнями
-          // ✅ NEW: Прокидуємо алиаси (перейменування) для пріоритету користувацьких назв
-          if (settings.userRenames && typeof settings.userRenames === 'object') {
-            try {
-              Object.entries(settings.userRenames).forEach(([layerId, newName]) => {
-                if (layerId && newName) {
-                  integrationEngine.setLayerAlias(layerId, newName);
-                }
-              });
-              outputChannel?.appendLine(`✏️ Applied ${Object.keys(settings.userRenames).length} user layer renames`);
-            } catch (e) {
-              outputChannel?.appendLine(`⚠️ Failed to apply user renames: ${e.message}`);
-            }
+          const SmartCSSGenerator = moduleLoader.getModule('SmartCSSGenerator');
+          if (SmartCSSGenerator) {
+            const cssGenerator = new SmartCSSGenerator({
+              includeReset: settings.includeReset === true,
+              includeVariables: settings.includeVariables === true,
+              includeResponsive: settings.includeResponsive === true,
+              mode: settings.mode,
+              matchingThreshold: 0.7
+            });
+            
+            css = cssGenerator.generateCSSWithMatching(figmaData, htmlContent, matchingResults);
+            
+            // Додаємо статистику
+            const stats = cssGenerator.statistics;
+            outputChannel?.appendLine(`📈 CSS Generation Stats:`);
+            outputChannel?.appendLine(`   • Matched elements: ${stats.matchedElements}`);
+            outputChannel?.appendLine(`   • Unmatched elements: ${stats.unmatchedElements}`);
+            outputChannel?.appendLine(`   • Matching accuracy: ${(stats.matchingAccuracy * 100).toFixed(1)}%`);
+          } else {
+            // Fallback до старого методу
+            const result = await integrationEngine.generateCSS(fileId, htmlContent, {
+              figmaToken: settings.figmaToken,
+              selectedCanvases: settings.selectedCanvases,
+              selectedLayers: settings.selectedLayers
+            });
+            css = result.css;
           }
-
-          const cssGenerator = new AdvancedCSSGenerator({
-            includeReset: settings.includeReset === true,
-            includeVariables: settings.includeVariables === true,
-            includeResponsive: settings.includeResponsive === true,
-            mode: settings.mode,
-            layerAliases: integrationEngine?.getAllAliases ? integrationEngine.getAllAliases() : {},
-            customUtilityStyles
-          });
-          
-          css = await cssGenerator.generateCSS(figmaData, htmlData, matchingResults);
-          
-          // Додаємо статистику
-          const stats = cssGenerator.statistics;
-          outputChannel?.appendLine(`📈 CSS Generation Stats:`);
-          outputChannel?.appendLine(`   • Matched elements: ${stats.matchedElements}`);
-          outputChannel?.appendLine(`   • Unmatched elements: ${stats.unmatchedElements}`);
-          outputChannel?.appendLine(`   • Total rules: ${stats.totalRules}`);
         } else {
-          css = generateBasicCSS(htmlContent, { ...settings, customUtilityStyles });
+          css = generateBasicCSS(htmlContent, settings);
         }
       } else {
-        css = generateBasicCSS(htmlContent, { ...settings, customUtilityStyles });
+        css = generateBasicCSS(htmlContent, settings);
       }
     } else if (settings.mode === 'production') {
       css = generateProductionCSS(htmlContent);
     } else {
-      css = generateBasicCSS(htmlContent, { ...settings, customUtilityStyles });
-    }
-
-    // Якщо користувач обрав modern-normalize — оновлюємо HTML head
-    if (settings.includeModernNormalize === true) {
-      try {
-        await ensureModernNormalizeInHtml(htmlFilePath);
-        outputChannel?.appendLine('✅ modern-normalize підключено/оновлено у HTML');
-      } catch (e) {
-        outputChannel?.appendLine(`⚠️ Не вдалося оновити modern-normalize: ${e.message}`);
-      }
+      css = generateBasicCSS(htmlContent, settings);
     }
 
     // Збереження CSS файлу
@@ -1292,7 +1175,7 @@ body {
       css += `/* path: ${item.path} */\n${item.selector} {\n\n}\n\n`;
     });
   } else {
-    // ✅ FIX: Видалено fallback - використовуємо тільки реальні стилі з Figma
+    // Fallback: плоский список класів
     const classes = extractClassesFromHTML(htmlContent);
     if (classes.length > 0) {
       css += `/* ============================================
@@ -1354,45 +1237,6 @@ function generateResponsiveStyles() {
 @media (min-width: 576px) {
   .container {
     max-width: 540px;
-  }
-}
-
-// =======================================
-// 🧩 MODERN NORMALIZE INJECTOR
-// =======================================
-
-async function ensureModernNormalizeInHtml(htmlFilePath) {
-  const cdnHref = 'https://cdnjs.cloudflare.com/ajax/libs/modern-normalize/3.0.1/modern-normalize.min.css';
-  // 📌 Примітка: за потреби оновити версію, можна додати fetch останньої версії з cdnjs API.
-  const marker = '<!--!!! MODERN NORMALIZE !!!-->';
-
-  const raw = fs.readFileSync(htmlFilePath, 'utf8');
-  const linkTag = `${marker}\n<link rel="stylesheet" href="${cdnHref}" integrity="" crossorigin="anonymous">`;
-
-  const hasHead = /<head[^>]*>/i.test(raw);
-  const hasMarker = raw.includes(marker);
-
-  let updated = raw;
-  if (hasMarker) {
-    // Перезапис секції після маркера (видаляємо попередній link до наступного рядка закінчення або до </head>)
-    updated = updated.replace(new RegExp(`${marker}[\s\S]*?(?=</head>|$)`, 'i'), `${linkTag}\n`);
-  } else if (hasHead) {
-    // Вставляємо одразу після <head>, вище за <title>
-    updated = updated.replace(/<head[^>]*>/i, match => `${match}\n${linkTag}`);
-  } else {
-    // Немає <head> — додаємо мінімальну голову на початок
-    updated = `<!doctype html>\n<html>\n<head>\n${linkTag}\n</head>\n${raw.replace(/^<!doctype html>/i, '').replace(/^<html[^>]*>/i, '').trim()}`;
-  }
-
-  // Забезпечити, що маркер розміщено вище <title>
-  updated = updated.replace(/(<head[^>]*>)([\s\S]*?)(<title[^>]*>)/i, (m, h, mid, t) => {
-    if (mid.includes(marker)) return m; // вже зверху
-    const withoutMarker = mid.replace(new RegExp(`${marker}[\s\S]*?\n?`, 'i'), '');
-    return `${h}\n${linkTag}\n${withoutMarker}${t}`;
-  });
-
-  if (updated !== raw) {
-    fs.writeFileSync(htmlFilePath, updated, 'utf8');
   }
 }
 
@@ -1587,10 +1431,8 @@ function extractSelectorsWithHierarchy(htmlContent) {
         if (!seen.has(className)) {
           seen.add(className);
           const path = nextPath.join(' ');
-          // ✅ FIX: Очищаємо className від крапок
-          const cleanClassName = className.replace(/^\.+/, '');
           selectors.push({ 
-            selector: `.${cleanClassName}`, 
+            selector: `.${className}`, 
             depth: nextPath.length, 
             path: path 
           });
@@ -1605,7 +1447,7 @@ function extractSelectorsWithHierarchy(htmlContent) {
 
     return selectors;
   } catch (e) {
-    outputChannel?.appendLine(`⚠️ Hierarchy extraction error: ${e.message}`);
+    outputChannel?.appendLine(`⚠️ Hierarchy extraction fallback: ${e.message}`);
     return [];
   }
 }
@@ -2133,92 +1975,4 @@ module.exports = {
 // ✅ Fallback для випадку відсутності frontend/html
 function generateWebViewHTML() {
   return '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>CSS Classes from HTML</title></head><body><div style="padding:16px;font-family:system-ui">Frontend HTML не знайдено. Будь ласка, додайте файл frontend/css-classes-from-html-menu.html у директорію розширення.</div><script>const vscode=acquireVsCodeApi&&acquireVsCodeApi();</script></body></html>';
-}
-
-async function handleSaveStyleLibrary(panel, payload) {
-  try {
-    // payload: { name, options, fileId, canvasId }
-    const baseDir = extensionContext?.globalStorageUri?.fsPath || extensionContext?.extensionPath || process.cwd();
-    const libDir = path.join(baseDir, 'style-libraries');
-    const fileId = String(payload?.fileId || 'global');
-    const canvasId = String(payload?.canvasId || 'all');
-    const targetDir = path.join(libDir, fileId, canvasId);
-    if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true });
-
-    const safeName = String(payload?.name || 'library').toLowerCase().replace(/[^a-z0-9-_]+/g, '-').replace(/-+/g, '-');
-    const filePath = path.join(targetDir, `${safeName}.json`);
-
-    const data = {
-      name: payload?.name || 'Library',
-      savedAt: new Date().toISOString(),
-      options: payload?.options || {},
-      fileId, canvasId,
-      version: '1.0.0'
-    };
-
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
-
-    panel.webview.postMessage({ command: 'styleLibrarySaved', success: true, filePath, library: data });
-    outputChannel?.appendLine(`✅ Style library saved: ${filePath}`);
-  } catch (error) {
-    outputChannel?.appendLine(`❌ Error saving style library: ${error.message}`);
-    panel.webview.postMessage({ command: 'styleLibrarySaved', success: false, error: error.message });
-  }
-}
-
-async function handleLoadStyleLibraries(panel, payload) {
-  try {
-    // payload: { fileId, canvasId }
-    const baseDir = extensionContext?.globalStorageUri?.fsPath || extensionContext?.extensionPath || process.cwd();
-    const libDir = path.join(baseDir, 'style-libraries');
-    const fileId = String(payload?.fileId || 'global');
-    const canvasId = String(payload?.canvasId || 'all');
-
-    const lookupDirs = [
-      path.join(libDir, fileId, canvasId),
-      path.join(libDir, fileId, 'all'),
-      path.join(libDir, 'global', 'all')
-    ];
-
-    const libraries = [];
-    for (const dir of lookupDirs) {
-      if (!fs.existsSync(dir)) continue;
-      const files = fs.readdirSync(dir).filter(f => f.endsWith('.json'));
-      for (const f of files) {
-        try {
-          const full = path.join(dir, f);
-          const content = fs.readFileSync(full, 'utf8');
-          const json = JSON.parse(content);
-          libraries.push({
-            name: json.name || path.basename(f, '.json'),
-            file: full,
-            options: json.options || {},
-            savedAt: json.savedAt || null,
-            fileId: json.fileId || fileId,
-            canvasId: json.canvasId || canvasId
-          });
-        } catch (_) {}
-      }
-    }
-
-    panel.webview.postMessage({ command: 'styleLibrariesLoaded', success: true, libraries });
-    outputChannel?.appendLine(`✅ Style libraries loaded: ${libraries.length}`);
-  } catch (error) {
-    outputChannel?.appendLine(`❌ Error loading style libraries: ${error.message}`);
-    panel.webview.postMessage({ command: 'styleLibrariesLoaded', success: false, libraries: [], error: error.message });
-  }
-}
-
-async function handleSelectStyleLibrary(panel, payload) {
-  try {
-    // payload: { filePath }
-    const settings = configManager.loadConfig();
-    settings.selectedStyleLibrary = payload?.filePath || null;
-    const ok = configManager.saveConfig(settings);
-    panel.webview.postMessage({ command: 'styleLibrarySelected', success: ok, selected: settings.selectedStyleLibrary });
-    outputChannel?.appendLine(`✅ Selected style library saved in settings: ${settings.selectedStyleLibrary || 'none'}`);
-  } catch (error) {
-    outputChannel?.appendLine(`❌ Error selecting style library: ${error.message}`);
-    panel.webview.postMessage({ command: 'styleLibrarySelected', success: false, error: error.message });
-  }
 }

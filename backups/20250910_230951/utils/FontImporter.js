@@ -179,7 +179,7 @@ class FontImporter {
       
     } catch (error) {
       console.error('❌ Error getting fonts from canvases:', error.message);
-      // ✅ FIX: Видалено fallback - використовуємо тільки реальні дані
+      // Fallback до старого методу
       return await figmaClient.getFonts(fileKey);
     }
   }
