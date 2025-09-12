@@ -84,13 +84,16 @@
 
       /* ✅ FIX: Контекстна панель HTML файлу - лінія 40-85 ✅ */
       .html-context-bar {
-        background-color: var(--primary);
+        background-image: linear-gradient(to right, #03a9f4, #212121);
         color: white;
         padding: 0.5rem 0.75rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        box-shadow: 0 2px 10px var(--shadow);
+        box-shadow: 
+          0 2px 1px rgb(46 47 66 / 8%),
+          0 1px 1px rgb(46 47 66 / 16%),
+          0 1px 6px rgb(46 47 66 / 8%);
         position: sticky;
         top: 0;
         z-index: 1000;
@@ -757,7 +760,7 @@
         .actions-panel {
           padding: clamp(0.4rem, 1.5vw, 0.8rem);
         }
-        
+
         .actions-panel .btn {
           flex: 1 1 calc(50% - 0.25rem);
           max-width: calc(50% - 0.25rem);
@@ -1561,434 +1564,459 @@
         border-color: rgba(255, 193, 7, 0.3);
         color: #ffc107;
       }
+      .page-container {
+        min-height: 100vh;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .main-container {
+        flex-grow: 1;
+        padding: 8px;
+      }
     </style>
   </head>
   <body>
-    <!-- ✅ FIX: Контекстна панель HTML файлу - лінія 595-609 ✅ -->
-    <div class="html-context-bar" id="htmlContextBar">
-      <div class="html-context-left">
-        <div class="html-context-title" data-i18n="main_title"
-          >🇺🇦 🎨 CSS Classes from HTML v0.0.7</div
-        >
-        <div class="html-context-subtitle" data-i18n="subtitle"
-          >Автоматична генерація CSS • Реальна інтеграція з Figma • Розумне співставлення</div
-        >
-      </div>
-      <div class="html-context-right">
-        <div class="html-context-info">
-          <div class="html-context-icon">📄</div>
-          <div class="html-context-details">
-            <div class="html-context-label" data-i18n="current_html_file">Поточний HTML файл:</div>
-            <div class="html-context-filename" id="currentHTMLFile" data-i18n="not_selected"
-              >Не вибрано</div
-            >
-          </div>
-        </div>
-        <div class="html-context-actions">
-          <button
-            class="btn-context"
-            id="selectHTMLBtn"
-            onclick="selectHTMLFile()"
-            data-i18n="select"
-            >📂 Вибрати</button
+    <div class="page-container">
+      <!-- ✅ FIX: Контекстна панель HTML файлу - лінія 595-609 ✅ -->
+      <div class="html-context-bar" id="htmlContextBar">
+        <div class="html-context-left">
+          <div class="html-context-title" data-i18n="main_title"
+            >🇺🇦 🎨 CSS Classes from HTML v0.0.7</div
           >
-          <button
-            class="btn-context"
-            id="refreshHTMLBtn"
-            onclick="refreshHTMLContext()"
-            data-i18n="refresh"
-            title="Оновити"
-            >🔄</button
+          <div class="html-context-subtitle" data-i18n="subtitle"
+            >Автоматична генерація CSS • Реальна інтеграція з Figma • Розумне співставлення</div
           >
         </div>
-      </div>
-    </div>
-
-    <div class="header">
-      <!-- ✅ MULTILINGUAL: Контейнер мов в header праворуч -->
-      <div class="header-language-container">
-        <div class="language-label" data-i18n="language_label">Мова:</div>
-        <div class="language-buttons">
-          <button class="lang-flag-btn" data-lang="uk" title="Українська">🇺🇦</button>
-          <button class="lang-flag-btn" data-lang="en" title="English">🇺🇸</button>
-          <button class="lang-flag-btn" data-lang="de" title="Deutsch">🇩🇪</button>
-          <button
-            class="lang-flag-btn"
-            data-lang="auto"
-            data-i18n="auto_language"
-            title="Автоматично (за мовою VS Code)"
-            >🌐</button
-          >
-        </div>
-      </div>
-
-      <!-- Status повідомлення з автоприховуванням -->
-      <div id="status" class="status status-auto-hide">
-        <span id="status-text"></span>
-      </div>
-
-      <!-- Progress bar -->
-      <div class="progress" id="progressContainer" style="display: none">
-        <div class="progress-bar" id="progressBar"></div>
-      </div>
-    </div>
-
-    <div class="main-container layout-with-sidebar">
-      <!-- Вибір режиму -->
-      <div class="mode-selector" id="modeSelector">
-        <div class="mode-card" data-mode="minimal" onclick="selectMode('minimal')">
-          <div class="mode-icon">⚡</div>
-          <div class="mode-content">
-            <div class="mode-title" data-i18n="minimal_mode">Мінімальний</div>
-            <div class="mode-description" data-i18n="minimal_description"
-              >Базова генерація CSS класів</div
-            >
-          </div>
-        </div>
-
-        <div class="mode-card" data-mode="maximum" onclick="selectMode('maximum')">
-          <div class="mode-icon">🚀</div>
-          <div class="mode-content">
-            <div class="mode-title" data-i18n="maximum_mode">Максимальний</div>
-            <div class="mode-description" data-i18n="maximum_description"
-              >Повна Figma інтеграція</div
-            >
-          </div>
-        </div>
-
-        <div class="mode-card" data-mode="production" onclick="selectMode('production')">
-          <div class="mode-icon">📦</div>
-          <div class="mode-content">
-            <div class="mode-title" data-i18n="production_mode">Production</div>
-            <div class="mode-description" data-i18n="production_description">Оптимізований CSS</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tabs навігація -->
-      <div class="tabs">
-        <button class="tab active" onclick="switchTab('basic')" data-i18n="basic_tab"
-          >⚙️ Основні</button
-        >
-        <button class="tab" onclick="switchTab('figma')" data-i18n="figma_tab">🎨 Figma</button>
-        <button class="tab" onclick="switchTab('advanced')" data-i18n="advanced_tab"
-          >🔧 Розширені</button
-        >
-      </div>
-
-      <!-- Tab: Основні налаштування -->
-      <div class="tab-content active" id="basicTab">
-        <div class="section">
-          <h2 class="section-title" data-i18n="basic_settings">⚙️ Основні налаштування</h2>
-
-          <div class="input-group">
-            <label for="cssFileName" data-i18n="css_file_name">Назва згенерованого CSS файлу</label>
-            <input
-              type="text"
-              id="cssFileName"
-              placeholder="styles.css"
-              value="styles.css"
-              data-i18n="css_file_name_placeholder">
-          </div>
-
-          <div class="controls-row">
-            <!-- 1) CSS змінні -->
-            <button
-              class="btn btn-secondary"
-              onclick="toggleCheckbox('includeVariables')"
-              style="display: flex; align-items: center; gap: 8px">
-              <input type="checkbox" id="includeVariables" checked style="margin: 0">
-              <span data-i18n="include_variables">CSS змінні</span>
-              <span class="tooltiptext" data-i18n="include_variables_tooltip"
-                >Додає CSS custom properties</span
+        <div class="html-context-right">
+          <div class="html-context-info">
+            <div class="html-context-icon">📄</div>
+            <div class="html-context-details">
+              <div class="html-context-label" data-i18n="current_html_file"
+                >Поточний HTML файл:</div
               >
-            </button>
+              <div class="html-context-filename" id="currentHTMLFile" data-i18n="not_selected"
+                >Не вибрано</div
+              >
+            </div>
+          </div>
+          <div class="html-context-actions">
+            <button
+              class="btn-context"
+              id="selectHTMLBtn"
+              onclick="selectHTMLFile()"
+              data-i18n="select"
+              >📂 Вибрати</button
+            >
+            <button
+              class="btn-context"
+              id="refreshHTMLBtn"
+              onclick="refreshHTMLContext()"
+              data-i18n="refresh"
+              title="Оновити"
+              >🔄</button
+            >
+          </div>
+        </div>
+      </div>
 
-            <!-- 2) Глобальні стилі -->
-            <div
-              class="control-with-submenu"
-              onclick="toggleCheckbox('globalStylesToggle'); toggleGlobalStylesSubmenu();">
-              <button class="submenu-button" style="display: flex; align-items: center; gap: 8px">
-                <input
-                  type="checkbox"
-                  id="globalStylesToggle"
-                  style="margin: 0"
-                  onclick="event.stopPropagation();">
-                <span data-i18n="include_global">🌐 Включити Глобальні стилі</span>
-              </button>
-              <div id="globalStylesSubmenu" class="submenu hidden">
-                <h4 data-i18n="global_styles_submenu">Оберіть існуючий або створіть новий:</h4>
-                <div id="globalFilesList" class="files-list"></div>
-                <button
-                  class="btn btn-small"
-                  onclick="createNewGlobalFile()"
-                  data-i18n="create_new_global"
-                  >➕ Створити новий global.css</button
-                >
-              </div>
+      <div class="header">
+        <!-- ✅ MULTILINGUAL: Контейнер мов в header праворуч -->
+        <div class="header-language-container">
+          <div class="language-label" data-i18n="language_label">Мова:</div>
+          <div class="language-buttons">
+            <button class="lang-flag-btn" data-lang="uk" title="Українська">🇺🇦</button>
+            <button class="lang-flag-btn" data-lang="en" title="English">🇺🇸</button>
+            <button class="lang-flag-btn" data-lang="de" title="Deutsch">🇩🇪</button>
+            <button
+              class="lang-flag-btn"
+              data-lang="auto"
+              data-i18n="auto_language"
+              title="Автоматично (за мовою VS Code)"
+              >🌐</button
+            >
+          </div>
+        </div>
+
+        <!-- Status повідомлення з автоприховуванням -->
+        <div id="status" class="status status-auto-hide">
+          <span id="status-text"></span>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="progress" id="progressContainer" style="display: none">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+      </div>
+
+      <div class="main-container layout-with-sidebar">
+        <!-- Вибір режиму -->
+        <div class="mode-selector" id="modeSelector">
+          <div class="mode-card" data-mode="minimal" onclick="selectMode('minimal')">
+            <div class="mode-icon">⚡</div>
+            <div class="mode-content">
+              <div class="mode-title" data-i18n="minimal_mode">Мінімальний</div>
+              <div class="mode-description" data-i18n="minimal_description"
+                >Базова генерація CSS класів</div
+              >
+            </div>
+          </div>
+
+          <div class="mode-card" data-mode="maximum" onclick="selectMode('maximum')">
+            <div class="mode-icon">🚀</div>
+            <div class="mode-content">
+              <div class="mode-title" data-i18n="maximum_mode">Максимальний</div>
+              <div class="mode-description" data-i18n="maximum_description"
+                >Повна Figma інтеграція</div
+              >
+            </div>
+          </div>
+
+          <div class="mode-card" data-mode="production" onclick="selectMode('production')">
+            <div class="mode-icon">📦</div>
+            <div class="mode-content">
+              <div class="mode-title" data-i18n="production_mode">Production</div>
+              <div class="mode-description" data-i18n="production_description"
+                >Оптимізований CSS</div
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabs навігація -->
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab('basic')" data-i18n="basic_tab"
+            >⚙️ Основні</button
+          >
+          <button class="tab" onclick="switchTab('figma')" data-i18n="figma_tab">🎨 Figma</button>
+          <button class="tab" onclick="switchTab('advanced')" data-i18n="advanced_tab"
+            >🔧 Розширені</button
+          >
+        </div>
+
+        <!-- Tab: Основні налаштування -->
+        <div class="tab-content active" id="basicTab">
+          <div class="section">
+            <h2 class="section-title" data-i18n="basic_settings">⚙️ Основні налаштування</h2>
+
+            <div class="input-group">
+              <label for="cssFileName" data-i18n="css_file_name"
+                >Назва згенерованого CSS файлу</label
+              >
+              <input
+                type="text"
+                id="cssFileName"
+                placeholder="styles.css"
+                value="styles.css"
+                data-i18n="css_file_name_placeholder">
             </div>
 
-            <!-- 3) Reset стилі -->
-            <div
-              class="control-with-submenu"
-              onclick="toggleCheckbox('resetStylesToggle'); toggleResetStylesSubmenu();">
-              <button class="submenu-button" style="display: flex; align-items: center; gap: 8px">
-                <input
-                  type="checkbox"
-                  id="resetStylesToggle"
-                  style="margin: 0"
-                  onclick="event.stopPropagation();">
-                <span data-i18n="include_reset">📋 Включити Reset стилі</span>
-              </button>
-              <div id="resetStylesSubmenu" class="submenu hidden">
-                <h4 data-i18n="reset_styles_submenu">Оберіть існуючий або створіть новий:</h4>
-                <div id="resetFilesList" class="files-list"></div>
-                <button
-                  class="btn btn-small"
-                  onclick="createNewResetFile()"
-                  data-i18n="create_new_reset"
-                  >➕ Створити новий reset.css</button
+            <div class="controls-row">
+              <!-- 1) CSS змінні -->
+              <button
+                class="btn btn-secondary"
+                onclick="toggleCheckbox('includeVariables')"
+                style="display: flex; align-items: center; gap: 8px">
+                <input type="checkbox" id="includeVariables" checked style="margin: 0">
+                <span data-i18n="include_variables">CSS змінні</span>
+                <span class="tooltiptext" data-i18n="include_variables_tooltip"
+                  >Додає CSS custom properties</span
                 >
-              </div>
-            </div>
-
-            <!-- 4) Normalize стилі -->
-            <button
-              class="btn btn-secondary"
-              onclick="toggleCheckbox('includeModernNormalize')"
-              style="display: flex; align-items: center; gap: 8px">
-              <input type="checkbox" id="includeModernNormalize" style="margin: 0">
-              <span data-i18n="normalize_styles">Normalize стилі</span>
-              <span class="tooltiptext" data-i18n="normalize_styles_tooltip"
-                >Підключити modern-normalize з CDN в head HTML файлу</span
-              >
-            </button>
-
-            <!-- 5) Користувацькі стилі -->
-
-            <!-- 6) Користувацькі стилі -->
-            <div
-              class="control-with-submenu"
-              onclick="toggleCheckbox('includeUserStyles'); toggleUserStylesSubmenu();">
-              <button class="submenu-button" style="display: flex; align-items: center; gap: 8px">
-                <input
-                  type="checkbox"
-                  id="includeUserStyles"
-                  style="margin: 0"
-                  onclick="event.stopPropagation();">
-                <span data-i18n="user_styles">👤 Користувацькі стилі</span>
               </button>
-              <div id="userStylesSubmenu" class="submenu hidden">
-                <h4 data-i18n="user_styles_submenu">Збережені стилі з Figma:</h4>
-                <div id="userStylesList" class="files-list">
-                  <div class="loading">Завантаження...</div>
+
+              <!-- 2) Глобальні стилі -->
+              <div
+                class="control-with-submenu"
+                onclick="toggleCheckbox('globalStylesToggle'); toggleGlobalStylesSubmenu();">
+                <button class="submenu-button" style="display: flex; align-items: center; gap: 8px">
+                  <input
+                    type="checkbox"
+                    id="globalStylesToggle"
+                    style="margin: 0"
+                    onclick="event.stopPropagation();">
+                  <span data-i18n="include_global">🌐 Включити Глобальні стилі</span>
+                </button>
+                <div id="globalStylesSubmenu" class="submenu hidden">
+                  <h4 data-i18n="global_styles_submenu">Оберіть існуючий або створіть новий:</h4>
+                  <div id="globalFilesList" class="files-list"></div>
+                  <button
+                    class="btn btn-small"
+                    onclick="createNewGlobalFile()"
+                    data-i18n="create_new_global"
+                    >➕ Створити новий global.css</button
+                  >
                 </div>
-                <button
-                  class="btn btn-small"
-                  onclick="createNewUserStyle()"
-                  data-i18n="create_new_user_style"
-                  >➕ Створити</button
+              </div>
+
+              <!-- 3) Reset стилі -->
+              <div
+                class="control-with-submenu"
+                onclick="toggleCheckbox('resetStylesToggle'); toggleResetStylesSubmenu();">
+                <button class="submenu-button" style="display: flex; align-items: center; gap: 8px">
+                  <input
+                    type="checkbox"
+                    id="resetStylesToggle"
+                    style="margin: 0"
+                    onclick="event.stopPropagation();">
+                  <span data-i18n="include_reset">📋 Включити Reset стилі</span>
+                </button>
+                <div id="resetStylesSubmenu" class="submenu hidden">
+                  <h4 data-i18n="reset_styles_submenu">Оберіть існуючий або створіть новий:</h4>
+                  <div id="resetFilesList" class="files-list"></div>
+                  <button
+                    class="btn btn-small"
+                    onclick="createNewResetFile()"
+                    data-i18n="create_new_reset"
+                    >➕ Створити новий reset.css</button
+                  >
+                </div>
+              </div>
+
+              <!-- 4) Normalize стилі -->
+              <button
+                class="btn btn-secondary"
+                onclick="toggleCheckbox('includeModernNormalize')"
+                style="display: flex; align-items: center; gap: 8px">
+                <input type="checkbox" id="includeModernNormalize" style="margin: 0">
+                <span data-i18n="normalize_styles">Normalize стилі</span>
+                <span class="tooltiptext" data-i18n="normalize_styles_tooltip"
+                  >Підключити modern-normalize з CDN в head HTML файлу</span
                 >
+              </button>
+
+              <!-- 5) Користувацькі стилі -->
+
+              <!-- 6) Користувацькі стилі -->
+              <div
+                class="control-with-submenu"
+                onclick="toggleCheckbox('includeUserStyles'); toggleUserStylesSubmenu();">
+                <button class="submenu-button" style="display: flex; align-items: center; gap: 8px">
+                  <input
+                    type="checkbox"
+                    id="includeUserStyles"
+                    style="margin: 0"
+                    onclick="event.stopPropagation();">
+                  <span data-i18n="user_styles">👤 Користувацькі стилі</span>
+                </button>
+                <div id="userStylesSubmenu" class="submenu hidden">
+                  <h4 data-i18n="user_styles_submenu">Збережені стилі з Figma:</h4>
+                  <div id="userStylesList" class="files-list">
+                    <div class="loading">Завантаження...</div>
+                  </div>
+                  <button
+                    class="btn btn-small"
+                    onclick="createNewUserStyle()"
+                    data-i18n="create_new_user_style"
+                    >➕ Створити</button
+                  >
+                </div>
+              </div>
+
+              <!-- 7) Responsive стилі -->
+              <button
+                class="btn btn-secondary"
+                onclick="toggleCheckbox('includeResponsive')"
+                style="display: flex; align-items: center; gap: 8px">
+                <input type="checkbox" id="includeResponsive" checked style="margin: 0">
+                <span data-i18n="include_responsive">Responsive стилі</span>
+                <span class="tooltiptext" data-i18n="include_responsive_tooltip"
+                  >Додає media queries</span
+                >
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Figma інтеграція -->
+        <div class="tab-content" id="figmaTab">
+          <div class="section" id="figmaAuthSection">
+            <h2 class="section-title" data-i18n="figma_integration">🎨 Figma Integration</h2>
+
+            <div class="input-group">
+              <label for="figmaLink" data-i18n="figma_link">Figma File URL</label>
+              <div style="display: flex; align-items: center">
+                <span class="indicator red" id="figmaLinkIndicator" title="Link"></span>
+                <input
+                  type="text"
+                  id="figmaLink"
+                  placeholder="https://www.figma.com/file/... | Посилання на Figma файл | Figma Datei Link"
+                  data-i18n="figma_link_placeholder">
               </div>
             </div>
 
-            <!-- 7) Responsive стилі -->
-            <button
-              class="btn btn-secondary"
-              onclick="toggleCheckbox('includeResponsive')"
-              style="display: flex; align-items: center; gap: 8px">
-              <input type="checkbox" id="includeResponsive" checked style="margin: 0">
-              <span data-i18n="include_responsive">Responsive стилі</span>
-              <span class="tooltiptext" data-i18n="include_responsive_tooltip"
-                >Додає media queries</span
+            <div class="input-group">
+              <label for="figmaToken" data-i18n="figma_token"
+                >Figma API Token <span style="color: var(--danger)">*</span></label
               >
-            </button>
-          </div>
-        </div>
-      </div>
+              <div style="display: flex; align-items: center">
+                <span class="indicator red" id="figmaTokenIndicator" title="Token"></span>
+                <input
+                  type="password"
+                  id="figmaToken"
+                  placeholder="Get from figma.com/developers/api | Отримайте на figma.com/developers/api | Von figma.com/developers/api abrufen"
+                  data-i18n="figma_token_placeholder">
+              </div>
+            </div>
 
-      <!-- Tab: Figma інтеграція -->
-      <div class="tab-content" id="figmaTab">
-        <div class="section" id="figmaAuthSection">
-          <h2 class="section-title" data-i18n="figma_integration">🎨 Figma Integration</h2>
-
-          <div class="input-group">
-            <label for="figmaLink" data-i18n="figma_link">Figma File URL</label>
-            <div style="display: flex; align-items: center">
-              <span class="indicator red" id="figmaLinkIndicator" title="Link"></span>
-              <input
-                type="text"
-                id="figmaLink"
-                placeholder="https://www.figma.com/file/... | Посилання на Figma файл | Figma Datei Link"
-                data-i18n="figma_link_placeholder">
+            <div class="controls-row">
+              <button class="btn btn-primary" onclick="loadFigmaCanvases()" data-i18n="load_canvas">
+                📋 Завантажити Canvas
+              </button>
+              <a
+                href="https://www.figma.com/developers/api#access-tokens"
+                target="_blank"
+                class="btn btn-secondary"
+                data-i18n="get_token">
+                🔑 Отримати Token
+              </a>
             </div>
           </div>
 
-          <div class="input-group">
-            <label for="figmaToken" data-i18n="figma_token"
-              >Figma API Token <span style="color: var(--danger)">*</span></label
+          <!-- Canvas список -->
+          <div class="section" id="canvasSection" style="display: none">
+            <h2 class="section-title" data-i18n="canvas_selection">📋 Вибір Canvas</h2>
+            <div class="controls-row">
+              <div class="controls-group">
+                <button class="btn btn-secondary" onclick="selectAllCanvas()" data-i18n="select_all"
+                  >✅ Всі</button
+                >
+                <button
+                  class="btn btn-secondary"
+                  onclick="clearCanvasSelection()"
+                  data-i18n="clear_all"
+                  >❌ Очистити</button
+                >
+              </div>
+              <div class="controls-group">
+                <button
+                  class="btn btn-primary"
+                  onclick="requestLayerStyles()"
+                  data-i18n="get_styles"
+                  >🎯 Отримати стилі</button
+                >
+                <!-- ✅ FIX: Виправлено назви функцій для імпорту -->
+                <button class="btn btn-success" onclick="importImages()" data-i18n="import_images"
+                  >🖼️ Імпорт зображень</button
+                >
+                <button class="btn btn-success" onclick="importFonts()" data-i18n="import_fonts"
+                  >🔤 Імпорт шрифтів</button
+                >
+              </div>
+            </div>
+            <div class="list-container" id="canvasList"></div>
+          </div>
+
+          <!-- Layers список -->
+          <div class="section" id="layersSection" style="display: none">
+            <h2 class="section-title" data-i18n="layers_selection">🎨 Вибір Layers</h2>
+            <div class="controls-row">
+              <div class="input-group" style="margin: 0; position: relative">
+                <input
+                  type="text"
+                  id="layersSearch"
+                  data-i18n="search_layers"
+                  placeholder="Пошук по Layers... | Search Layers... | Layers suchen..."
+                  style="padding-right: 40px">
+                <button
+                  class="btn btn-secondary"
+                  onclick="clearLayersSearch()"
+                  style="
+                    position: absolute;
+                    right: 4px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    padding: 2px 6px;
+                    font-size: 12px;
+                    min-width: auto;
+                    opacity: 0.7;
+                  "
+                  data-i18n="clear_search"
+                  title="Очистити пошук"
+                  >✖</button
+                >
+              </div>
+              <div class="controls-group">
+                <button class="btn btn-secondary" onclick="selectAllLayers()" data-i18n="select_all"
+                  >✅ Всі</button
+                >
+                <button
+                  class="btn btn-secondary"
+                  onclick="clearLayersSelection()"
+                  data-i18n="clear_all"
+                  >❌ Очистити</button
+                >
+              </div>
+              <div class="controls-group">
+                <button
+                  class="btn btn-primary"
+                  onclick="requestLayerStyles()"
+                  data-i18n="get_styles"
+                  >🎯 Отримати стилі</button
+                >
+                <button class="btn btn-success" onclick="copyAllStyles()" data-i18n="copy_all"
+                  >📋 Копіювати все</button
+                >
+              </div>
+            </div>
+            <div class="list-container" id="layersList"></div>
+          </div>
+        </div>
+
+        <!-- Tab: Розширені налаштування -->
+        <div class="tab-content" id="advancedTab">
+          <div class="section">
+            <h2 class="section-title" data-i18n="advanced_settings">🔧 Розширені налаштування</h2>
+
+            <div class="input-group">
+              <label for="confidenceThreshold" data-i18n="confidence_threshold"
+                >Поріг співпадіння</label
+              >
+              <input type="range" id="confidenceThreshold" min="0" max="100" value="70">
+              <span id="confidenceValue">70%</span>
+            </div>
+
+            <div class="input-group">
+              <label for="outputFormat" data-i18n="output_format">Формат виводу</label>
+              <select id="outputFormat">
+                <option value="expanded" data-i18n="expanded_format">Розгорнутий</option>
+                <option value="compressed" data-i18n="compressed_format">Стиснутий</option>
+                <option value="minified" data-i18n="minified_format">Мініфікований</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <!-- Sidebar для стилів -->
+        <aside class="styles-sidebar" id="stylesSidebar">
+          <div class="styles-sidebar-header">
+            <div class="styles-sidebar-title" data-i18n="selected_layers_styles"
+              >🧩 Стилі вибраних Layers</div
             >
-            <div style="display: flex; align-items: center">
-              <span class="indicator red" id="figmaTokenIndicator" title="Token"></span>
-              <input
-                type="password"
-                id="figmaToken"
-                placeholder="Get from figma.com/developers/api | Отримайте на figma.com/developers/api | Von figma.com/developers/api abrufen"
-                data-i18n="figma_token_placeholder">
-            </div>
-          </div>
-
-          <div class="controls-row">
-            <button class="btn btn-primary" onclick="loadFigmaCanvases()" data-i18n="load_canvas">
-              📋 Завантажити Canvas
-            </button>
-            <a
-              href="https://www.figma.com/developers/api#access-tokens"
-              target="_blank"
-              class="btn btn-secondary"
-              data-i18n="get_token">
-              🔑 Отримати Token
-            </a>
-          </div>
-        </div>
-
-        <!-- Canvas список -->
-        <div class="section" id="canvasSection" style="display: none">
-          <h2 class="section-title" data-i18n="canvas_selection">📋 Вибір Canvas</h2>
-          <div class="controls-row">
             <div class="controls-group">
-              <button class="btn btn-secondary" onclick="selectAllCanvas()" data-i18n="select_all"
-                >✅ Всі</button
-              >
-              <button
-                class="btn btn-secondary"
-                onclick="clearCanvasSelection()"
-                data-i18n="clear_all"
-                >❌ Очистити</button
-              >
-            </div>
-            <div class="controls-group">
-              <button class="btn btn-primary" onclick="requestLayerStyles()" data-i18n="get_styles"
-                >🎯 Отримати стилі</button
-              >
-              <!-- ✅ FIX: Виправлено назви функцій для імпорту -->
-              <button class="btn btn-success" onclick="importImages()" data-i18n="import_images"
-                >🖼️ Імпорт зображень</button
-              >
-              <button class="btn btn-success" onclick="importFonts()" data-i18n="import_fonts"
-                >🔤 Імпорт шрифтів</button
-              >
-            </div>
-          </div>
-          <div class="list-container" id="canvasList"></div>
-        </div>
-
-        <!-- Layers список -->
-        <div class="section" id="layersSection" style="display: none">
-          <h2 class="section-title" data-i18n="layers_selection">🎨 Вибір Layers</h2>
-          <div class="controls-row">
-            <div class="input-group" style="margin: 0; position: relative">
-              <input
-                type="text"
-                id="layersSearch"
-                data-i18n="search_layers"
-                placeholder="Пошук по Layers... | Search Layers... | Layers suchen..."
-                style="padding-right: 40px">
-              <button
-                class="btn btn-secondary"
-                onclick="clearLayersSearch()"
-                style="
-                  position: absolute;
-                  right: 4px;
-                  top: 50%;
-                  transform: translateY(-50%);
-                  padding: 2px 6px;
-                  font-size: 12px;
-                  min-width: auto;
-                  opacity: 0.7;
-                "
-                data-i18n="clear_search"
-                title="Очистити пошук"
+              <button class="btn btn-secondary" onclick="toggleSidebar(false)" data-i18n="close"
                 >✖</button
               >
-            </div>
-            <div class="controls-group">
-              <button class="btn btn-secondary" onclick="selectAllLayers()" data-i18n="select_all"
-                >✅ Всі</button
-              >
               <button
-                class="btn btn-secondary"
-                onclick="clearLayersSelection()"
-                data-i18n="clear_all"
-                >❌ Очистити</button
-              >
-            </div>
-            <div class="controls-group">
-              <button class="btn btn-primary" onclick="requestLayerStyles()" data-i18n="get_styles"
-                >🎯 Отримати стилі</button
+                class="btn btn-primary"
+                onclick="saveStylesToCustom()"
+                data-i18n="save_to_custom"
+                >💾 Записати в користувацькі стилі</button
               >
               <button class="btn btn-success" onclick="copyAllStyles()" data-i18n="copy_all"
                 >📋 Копіювати все</button
               >
             </div>
           </div>
-          <div class="list-container" id="layersList"></div>
-        </div>
+          <div class="styles-sidebar-content" id="stylesContent"></div>
+        </aside>
       </div>
 
-      <!-- Tab: Розширені налаштування -->
-      <div class="tab-content" id="advancedTab">
-        <div class="section">
-          <h2 class="section-title" data-i18n="advanced_settings">🔧 Розширені налаштування</h2>
-
-          <div class="input-group">
-            <label for="confidenceThreshold" data-i18n="confidence_threshold"
-              >Поріг співпадіння</label
-            >
-            <input type="range" id="confidenceThreshold" min="0" max="100" value="70">
-            <span id="confidenceValue">70%</span>
-          </div>
-
-          <div class="input-group">
-            <label for="outputFormat" data-i18n="output_format">Формат виводу</label>
-            <select id="outputFormat">
-              <option value="expanded" data-i18n="expanded_format">Розгорнутий</option>
-              <option value="compressed" data-i18n="compressed_format">Стиснутий</option>
-              <option value="minified" data-i18n="minified_format">Мініфікований</option>
-            </select>
-          </div>
-        </div>
+      <!-- ✅ Панель дій - динамічний вміст ✅ -->
+      <div id="actionsPanel" class="actions-panel">
+        <!-- Динамічний контент буде вставлятися тут -->
       </div>
-      <!-- Sidebar для стилів -->
-      <aside class="styles-sidebar" id="stylesSidebar">
-        <div class="styles-sidebar-header">
-          <div class="styles-sidebar-title" data-i18n="selected_layers_styles"
-            >🧩 Стилі вибраних Layers</div
-          >
-          <div class="controls-group">
-            <button class="btn btn-secondary" onclick="toggleSidebar(false)" data-i18n="close"
-              >✖</button
-            >
-            <button
-              class="btn btn-primary"
-              onclick="saveStylesToCustom()"
-              data-i18n="save_to_custom"
-              >💾 Записати в користувацькі стилі</button
-            >
-            <button class="btn btn-success" onclick="copyAllStyles()" data-i18n="copy_all"
-              >📋 Копіювати все</button
-            >
-          </div>
-        </div>
-        <div class="styles-sidebar-content" id="stylesContent"></div>
-      </aside>
     </div>
-
-    <!-- ✅ Панель дій - динамічний вміст ✅ -->
-    <div id="actionsPanel" class="actions-panel">
-      <!-- Динамічний контент буде вставлятися тут -->
-    </div>
-
     <script>
       // ✅ FIX: VSCode API та глобальні змінні - лінія 780-790 ✅
       let vscode
@@ -5857,119 +5885,126 @@ p {
       }
 
       // ✅ Динамічна панель дій - завжди внизу вьюпорта ✅
-      
+
       // Конфігурації для різних контекстів панелі дій
       const actionPanelConfigs = {
         default: [
-          { text: '📂 Завантажити', action: 'loadLastSettings()', class: 'btn-secondary' },
-          { text: '💾 Зберегти', action: 'saveSettings()', class: 'btn-secondary' },
-          { text: '🗑️ Очистити', action: 'clearSettings()', class: 'btn-secondary' },
-          { text: '🇺🇦 🚀 Генерувати CSS', action: 'generateCSS()', class: 'btn-primary', id: 'generateBtn' }
+          {text: "📂 Завантажити", action: "loadLastSettings()", class: "btn-secondary"},
+          {text: "💾 Зберегти", action: "saveSettings()", class: "btn-secondary"},
+          {text: "🗑️ Очистити", action: "clearSettings()", class: "btn-secondary"},
+          {
+            text: "🇺🇦 🚀 Генерувати CSS",
+            action: "generateCSS()",
+            class: "btn-primary",
+            id: "generateBtn"
+          }
         ],
         generating: [
-          { text: '⏳ Генерація...', action: '', class: 'btn-secondary', disabled: true },
-          { text: '❌ Скасувати', action: 'cancelGeneration()', class: 'btn-danger' }
+          {text: "⏳ Генерація...", action: "", class: "btn-secondary", disabled: true},
+          {text: "❌ Скасувати", action: "cancelGeneration()", class: "btn-danger"}
         ],
         completed: [
-          { text: '📋 Копіювати CSS', action: 'copyGeneratedCSS()', class: 'btn-success' },
-          { text: '💾 Зберегти CSS', action: 'saveGeneratedCSS()', class: 'btn-primary' },
-          { text: '🔄 Нова генерація', action: 'resetToDefault()', class: 'btn-secondary' }
+          {text: "📋 Копіювати CSS", action: "copyGeneratedCSS()", class: "btn-success"},
+          {text: "💾 Зберегти CSS", action: "saveGeneratedCSS()", class: "btn-primary"},
+          {text: "🔄 Нова генерація", action: "resetToDefault()", class: "btn-secondary"}
         ],
         error: [
-          { text: '🔄 Спробувати знову', action: 'generateCSS()', class: 'btn-warning' },
-          { text: '📋 Копіювати помилку', action: 'copyError()', class: 'btn-secondary' },
-          { text: '🏠 На головну', action: 'resetToDefault()', class: 'btn-primary' }
+          {text: "🔄 Спробувати знову", action: "generateCSS()", class: "btn-warning"},
+          {text: "📋 Копіювати помилку", action: "copyError()", class: "btn-secondary"},
+          {text: "🏠 На головну", action: "resetToDefault()", class: "btn-primary"}
         ]
       }
 
       // Функція для оновлення вмісту панелі дій
-      function updateActionsPanel(configName = 'default') {
-        const panel = document.getElementById('actionsPanel')
+      function updateActionsPanel(configName = "default") {
+        const panel = document.getElementById("actionsPanel")
         const config = actionPanelConfigs[configName] || actionPanelConfigs.default
-        
+
         // Очищуємо панель
-        panel.innerHTML = ''
-        
+        panel.innerHTML = ""
+
         // Додаємо кнопки згідно конфігурації
         config.forEach(buttonConfig => {
-          const button = document.createElement('button')
+          const button = document.createElement("button")
           button.className = `btn ${buttonConfig.class}`
           button.textContent = buttonConfig.text
-          
+
           if (buttonConfig.id) {
             button.id = buttonConfig.id
           }
-          
+
           if (buttonConfig.disabled) {
             button.disabled = true
           }
-          
+
           if (buttonConfig.action) {
-            button.setAttribute('onclick', buttonConfig.action)
+            button.setAttribute("onclick", buttonConfig.action)
           }
-          
+
           panel.appendChild(button)
         })
-        
+
         console.log(`🎯 Панель дій оновлена: ${configName}`)
       }
 
       // Функції для зміни стану панелі
       window.setActionsPanel = updateActionsPanel
-      
-      window.resetToDefault = function() {
-        updateActionsPanel('default')
+
+      window.resetToDefault = function () {
+        updateActionsPanel("default")
       }
-      
-      window.cancelGeneration = function() {
+
+      window.cancelGeneration = function () {
         // Логіка скасування генерації
-        showStatus('❌ Генерацію скасовано', 'warning')
-        updateActionsPanel('default')
+        showStatus("❌ Генерацію скасовано", "warning")
+        updateActionsPanel("default")
       }
-      
-      window.copyGeneratedCSS = function() {
+
+      window.copyGeneratedCSS = function () {
         // Логіка копіювання CSS
-        showStatus('📋 CSS скопійовано', 'success')
+        showStatus("📋 CSS скопійовано", "success")
       }
-      
-      window.saveGeneratedCSS = function() {
+
+      window.saveGeneratedCSS = function () {
         // Логіка збереження CSS
-        showStatus('💾 CSS збережено', 'success')
+        showStatus("💾 CSS збережено", "success")
       }
-      
-      window.copyError = function() {
+
+      window.copyError = function () {
         // Логіка копіювання помилки
-        showStatus('📋 Помилку скопійовано', 'info')
+        showStatus("📋 Помилку скопійовано", "info")
       }
 
       // Модифікуємо існуючу функцію generateCSS для демонстрації
       const originalGenerateCSS = window.generateCSS
-      window.generateCSS = function() {
-        console.log('🖱️ Generate CSS button clicked!')
-        
+      window.generateCSS = function () {
+        console.log("🖱️ Generate CSS button clicked!")
+
         // Змінюємо панель на стан генерації
-        updateActionsPanel('generating')
-        
+        updateActionsPanel("generating")
+
         // Симуляція процесу генерації
         setTimeout(() => {
-          if (Math.random() > 0.3) { // 70% успіх
-            updateActionsPanel('completed')
-            showStatus('✅ CSS успішно згенеровано', 'success')
-          } else { // 30% помилка
-            updateActionsPanel('error')
-            showStatus('❌ Помилка генерації CSS', 'error')
+          if (Math.random() > 0.3) {
+            // 70% успіх
+            updateActionsPanel("completed")
+            showStatus("✅ CSS успішно згенеровано", "success")
+          } else {
+            // 30% помилка
+            updateActionsPanel("error")
+            showStatus("❌ Помилка генерації CSS", "error")
           }
         }, 2000)
-        
+
         // Викликаємо оригінальну функцію якщо вона існує
-        if (originalGenerateCSS && typeof originalGenerateCSS === 'function') {
+        if (originalGenerateCSS && typeof originalGenerateCSS === "function") {
           originalGenerateCSS()
         }
       }
 
       // Ініціалізація панелі при завантаженні
-      document.addEventListener('DOMContentLoaded', () => {
-        updateActionsPanel('default')
+      document.addEventListener("DOMContentLoaded", () => {
+        updateActionsPanel("default")
       })
 
       // ✅ ВИПРАВЛЕННЯ: Початкова ініціалізація ✅
