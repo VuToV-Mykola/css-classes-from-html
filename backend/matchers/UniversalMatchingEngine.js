@@ -315,7 +315,7 @@ class UniversalMatchingEngine {
 
     if (confidence >= this.options.thresholds.low) {
       console.log(
-        `✅ Співставлення: ${figmaNode.name || figmaNode.type} ↔ ${htmlElement.tagName}.${htmlElement.className || "no-class"} (${(confidence * 100).toFixed(1)}%)`
+        `✅ Співставлення: ${figmaNode.name || figmaNode.type} ↔ ${htmlElement.tagName || 'unknown'}.${htmlElement.className || "no-class"} (${(confidence * 100).toFixed(1)}%)`
       )
 
       return {
@@ -330,8 +330,8 @@ class UniversalMatchingEngine {
           index: index,
           isDirectMatch: true,
           figmaType: figmaNode.type,
-          htmlTag: htmlElement.tagName,
-          htmlClass: htmlElement.className
+          htmlTag: htmlElement.tagName || 'unknown',
+          htmlClass: htmlElement.className || ''
         }
       }
     }
@@ -353,7 +353,7 @@ class UniversalMatchingEngine {
     confidence += positionScore * 0.3
 
     // ✅ FIX: Типовий коефіцієнт (25%)
-    const typeScore = this.calculateTypeSimilarity(figmaNode.type, htmlElement.tagName)
+    const typeScore = this.calculateTypeSimilarity(figmaNode.type, htmlElement.tagName || 'unknown')
     confidence += typeScore * 0.25
 
     // ✅ FIX: Розмірний коефіцієнт (25%)
@@ -427,7 +427,7 @@ class UniversalMatchingEngine {
       return 0
     }
     // Теорія ймовірностей: P(match) = P(type) * P(size) * P(position) * P(semantic)
-    const pType = this.calculateTypeSimilarity(figmaNode.type, htmlElement.tagName)
+    const pType = this.calculateTypeSimilarity(figmaNode.type, htmlElement.tagName || 'unknown')
     const pSize = this.calculateSizeSimilarity(figmaNode, htmlElement)
     const pPosition = this.calculatePositionProbability(
       figmaNode,
@@ -482,7 +482,7 @@ class UniversalMatchingEngine {
               console.log(`   Figma: "${figmaNode.characters}"`)
               console.log(`   HTML:  "${textContent}"`)
               console.log(
-                `   Елемент: ${htmlElement.tagName}.${htmlElement.className || "no-class"}`
+                `   Елемент: ${htmlElement.tagName || 'unknown'}.${htmlElement.className || "no-class"}`
               )
 
               matches.push({
@@ -576,8 +576,8 @@ class UniversalMatchingEngine {
                   semanticScore,
                   positionScore,
                   figmaName: figmaNode.name,
-                  htmlTag: htmlElement.tagName.toLowerCase(),
-                  htmlClass: htmlElement.className
+                  htmlTag: (htmlElement.tagName || '').toLowerCase(),
+                  htmlClass: htmlElement.className || ''
                 }
               })
             }
@@ -621,7 +621,7 @@ class UniversalMatchingEngine {
                   semanticScore,
                   contextScore,
                   figmaType: figmaNode.type,
-                  htmlTag: htmlElement.tagName.toLowerCase()
+                  htmlTag: (htmlElement.tagName || '').toLowerCase()
                 }
               })
             }
@@ -874,7 +874,7 @@ class UniversalMatchingEngine {
       return 0
     }
     const figmaType = figmaNode.type || UNKNOWN
-    const htmlTag = htmlElement.tagName.toLowerCase() || UNKNOWN
+    const htmlTag = (htmlElement.tagName || '').toLowerCase() || UNKNOWN
 
     const typeMapping = {
       TEXT: ["h1", "h2", "h3", "h4", "h5", "h6", "p", "span", "a", "button", "label"],
@@ -1387,7 +1387,7 @@ class UniversalMatchingEngine {
     }
 
     const figmaPosition = typeMapping[figmaNode.type] || 5
-    const htmlPosition = this.getHtmlElementPriority(htmlElement.tagName)
+    const htmlPosition = this.getHtmlElementPriority(htmlElement.tagName || 'unknown')
 
     return Math.abs(figmaPosition - htmlPosition)
   }

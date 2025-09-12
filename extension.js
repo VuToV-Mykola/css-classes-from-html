@@ -1,4 +1,4 @@
-// ✅ CSS Classes from HTML Extension v0.0.8 - FIXED UniversalMatchingEngine htmlElement errors
+// ✅ CSS Classes from HTML Extension v0.0.7 - FIXED UniversalMatchingEngine null safety
 // Автоматична генерація CSS класів з HTML файлів з реальною інтеграцією Figma
 // Версія з виправленою проблемою передачі контексту HTML файлу
 

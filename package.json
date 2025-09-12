@@ -1,8 +1,8 @@
 {
   "name": "css-classes-from-html",
-  "displayName": "CSS Classes from HTML v0.0.8",
+  "displayName": "CSS Classes from HTML v0.0.7",
   "description": "Автоматична генерація CSS класів з HTML файлів з реальною інтеграцією Figma",
-  "version": "0.0.8",
+  "version": "0.0.7",
   "publisher": "vutov-mykola",
   "author": {
     "name": "VuToV-Mykola",
