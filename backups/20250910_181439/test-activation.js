@@ -22,7 +22,7 @@ checks.forEach(check => {
   if (exists && check.path.endsWith('.js')) {
     try {
       require(check.path);
-      console.log(`   📦 Модуль завантажується успішно`);
+      console.log('   📦 Модуль завантажується успішно');
     } catch (err) {
       console.log(`   ❌ Помилка завантаження: ${err.message}`);
     }

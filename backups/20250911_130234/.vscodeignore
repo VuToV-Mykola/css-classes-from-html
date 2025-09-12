@@ -1,0 +1,67 @@
+# ✅ ОПТИМІЗОВАНИЙ .vscodeignore для css-classes-from-html
+# Файли які виключаються з VSCode розширення при пакуванні
+
+# Системні директорії
+.vscode/**
+.git/**
+.github/**
+# node_modules/** — коментуємо щоб включити залежності в пакет
+# Виключаємо тільки dev dependencies
+node_modules/@types/**
+node_modules/@vscode/**
+node_modules/eslint/**
+node_modules/typescript/**
+
+# Dev/Build файли
+*.log
+*.map
+*.ts
+*.tsbuildinfo
+.DS_Store
+Thumbs.db
+*.vsix
+*.zip
+*.tar.gz
+
+# Тестування та покриття
+test/**
+tests/**
+coverage/**
+**/*.test.js
+**/*.spec.js
+.nyc_output
+
+# Тимчасові директорії
+tmp/**
+temp/**
+.history/
+.cache/
+out/**
+dist/**
+build/**
+builds/**
+
+# Конфігурація середовища
+.env*
+.eslintrc.js
+.prettierrc.json
+.stylelintrc.json
+tsconfig.json
+jsconfig.json
+webpack.config.js
+
+# Логи та звіти
+logs/**
+debugs/**
+backups/**
+*.md
+!README.md
+
+# CI/CD
+.travis.yml
+.appveyor.yml
+.codeclimate.yml
+.coveralls.yml
+
+# Скрипти розробки
+scripts/**

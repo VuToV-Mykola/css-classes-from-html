@@ -306,7 +306,7 @@ function logDebug(message, data = null) {
     const line = `[${ts}] ${message}${suffix}`;
     outputChannel?.appendLine(line);
     if (logFilePath) {
-      try { fs.appendFileSync(logFilePath, line + "\n", 'utf8'); } catch (_e) {}
+      try { fs.appendFileSync(logFilePath, line + '\n', 'utf8'); } catch (_e) {}
     }
   } catch (_e) {}
 }
@@ -994,7 +994,7 @@ async function handleGenerateCSS(panel, settings) {
             
             // Додаємо статистику
             const stats = cssGenerator.statistics;
-            outputChannel?.appendLine(`📈 CSS Generation Stats:`);
+            outputChannel?.appendLine('📈 CSS Generation Stats:');
             outputChannel?.appendLine(`   • Matched elements: ${stats.matchedElements}`);
             outputChannel?.appendLine(`   • Unmatched elements: ${stats.unmatchedElements}`);
             outputChannel?.appendLine(`   • Matching accuracy: ${(stats.matchingAccuracy * 100).toFixed(1)}%`);
@@ -1309,33 +1309,33 @@ function getHeuristicStylesForTag(tag) {
   switch (tag) {
   case 'button':
     return [
-      "display: inline-flex;",
-      "align-items: center;",
-      "justify-content: center;",
-      "gap: 0.5rem;",
-      "padding: 0.5rem 1rem;",
-      "border-radius: var(--border-radius);",
-      "background: var(--primary-color);",
-      "color: #fff;",
-      "border: none;",
-      "cursor: pointer;"
+      'display: inline-flex;',
+      'align-items: center;',
+      'justify-content: center;',
+      'gap: 0.5rem;',
+      'padding: 0.5rem 1rem;',
+      'border-radius: var(--border-radius);',
+      'background: var(--primary-color);',
+      'color: #fff;',
+      'border: none;',
+      'cursor: pointer;'
     ];
   case 'a':
-    return ["color: var(--primary-color);", "text-decoration: none;"];
+    return ['color: var(--primary-color);', 'text-decoration: none;'];
   case 'img':
-    return ["display: block;", "max-width: 100%;", "height: auto;"];
+    return ['display: block;', 'max-width: 100%;', 'height: auto;'];
   case 'ul':
   case 'ol':
-    return ["list-style: none;", "padding-left: 0;"];
+    return ['list-style: none;', 'padding-left: 0;'];
   case 'nav':
   case 'header':
   case 'footer':
-    return ["display: flex;", "align-items: center;", "gap: var(--spacing-md);"];
+    return ['display: flex;', 'align-items: center;', 'gap: var(--spacing-md);'];
   case 'section':
   case 'main':
   case 'article':
   case 'div':
-    return ["display: block;"];
+    return ['display: block;'];
   default:
     return [];
   }
@@ -1347,28 +1347,28 @@ function getHeuristicStylesForClass(className) {
 
   const has = (s) => cn.includes(s);
 
-  if (has('container')) styles.push("max-width: 1200px;", "margin: 0 auto;", "padding: 0 var(--spacing-md);");
-  if (has('grid')) styles.push("display: grid;", "gap: var(--spacing-md);");
-  if (has('row')) styles.push("display: flex;", "flex-wrap: wrap;", "gap: var(--spacing-md);");
-  if (has('col') || /^col-/.test(cn)) styles.push("flex: 1 1 0%;", "min-width: 0;");
-  if (has('btn') || has('button')) styles.push("display: inline-flex;", "align-items: center;", "justify-content: center;", "gap: 0.5rem;", "padding: 0.5rem 1rem;", "border-radius: var(--border-radius);", "background: var(--primary-color);", "color: #fff;", "border: none;", "cursor: pointer;");
-  if (has('link')) styles.push("color: var(--primary-color);", "text-decoration: none;");
-  if (has('card')) styles.push("background: #fff;", "border: 1px solid var(--border-color);", "border-radius: var(--border-radius);", "box-shadow: 0 1px 3px rgba(0,0,0,0.08);", "padding: var(--spacing-md);");
-  if (has('list')) styles.push("list-style: none;", "padding-left: 0;");
-  if (has('item')) styles.push("display: flex;", "align-items: center;", "gap: var(--spacing-sm);");
-  if (has('title') || has('heading')) styles.push("font-weight: 600;", "line-height: 1.25;");
-  if (has('subtitle')) styles.push("color: #6c757d;");
-  if (has('text-center')) styles.push("text-align: center;");
-  if (has('text-right')) styles.push("text-align: right;");
-  if (has('text-left')) styles.push("text-align: left;");
-  if (has('nav')) styles.push("display: flex;", "align-items: center;", "gap: var(--spacing-md);");
-  if (has('header') || has('footer')) styles.push("display: flex;", "align-items: center;", "gap: var(--spacing-md);");
-  if (has('badge')) styles.push("display: inline-block;", "padding: 0.25rem 0.5rem;", "border-radius: 9999px;", "background: var(--secondary-color);", "color: #fff;");
-  if (has('alert')) styles.push("padding: var(--spacing-md);", "border-radius: var(--border-radius);", "background: #fff3cd;", "color: #664d03;", "border: 1px solid #ffecb5;");
-  if (has('modal')) styles.push("position: fixed;", "inset: 0;", "display: none;", "align-items: center;", "justify-content: center;", "background: rgba(0,0,0,0.5);");
-  if (has('table')) styles.push("width: 100%;", "border-collapse: collapse;");
-  if (has('image') || has('img')) styles.push("display: block;", "max-width: 100%;", "height: auto;");
-  if (has('icon')) styles.push("display: inline-block;", "width: 1em;", "height: 1em;", "vertical-align: -0.125em;");
+  if (has('container')) styles.push('max-width: 1200px;', 'margin: 0 auto;', 'padding: 0 var(--spacing-md);');
+  if (has('grid')) styles.push('display: grid;', 'gap: var(--spacing-md);');
+  if (has('row')) styles.push('display: flex;', 'flex-wrap: wrap;', 'gap: var(--spacing-md);');
+  if (has('col') || /^col-/.test(cn)) styles.push('flex: 1 1 0%;', 'min-width: 0;');
+  if (has('btn') || has('button')) styles.push('display: inline-flex;', 'align-items: center;', 'justify-content: center;', 'gap: 0.5rem;', 'padding: 0.5rem 1rem;', 'border-radius: var(--border-radius);', 'background: var(--primary-color);', 'color: #fff;', 'border: none;', 'cursor: pointer;');
+  if (has('link')) styles.push('color: var(--primary-color);', 'text-decoration: none;');
+  if (has('card')) styles.push('background: #fff;', 'border: 1px solid var(--border-color);', 'border-radius: var(--border-radius);', 'box-shadow: 0 1px 3px rgba(0,0,0,0.08);', 'padding: var(--spacing-md);');
+  if (has('list')) styles.push('list-style: none;', 'padding-left: 0;');
+  if (has('item')) styles.push('display: flex;', 'align-items: center;', 'gap: var(--spacing-sm);');
+  if (has('title') || has('heading')) styles.push('font-weight: 600;', 'line-height: 1.25;');
+  if (has('subtitle')) styles.push('color: #6c757d;');
+  if (has('text-center')) styles.push('text-align: center;');
+  if (has('text-right')) styles.push('text-align: right;');
+  if (has('text-left')) styles.push('text-align: left;');
+  if (has('nav')) styles.push('display: flex;', 'align-items: center;', 'gap: var(--spacing-md);');
+  if (has('header') || has('footer')) styles.push('display: flex;', 'align-items: center;', 'gap: var(--spacing-md);');
+  if (has('badge')) styles.push('display: inline-block;', 'padding: 0.25rem 0.5rem;', 'border-radius: 9999px;', 'background: var(--secondary-color);', 'color: #fff;');
+  if (has('alert')) styles.push('padding: var(--spacing-md);', 'border-radius: var(--border-radius);', 'background: #fff3cd;', 'color: #664d03;', 'border: 1px solid #ffecb5;');
+  if (has('modal')) styles.push('position: fixed;', 'inset: 0;', 'display: none;', 'align-items: center;', 'justify-content: center;', 'background: rgba(0,0,0,0.5);');
+  if (has('table')) styles.push('width: 100%;', 'border-collapse: collapse;');
+  if (has('image') || has('img')) styles.push('display: block;', 'max-width: 100%;', 'height: auto;');
+  if (has('icon')) styles.push('display: inline-block;', 'width: 1em;', 'height: 1em;', 'vertical-align: -0.125em;');
 
   return styles;
 }

@@ -1,7 +1,3 @@
-[0;32m✅ Отримано заголовок з docs/README.de.md (37 рядків)[0m
-[0;32m✅ Отримано заголовок з docs/README.de.md (37 рядків)[0m
-# 🎨 CSS Classes from HTML - Figma Integration
-
 ### 🌐 Виберіть мову/Choose language/Wählen Sprache:
 [🇺🇦 Українська](README.md) | [🇬🇧 English](README.en.md) | [🇩🇪 Deutsch](README.de.md)
 

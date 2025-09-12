@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест WebView - CSS Classes from HTML</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            background: #1e1e1e;
+            color: #cccccc;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #444;
+            border-radius: 8px;
+        }
+        .test-button {
+            margin: 5px;
+            padding: 8px 16px;
+            background: #007acc;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .test-button:hover {
+            background: #005a9e;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            background: #333;
+        }
+        .error { background: #722f37; }
+        .success { background: #2d5a2d; }
+        .warning { background: #5a4a2d; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Тест WebView функцій</h1>
+    
+    <div class="test-section">
+        <h2>HTML Context функції</h2>
+        <button class="test-button" onclick="testSelectHTMLFile()">Тест selectHTMLFile()</button>
+        <button class="test-button" onclick="testRefreshHTMLContext()">Тест refreshHTMLContext()</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Figma функції</h2>
+        <button class="test-button" onclick="testLoadCanvas()">Тест loadCanvas()</button>
+        <button class="test-button" onclick="testGetFigmaToken()">Тест getFigmaToken()</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Canvas функції</h2>
+        <button class="test-button" onclick="testSelectAllCanvases()">Тест selectAllCanvases()</button>
+        <button class="test-button" onclick="testClearCanvasSelection()">Тест clearCanvasSelection()</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Layers функції</h2>
+        <button class="test-button" onclick="testSelectAllLayers()">Тест selectAllLayers()</button>
+        <button class="test-button" onclick="testClearLayerSelection()">Тест clearLayerSelection()</button>
+        <button class="test-button" onclick="testRequestLayerStyles()">Тест requestLayerStyles()</button>
+        <button class="test-button" onclick="testCopyAllStyles()">Тест copyAllStyles()</button>
+    </div>
+
+    <div id="testResults" class="status">
+        Результати тестів з'являться тут...
+    </div>
+
+    <script>
+        // Мок VS Code API для тестування
+        window.acquireVsCodeApi = function() {
+            return {
+                postMessage: function(message) {
+                    console.log('📤 Mock VS Code API message:', message);
+                    showTestResult(`VS Code API виклик: ${message.command}`, 'success');
+                }
+            };
+        };
+
+        function showTestResult(message, type = 'info') {
+            const results = document.getElementById('testResults');
+            results.textContent = message;
+            results.className = `status ${type}`;
+            console.log(`🧪 Test: ${message}`);
+        }
+
+        // Тестові функції
+        function testSelectHTMLFile() {
+            try {
+                if (typeof window.selectHTMLFile === 'function') {
+                    window.selectHTMLFile();
+                    showTestResult('✅ selectHTMLFile() працює', 'success');
+                } else {
+                    showTestResult('❌ selectHTMLFile() не знайдена', 'error');
+                }
+            } catch (error) {
+                showTestResult(`❌ selectHTMLFile() помилка: ${error.message}`, 'error');
+            }
+        }
+
+        function testRefreshHTMLContext() {
+            try {
+                if (typeof window.refreshHTMLContext === 'function') {
+                    window.refreshHTMLContext();
+                    showTestResult('✅ refreshHTMLContext() працює', 'success');
+                } else {
+                    showTestResult('❌ refreshHTMLContext() не знайдена', 'error');
+                }
+            } catch (error) {
+                showTestResult(`❌ refreshHTMLContext() помилка: ${error.message}`, 'error');
+            }
+        }
+
+        function testLoadCanvas() {
+            try {
+                // Створюємо мок елементи для тесту
+                if (!document.getElementById('figmaLink')) {
+                    const mockInput1 = document.createElement('input');
+                    mockInput1.id = 'figmaLink';
+                    mockInput1.value = 'https://www.figma.com/file/test123/TestFile';
+                    mockInput1.style.display = 'none';
+                    document.body.appendChild(mockInput1);
+                }
+                
+                if (!document.getElementById('figmaToken')) {
+                    const mockInput2 = document.createElement('input');
+                    mockInput2.id = 'figmaToken';
+                    mockInput2.value = 'figd_test_token_1234567890abcdef';
+                    mockInput2.style.display = 'none';
+                    document.body.appendChild(mockInput2);
+                }
+
+                if (typeof window.loadCanvas === 'function') {
+                    window.loadCanvas();
+                    showTestResult('✅ loadCanvas() працює', 'success');
+                } else {
+                    showTestResult('❌ loadCanvas() не знайдена', 'error');
+                }
+            } catch (error) {
+                showTestResult(`❌ loadCanvas() помилка: ${error.message}`, 'error');
+            }
+        }
+
+        function testGetFigmaToken() {
+            try {
+                if (typeof window.getFigmaToken === 'function') {
+                    // Перевизначаємо window.open для тесту
+                    const originalOpen = window.open;
+                    window.open = function(url) {
+                        showTestResult(`✅ getFigmaToken() відкриває: ${url}`, 'success');
+                        return { focus: () => {} };
+                    };
+                    
+                    window.getFigmaToken();
+                    
+                    // Відновлюємо оригінальну функцію
+                    window.open = originalOpen;
+                } else {
+                    showTestResult('❌ getFigmaToken() не знайдена', 'error');
+                }
+            } catch (error) {
+                showTestResult(`❌ getFigmaToken() помилка: ${error.message}`, 'error');
+            }
+        }
+
+        function testSelectAllCanvases() {
+            try {
+                if (typeof window.selectAllCanvases === 'function') {
+                    window.selectAllCanvases();
+                    showTestResult('✅ selectAllCanvases() працює', 'success');
+                } else {
+                    showTestResult('❌ selectAllCanvases() не знайдена', 'error');
+                }
+            } catch (error) {
+                showTestResult(`❌ selectAllCanvases() помилка: ${error.message}`, 'error');
+            }
+        }
+
+        function testClearCanvasSelection() {
+            try {
+                if (typeof window.clearCanvasSelection === 'function') {
+                    window.clearCanvasSelection();
+                    showTestResult('✅ clearCanvasSelection() працює', 'success');
+                } else {
+                    showTestResult('❌ clearCanvasSelection() не знайдена', 'error');
+                }
+            } catch (error) {
+                showTestResult(`❌ clearCanvasSelection() помилка: ${error.message}`, 'error');
+            }
+        }
+
+        function testSelectAllLayers() {
+            try {
+                if (typeof window.selectAllLayers === 'function') {
+                    window.selectAllLayers();
+                    showTestResult('✅ selectAllLayers() працює', 'success');
+                } else {
+                    showTestResult('❌ selectAllLayers() не знайдена', 'error');
+                }
+            } catch (error) {
+                showTestResult(`❌ selectAllLayers() помилка: ${error.message}`, 'error');
+            }
+        }
+
+        function testClearLayerSelection() {
+            try {
+                if (typeof window.clearLayerSelection === 'function') {
+                    window.clearLayerSelection();
+                    showTestResult('✅ clearLayerSelection() працює', 'success');
+                } else {
+                    showTestResult('❌ clearLayerSelection() не знайдена', 'error');
+                }
+            } catch (error) {
+                showTestResult(`❌ clearLayerSelection() помилка: ${error.message}`, 'error');
+            }
+        }
+
+        function testRequestLayerStyles() {
+            try {
+                if (typeof window.requestLayerStyles === 'function') {
+                    window.requestLayerStyles();
+                    showTestResult('✅ requestLayerStyles() працює', 'success');
+                } else {
+                    showTestResult('❌ requestLayerStyles() не знайдена', 'error');
+                }
+            } catch (error) {
+                showTestResult(`❌ requestLayerStyles() помилка: ${error.message}`, 'error');
+            }
+        }
+
+        function testCopyAllStyles() {
+            try {
+                if (typeof window.copyAllStyles === 'function') {
+                    window.copyAllStyles();
+                    showTestResult('✅ copyAllStyles() працює', 'success');
+                } else {
+                    showTestResult('❌ copyAllStyles() не знайдена', 'error');
+                }
+            } catch (error) {
+                showTestResult(`❌ copyAllStyles() помилка: ${error.message}`, 'error');
+            }
+        }
+
+        // Завантажуємо основний скрипт
+        console.log('🔍 Завантаження основного скрипту...');
+    </script>
+    
+    <!-- Завантажуємо основний скрипт -->
+    <script src="backend/scripts/script.js"></script>
+    
+    <script>
+        // Перевіряємо після завантаження
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                console.log('🧪 Перевірка доступності функцій після завантаження...');
+                
+                const requiredFunctions = [
+                    'selectHTMLFile', 'refreshHTMLContext', 'loadCanvas', 'getFigmaToken',
+                    'selectAllCanvases', 'clearCanvasSelection', 'selectAllLayers', 
+                    'clearLayerSelection', 'requestLayerStyles', 'copyAllStyles'
+                ];
+                
+                const availableFunctions = requiredFunctions.filter(fn => typeof window[fn] === 'function');
+                const missingFunctions = requiredFunctions.filter(fn => typeof window[fn] !== 'function');
+                
+                console.log('✅ Доступні функції:', availableFunctions);
+                if (missingFunctions.length > 0) {
+                    console.error('❌ Відсутні функції:', missingFunctions);
+                    showTestResult(`❌ Відсутні функції: ${missingFunctions.join(', ')}`, 'error');
+                } else {
+                    showTestResult('✅ Всі функції завантажені успішно!', 'success');
+                }
+            }, 500);
+        });
+    </script>
+</body>
+</html>

@@ -19,7 +19,7 @@
     "selector-id-pattern": "^[a-z]([a-z0-9-]+)?$",
 
     "property-no-unknown": true,
-    "unit-allowed-list": ["em", "rem", "%", "s", "px", "deg", "vh", "vw", "ms"],
+    "unit-allowed-list": ["em", "rem", "%", "s", "px", "deg", "vh", "vw", "ms", "fr"],
     "no-descending-specificity": true,
     "max-nesting-depth": 3,
     "number-max-precision": 4,

@@ -1,0 +1,4251 @@
+<!DOCTYPE html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Classes from HTML v0.0.7</title>
+    <style>
+      /* ✅ FIX: Компактний адаптивний інтерфейс - лінія 8-600 ✅ */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --primary: #007acc;
+        --primary-dark: #005a9e;
+        --success: #4caf50;
+        --warning: #ff9800;
+        --danger: #f44336;
+        --info: #2196f3;
+        --bg: #1e1e1e;
+        --bg-secondary: #252526;
+        --bg-tertiary: #2d2d30;
+        --text: #cccccc;
+        --text-secondary: #8c8c8c;
+        --border: #3c3c3c;
+        --shadow: rgba(0, 0, 0, 0.3);
+        --footer-h: 64px;
+        --hover-min-h: 140px;
+        
+        /* Адаптивні змінні для status контейнера */
+        --status-width-offset: 180px; /* Відступ для мовного контейнера */
+        --status-margin-right: 4px; /* Мінімальний відступ справа */
+        --status-min-width: 200px; /* Мінімальна ширина */
+        --status-height: 32px; /* Фіксована висота */
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        font-size: 13px;
+        line-height: 1.4;
+      }
+
+      /* ✅ FIX: Контекстна панель HTML файлу - лінія 40-85 ✅ */
+      .html-context-bar {
+        background-color: var(--primary);
+        color: white;
+        padding: 0.5rem 0.75rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 10px var(--shadow);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+
+      .html-context-left {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+      }
+
+      .html-context-title {
+        font-size: 1rem;
+        font-weight: 600;
+        line-height: 1.2;
+      }
+
+      .html-context-subtitle {
+        font-size: 0.75rem;
+        opacity: 0.9;
+        line-height: 1.2;
+      }
+
+      .html-context-right {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+      }
+
+      .html-context-info {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+      }
+
+      .html-context-icon { font-size: 1.2rem; }
+
+      .html-context-details {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .html-context-label {
+        font-size: 0.75rem;
+        opacity: 0.9;
+      }
+
+      .html-context-filename { font-size: 0.9rem; font-weight: 600; }
+
+      .html-context-actions { 
+        display: flex; 
+        gap: 0.35rem; 
+      }
+
+      /* Індикатори валідації Figma */
+      .indicator { 
+        width: 8px; 
+        height: 8px; 
+        border-radius: 50%; 
+        display: inline-block; 
+        border: 1.5px solid rgba(255,255,255,0.6); 
+        margin-right: 0.3rem;
+      }
+      .indicator.red { background: #c0392b; border-color: #e74c3c; }
+      .indicator.green { background: #2ecc71; border-color: #27ae60; }
+      .indicator.yellow { background: #f1c40f; border-color: #f39c12; }
+
+      .btn-context {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        padding: 0.3rem 0.6rem; /* компактніше */
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.7rem; /* компактніше */
+        transition: all 0.2s ease;
+      }
+
+      .btn-context:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-1px);
+      }
+
+      /* Заголовок */
+      .header {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 16px;
+        margin: 0;
+        min-height: 48px;
+        background: var(--bg-secondary);
+        border-bottom: 1px solid var(--border);
+      }
+
+      .header h1 {
+        font-size: 1.2rem;
+        color: var(--primary);
+        margin: 0;
+        flex: 1;
+      }
+
+      .header p {
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        margin: 0;
+      }
+
+      /* Контейнер мов в header праворуч */
+      .header-language-container {
+        position: absolute;
+        top: 50%;
+        right: 8px;
+        transform: translateY(-50%);
+        display: flex !important;
+        align-items: center;
+        gap: 6px;
+        z-index: 200;
+        padding: 4px 8px;
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(5px);
+      }
+
+      .main-container {
+        padding: 1rem;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding-bottom: calc(var(--footer-h) + 16px); /* запобігти перекриттю фіксованим футером */
+      }
+
+      /* Sidebar для стилів вибраних шарів */
+      .layout-with-sidebar {
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        gap: 1rem;
+      }
+
+      .styles-sidebar {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0.8rem;
+        position: sticky;
+        top: 64px;
+        height: calc(100vh - 100px);
+        overflow: hidden;
+        display: none;
+        flex-direction: column;
+      }
+
+      .styles-sidebar.visible { display: flex; }
+
+      .styles-sidebar-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.6rem;
+      }
+
+      .styles-sidebar-title { font-weight: 600; color: var(--primary); }
+
+      .styles-sidebar-content {
+        overflow-y: auto;
+        border-top: 1px solid var(--border);
+        padding-top: 0.6rem;
+        padding-bottom: calc(var(--footer-h) + 16px); /* відступ від фіксованого футера */
+      }
+
+      .style-block {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0.6rem;
+        margin-bottom: 0.6rem;
+      }
+
+      .style-block-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.4rem;
+        font-size: 0.85rem;
+      }
+
+      .code {
+        background: #111315;
+        border: 1px solid #2a2d2e;
+        color: #e6e6e6;
+        padding: 0.6rem;
+        border-radius: 4px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        font-size: 12px;
+        white-space: pre;
+        overflow-x: auto;
+      }
+
+      /* ✅ FIX: Вибір режиму - лінія 125-180 ✅ */
+      .mode-selector {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 0.8rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .mode-card {
+        background: var(--bg-secondary);
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        padding: 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.75rem;
+        height: auto;
+        min-height: 60px;
+      }
+
+      .mode-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 0;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, var(--primary), transparent);
+        transition: width 0.3s ease;
+        opacity: 0.1;
+      }
+
+      .mode-card:hover::before {
+        width: 100%;
+      }
+
+      .mode-card:hover {
+        border-color: var(--primary);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px var(--shadow);
+      }
+
+      .mode-card.selected {
+        border-color: var(--success);
+        background: var(--bg-tertiary);
+      }
+
+      .mode-card.selected::after {
+        content: "✓";
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        background: var(--success);
+        color: white;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+      }
+
+      .mode-icon {
+        font-size: 1.5rem;
+        flex-shrink: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .mode-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+      }
+
+      .mode-title {
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin: 0;
+        color: var(--text);
+        line-height: 1.2;
+      }
+
+      .mode-description {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin: 0;
+        line-height: 1.3;
+      }
+
+
+      /* Секції */
+      .section {
+        background: var(--bg-secondary);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+      }
+
+      .section:hover {
+        box-shadow: 0 2px 8px var(--shadow);
+      }
+
+      .section-title {
+        color: var(--primary);
+        margin-bottom: 0.8rem;
+        font-size: 1rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .input-group {
+        margin-bottom: 0.8rem;
+      }
+
+      .input-group label {
+        display: block;
+        margin-bottom: 0.4rem;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+      }
+
+      .input-group input,
+      .input-group select {
+        width: 100%;
+        padding: 0.6rem;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border);
+        color: var(--text);
+        border-radius: 4px;
+        font-size: 0.85rem;
+        transition: all 0.2s ease;
+      }
+
+      .input-group input:focus,
+      .input-group select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.2);
+      }
+
+      /* ✅ FIX: Списки Canvas та Layers - лінія 260-310 ✅ */
+      .list-container {
+        background: var(--bg-tertiary);
+        border-radius: 6px;
+        padding: 0.5rem;
+        max-height: 300px;
+        overflow-y: auto;
+        margin-bottom: 0.8rem;
+        padding-bottom: calc(var(--footer-h) + 16px); /* уніфікований нижній відступ */
+      }
+
+      /* Layers список на всю висоту вьюпорта мінус хедер і футер */
+      #layersList {
+        max-height: calc(100vh - var(--footer-h) - 200px) !important; /* 200px для хедера та відступів */
+      }
+
+      /* ✅ FIX: Покращена Tree view як на макеті */
+      .tree-item {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 0.8rem;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+        margin: 1px 0;
+        cursor: pointer;
+        border: 1px solid transparent;
+      }
+      .tree-item:hover { 
+        background: var(--bg-secondary); 
+        border-color: var(--border);
+        transform: translateX(2px);
+      }
+      .tree-item:active {
+        background: var(--bg-tertiary);
+        transform: translateX(1px);
+      }
+      
+      /* Іконки для різних типів елементів */
+      .layer-icon {
+        font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+        font-size: 12px;
+        font-weight: bold;
+        min-width: 16px;
+        text-align: center;
+        border-radius: 3px;
+        padding: 2px 4px;
+        background: rgba(255, 255, 255, 0.1);
+      }
+      
+      /* Перемикачі згортання */
+      .tree-toggle {
+        font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+        font-size: 12px;
+        font-weight: bold;
+        min-width: 16px;
+        text-align: center;
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.2s ease;
+        border-radius: 3px;
+        padding: 2px;
+      }
+      .tree-toggle:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: scale(1.1);
+      }
+      .tree-toggle.hidden { 
+        visibility: hidden; 
+        width: 16px;
+      }
+
+      .list-item {
+        display: flex;
+        align-items: center;
+        padding: 0.6rem;
+        margin-bottom: 0.3rem;
+        background: var(--bg-secondary);
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .list-item:hover {
+        background: var(--bg);
+        transform: translateX(2px);
+      }
+
+      .list-item.selected {
+        background: var(--bg);
+        border-left: 3px solid var(--success);
+      }
+
+      .list-item input[type="checkbox"] {
+        margin-right: 0.8rem;
+        cursor: pointer;
+      }
+
+      .list-item-info {
+        flex: 1;
+      }
+
+      .list-item-name {
+        font-weight: 500;
+        color: var(--text);
+        font-size: 0.85rem;
+      }
+
+      .list-item-meta {
+        font-size: 0.7rem;
+        color: var(--text-secondary);
+        margin-top: 0.2rem;
+      }
+
+      /* Кнопки */
+      .btn {
+        padding: 0.6rem 1rem;
+        border: none;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px var(--shadow);
+      }
+
+      .btn:active {
+        transform: translateY(0);
+      }
+
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .btn-primary {
+        background: var(--primary);
+        color: white;
+      }
+
+      .btn-primary:hover:not(:disabled) {
+        background: var(--primary-dark);
+      }
+
+      .btn-success {
+        background: var(--success);
+        color: white;
+      }
+
+      .btn-warning {
+        background: var(--warning);
+        color: white;
+      }
+
+      .btn-danger {
+        background: var(--danger);
+        color: white;
+      }
+
+      .btn-secondary {
+        background: var(--bg-tertiary);
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+
+      .btn-secondary:hover:not(:disabled) {
+        background: var(--bg);
+        border-color: var(--primary);
+      }
+
+      /* ✅ FIX: Статус повідомлення - лінія 375-420 ✅ */
+      .status {
+        /* Адаптивна ширина - майже впритул до мовного контейнера */
+        width: calc(100% - var(--status-width-offset)); /* Використовуємо CSS змінну */
+        height: var(--status-height); /* Використовуємо CSS змінну */
+        max-width: calc(100vw - calc(var(--status-width-offset) + 20px)); /* Адаптивна максимальна ширина */
+        min-width: var(--status-min-width); /* Використовуємо CSS змінну */
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 8px 12px;
+        margin-top: 0;
+        margin-right: var(--status-margin-right); /* Використовуємо CSS змінну */
+        border-radius: 6px;
+        background: transparent; /* Прозорий фон за замовчуванням */
+        border: 1px solid transparent; /* Прозорий border за замовчуванням */
+        transition: all 0.3s ease;
+        font-size: 13px;
+        line-height: 1.4;
+        position: relative;
+        z-index: 10;
+        align-self: center;
+        opacity: 0;
+        color: transparent;
+        box-sizing: border-box; /* Включаємо padding в загальну висоту */
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          /* Видаляємо transform, щоб не було скачків */
+        }
+        to {
+          opacity: 1;
+          /* Видаляємо transform, щоб не було скачків */
+        }
+      }
+
+      .status.show {
+        opacity: 1; /* Показуємо тільки через opacity */
+        animation: slideIn 0.3s ease;
+        /* Не змінюємо висоту або інші розміри */
+      }
+
+      .status.success {
+        background: rgba(76, 175, 80, 0.1) !important;
+        border: 1px solid var(--success) !important;
+        color: var(--success) !important;
+      }
+
+      .status.error {
+        background: rgba(244, 67, 54, 0.1) !important;
+        border: 1px solid var(--danger) !important;
+        color: var(--danger) !important;
+      }
+
+      .status.warning {
+        background: rgba(255, 152, 0, 0.1) !important;
+        border: 1px solid var(--warning) !important;
+        color: var(--warning) !important;
+      }
+
+      .status.info {
+        background: rgba(33, 150, 243, 0.1) !important;
+        border: 1px solid var(--info) !important;
+        color: var(--info) !important;
+      }
+
+      /* Панель дій */
+      .actions-panel {
+        background: var(--bg-secondary);
+        border-top: 1px solid var(--border);
+        padding: 0.75rem;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        z-index: 1001;
+        min-height: var(--footer-h);
+      }
+
+      /* Контрольні групи */
+      .controls-row {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.8rem;
+        flex-wrap: wrap;
+      }
+
+      .controls-group {
+        display: flex;
+        gap: 0.4rem;
+      }
+
+      /* Loading індикатор */
+      .loading {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border: 2px solid var(--text-secondary);
+        border-radius: 50%;
+        border-top-color: var(--primary);
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .html-context-bar {
+          flex-direction: column;
+          gap: 0.5rem;
+          text-align: center;
+        }
+
+        .mode-selector {
+          grid-template-columns: 1fr;
+        }
+
+        .controls-row {
+          flex-direction: column;
+        }
+
+        .actions-panel {
+          flex-direction: column;
+        }
+
+        .btn {
+          width: 100%;
+          justify-content: center;
+        }
+        
+        /* Адаптивні стилі для різних розмірів екрану */
+        @media (max-width: 1200px) {
+          :root {
+            --status-width-offset: 160px; /* Зменшуємо відступ для менших екранів */
+          }
+        }
+        
+        @media (max-width: 992px) {
+          :root {
+            --status-width-offset: 140px; /* Ще менший відступ */
+          }
+        }
+        
+        @media (max-width: 480px) {
+          .status {
+            padding: 6px 8px; /* Зменшуємо padding на дуже малих екранах */
+            font-size: 12px;
+          }
+        }
+
+        /* Мобільні стилі для header */
+        .header {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 8px;
+          min-height: auto;
+        }
+        
+        .header-language-container {
+          position: static;
+          transform: none;
+          align-self: flex-end;
+          margin-bottom: 8px;
+        }
+        
+        .status {
+          width: 100%;
+          height: 32px; /* Фіксована висота і на мобільних */
+          max-width: none;
+          min-width: auto; /* Скидаємо мінімальну ширину на мобільних */
+          margin-right: 0;
+          align-self: stretch;
+        }
+      }
+
+      /* Tabs для секцій */
+      .tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        border-bottom: 2px solid var(--border);
+      }
+
+      .tab {
+        padding: 0.6rem 1rem;
+        background: transparent;
+        border: none;
+        color: var(--text-secondary);
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s ease;
+        font-size: 0.85rem;
+      }
+
+      .tab:hover {
+        color: var(--text);
+      }
+
+      .tab.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      /* Progress bar */
+      .progress {
+        height: 4px;
+        background: var(--bg-tertiary);
+        border-radius: 2px;
+        overflow: hidden;
+        margin: 1rem 0;
+      }
+
+      .progress-bar {
+        height: 100%;
+        background-color: var(--primary);
+        width: 0;
+        transition: width 0.3s ease;
+        /* animation removed due to gradient lint */
+      }
+
+      @keyframes shimmer {
+        0% { background-position: 0% 50%; }
+        100% { background-position: 100% 50%; }
+      }
+
+      /* Tooltip */
+      .tooltip {
+        position: relative;
+        display: inline-block;
+      }
+
+      .tooltip .tooltiptext {
+        visibility: hidden;
+        background-color: var(--bg-tertiary);
+        color: var(--text);
+        text-align: center;
+        border-radius: 4px;
+        padding: 0.4rem 0.6rem;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%;
+        left: 50%;
+        margin-left: -60px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        font-size: 0.75rem;
+        white-space: nowrap;
+      }
+
+      .tooltip:hover .tooltiptext {
+        visibility: visible;
+        opacity: 1;
+      }
+
+
+      .language-label {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.7);
+        font-weight: 500;
+        margin-right: 4px;
+        white-space: nowrap;
+      }
+
+      .language-buttons {
+        display: flex !important;
+        gap: 2px;
+        align-items: center;
+      }
+
+      /* Кнопки прапорів */
+      .lang-flag-btn {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 24px;
+        padding: 0;
+        margin: 0;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.1);
+        cursor: pointer;
+        font-size: 14px;
+        line-height: 1;
+        transition: all 0.2s ease;
+        font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Twemoji", sans-serif;
+        -webkit-font-feature-settings: "liga" off;
+        font-feature-settings: "liga" off;
+        opacity: 1 !important;
+        visibility: visible !important;
+        position: relative;
+        overflow: visible;
+      }
+
+      .lang-flag-btn:hover {
+        background: rgba(255, 255, 255, 0.2) !important;
+        border-color: rgba(255, 255, 255, 0.5) !important;
+        transform: translateY(-1px) scale(1.05);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        z-index: 10;
+      }
+
+      .lang-flag-btn.btn-primary {
+        background: var(--primary) !important;
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 8px rgba(0, 123, 255, 0.6) !important;
+        transform: scale(1.1);
+      }
+
+      .lang-flag-btn:active {
+        transform: translateY(0) scale(0.95);
+      }
+
+      /* Для темної теми */
+      @media (prefers-color-scheme: dark) {
+        .header-language-container {
+          background: rgba(255, 255, 255, 0.08);
+          border-color: rgba(255, 255, 255, 0.12);
+        }
+        
+        .lang-flag-btn {
+          background: rgba(255, 255, 255, 0.08);
+          border-color: rgba(255, 255, 255, 0.2);
+        }
+      }
+      
+
+      .status-auto-hide {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        /* Не змінюємо transform, щоб не було скачків */
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+      }
+
+      .status-auto-hide.show {
+        opacity: 1 !important;
+        visibility: visible !important;
+        pointer-events: auto;
+        /* Не змінюємо transform, щоб не було скачків */
+      }
+      
+      /* Типи статусів */
+      .status.success {
+        background: rgba(40, 167, 69, 0.1);
+        border-color: rgba(40, 167, 69, 0.3);
+        color: #28a745;
+      }
+      
+      .status.error {
+        background: rgba(220, 53, 69, 0.1);
+        border-color: rgba(220, 53, 69, 0.3);
+        color: #dc3545;
+      }
+      
+      .status.info {
+        background: rgba(23, 162, 184, 0.1);
+        border-color: rgba(23, 162, 184, 0.3);
+        color: #17a2b8;
+      }
+      
+      .status.warning {
+        background: rgba(255, 193, 7, 0.1);
+        border-color: rgba(255, 193, 7, 0.3);
+        color: #ffc107;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ✅ FIX: Контекстна панель HTML файлу - лінія 595-609 ✅ -->
+    <div class="html-context-bar" id="htmlContextBar">
+      <div class="html-context-left">
+        <div class="html-context-title" data-i18n="main_title">🇺🇦 🎨 CSS Classes from HTML v0.0.7</div>
+        <div class="html-context-subtitle" data-i18n="subtitle">Автоматична генерація CSS • Реальна інтеграція з Figma • Розумне співставлення</div>
+      </div>
+      <div class="html-context-right">
+        <div class="html-context-info">
+          <div class="html-context-icon">📄</div>
+          <div class="html-context-details">
+            <div class="html-context-label" data-i18n="current_html_file">Поточний HTML файл:</div>
+            <div class="html-context-filename" id="currentHTMLFile" data-i18n="not_selected">Не вибрано</div>
+          </div>
+        </div>
+        <div class="html-context-actions">
+          <button class="btn-context" id="selectHTMLBtn" onclick="selectHTMLFile()" data-i18n="select">📂 Вибрати</button>
+          <button class="btn-context" id="refreshHTMLBtn" onclick="refreshHTMLContext()" data-i18n="refresh" title="Оновити">🔄</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="header">
+      <!-- ✅ MULTILINGUAL: Контейнер мов в header праворуч -->
+      <div class="header-language-container">
+        <div class="language-label" data-i18n="language_label">Мова:</div>
+        <div class="language-buttons">
+          <button class="lang-flag-btn" data-lang="uk" title="Українська">🇺🇦</button>
+          <button class="lang-flag-btn" data-lang="en" title="English">🇺🇸</button>
+          <button class="lang-flag-btn" data-lang="de" title="Deutsch">🇩🇪</button>
+          <button class="lang-flag-btn" data-lang="auto" data-i18n="auto_language" title="Автоматично (за мовою VS Code)">🌐</button>
+        </div>
+      </div>
+
+      <!-- Status повідомлення з автоприховуванням -->
+      <div id="status" class="status status-auto-hide">
+        <span id="status-text"></span>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="progress" id="progressContainer" style="display: none">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+    </div>
+
+    <div class="main-container layout-with-sidebar">
+      <!-- Вибір режиму -->
+      <div class="mode-selector" id="modeSelector">
+        <div class="mode-card" data-mode="minimal" onclick="selectMode('minimal')">
+          <div class="mode-icon">⚡</div>
+          <div class="mode-content">
+            <div class="mode-title" data-i18n="minimal_mode">Мінімальний</div>
+            <div class="mode-description" data-i18n="minimal_description">Базова генерація CSS класів</div>
+          </div>
+        </div>
+
+        <div class="mode-card" data-mode="maximum" onclick="selectMode('maximum')">
+          <div class="mode-icon">🚀</div>
+          <div class="mode-content">
+            <div class="mode-title" data-i18n="maximum_mode">Максимальний</div>
+            <div class="mode-description" data-i18n="maximum_description">Повна Figma інтеграція</div>
+          </div>
+        </div>
+
+        <div class="mode-card" data-mode="production" onclick="selectMode('production')">
+          <div class="mode-icon">📦</div>
+          <div class="mode-content">
+            <div class="mode-title" data-i18n="production_mode">Production</div>
+            <div class="mode-description" data-i18n="production_description">Оптимізований CSS</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs навігація -->
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('basic')" data-i18n="basic_tab">⚙️ Основні</button>
+        <button class="tab" onclick="switchTab('figma')" data-i18n="figma_tab">🎨 Figma</button>
+        <button class="tab" onclick="switchTab('advanced')" data-i18n="advanced_tab">🔧 Розширені</button>
+      </div>
+
+      <!-- Tab: Основні налаштування -->
+      <div class="tab-content active" id="basicTab">
+        <div class="section">
+          <h2 class="section-title" data-i18n="basic_settings">⚙️ Основні налаштування</h2>
+
+          <div class="input-group">
+            <label for="cssFileName" data-i18n="css_file_name">Назва CSS файлу</label>
+            <input type="text" id="cssFileName" placeholder="styles.css" value="styles.css" data-i18n="css_file_name_placeholder">
+          </div>
+
+          <div class="controls-row">
+            <label class="tooltip">
+              <input type="checkbox" id="includeReset" checked>
+              <span data-i18n="include_reset">Включити Reset стилі</span>
+              <span class="tooltiptext" data-i18n="include_reset_tooltip">Додає базові reset стилі</span>
+            </label>
+            <label class="tooltip">
+              <input type="checkbox" id="includeVariables" checked>
+              <span data-i18n="include_variables">CSS змінні</span>
+              <span class="tooltiptext" data-i18n="include_variables_tooltip">Додає CSS custom properties</span>
+            </label>
+            <label class="tooltip">
+              <input type="checkbox" id="includeResponsive" checked>
+              <span data-i18n="include_responsive">Responsive стилі</span>
+              <span class="tooltiptext" data-i18n="include_responsive_tooltip">Додає media queries</span>
+            </label>
+            <label class="tooltip">
+              <input type="checkbox" id="includeModernNormalize">
+              <span data-i18n="include_modern_normalize">Modern Normalize</span>
+              <span class="tooltiptext" data-i18n="include_modern_normalize_tooltip">Підключити modern-normalize з CDN в head HTML файлу</span>
+              <button onclick="openAdvancedLibraryDialog()" style="margin-left: 8px; padding: 2px 6px; font-size: 10px; background: var(--primary); color: white; border: none; border-radius: 3px; cursor: pointer;">📚 Бібліотеки</button>
+            </label>
+            <label class="tooltip">
+              <input type="checkbox" id="includeGlobal" checked>
+              <span data-i18n="include_global">Глобальні стилі</span>
+              <span class="tooltiptext" data-i18n="include_global_tooltip">Додає глобальні стилі для базових елементів</span>
+            </label>
+            <label class="tooltip">
+              <input type="checkbox" id="includeCustomStyles" checked>
+              <span data-i18n="include_custom_styles">Користувацькі стилі під макет</span>
+              <span class="tooltiptext" data-i18n="include_custom_styles_tooltip">Додає користувацькі стилі адаптовані під конкретний макет</span>
+            </label>
+            <div class="controls-group" style="margin-left:auto; gap:8px; display:flex; align-items:center;">
+              <button class="btn btn-secondary" onclick="openStyleLibraryDialog()">📚 Бібліотека стилів</button>
+              <button class="btn" onclick="chooseStyleLibrary()">🔎 Обрати</button>
+              <button class="btn" onclick="saveCurrentAsStyleLibrary()">💾 Зберегти</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Figma інтеграція -->
+      <div class="tab-content" id="figmaTab">
+        <div class="section" id="figmaAuthSection">
+          <h2 class="section-title" data-i18n="figma_integration">🎨 Figma Integration</h2>
+
+          <div class="input-group">
+            <label for="figmaLink" data-i18n="figma_link">Figma File URL</label>
+            <div style="display: flex; align-items: center;">
+              <span class="indicator red" id="figmaLinkIndicator" title="Link"></span>
+              <input type="text" id="figmaLink" placeholder="https://www.figma.com/file/..." data-i18n="figma_link_placeholder">
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="figmaToken" data-i18n="figma_token">Figma API Token <span style="color: var(--danger)">*</span></label>
+            <div style="display: flex; align-items: center;">
+              <span class="indicator red" id="figmaTokenIndicator" title="Token"></span>
+              <input type="password" id="figmaToken" placeholder="Get from figma.com/developers/api" data-i18n="figma_token_placeholder">
+            </div>
+          </div>
+
+          <div class="controls-row">
+            <button class="btn btn-primary" onclick="loadFigmaCanvases()" data-i18n="load_canvas">
+              📋 Завантажити Canvas
+            </button>
+            <a
+              href="https://www.figma.com/developers/api#access-tokens"
+              target="_blank"
+              class="btn btn-secondary"
+              data-i18n="get_token">
+              🔑 Отримати Token
+            </a>
+          </div>
+        </div>
+
+        <!-- Canvas список -->
+        <div class="section" id="canvasSection" style="display: none">
+          <h2 class="section-title" data-i18n="canvas_selection">📋 Вибір Canvas</h2>
+          <div class="controls-row">
+            <div class="controls-group">
+              <button class="btn btn-secondary" onclick="selectAllCanvas()" data-i18n="select_all">✅ Всі</button>
+              <button class="btn btn-secondary" onclick="clearCanvasSelection()" data-i18n="clear_all"
+                >❌ Очистити</button
+              >
+            </div>
+            <div class="controls-group">
+              <button class="btn btn-primary" onclick="requestLayerStyles()" data-i18n="get_styles">🎯 Отримати стилі</button>
+              <!-- ✅ FIX: Виправлено назви функцій для імпорту -->
+              <button class="btn btn-success" onclick="importImages()" data-i18n="import_images">🖼️ Імпорт зображень</button>
+              <button class="btn btn-success" onclick="importFonts()" data-i18n="import_fonts">🔤 Імпорт шрифтів</button>
+            </div>
+          </div>
+          <div class="list-container" id="canvasList"></div>
+        </div>
+
+        <!-- Layers список -->
+        <div class="section" id="layersSection" style="display: none">
+          <h2 class="section-title" data-i18n="layers_selection">🎨 Вибір Layers</h2>
+          <div class="controls-row">
+            <div class="input-group" style="margin: 0; position: relative;">
+              <input type="text" id="layersSearch" data-i18n="search_layers" placeholder="Пошук по Layers... (за назвою)" style="padding-right: 40px;" />
+              <button class="btn btn-secondary" onclick="clearLayersSearch()" style="position: absolute; right: 4px; top: 50%; transform: translateY(-50%); padding: 2px 6px; font-size: 12px; min-width: auto; opacity: 0.7;" data-i18n="clear_search" title="Очистити пошук">✖</button>
+            </div>
+            <div class="controls-group">
+              <button class="btn btn-secondary" onclick="selectAllLayers()" data-i18n="select_all">✅ Всі</button>
+              <button class="btn btn-secondary" onclick="clearLayersSelection()" data-i18n="clear_all"
+                >❌ Очистити</button
+              >
+            </div>
+            <div class="controls-group">
+              <button class="btn btn-primary" onclick="requestLayerStyles()" data-i18n="get_styles">🎯 Отримати стилі</button>
+              <button class="btn btn-success" onclick="copyAllStyles()" data-i18n="copy_all">📋 Копіювати все</button>
+            </div>
+          </div>
+          <div class="list-container" id="layersList"></div>
+        </div>
+      </div>
+
+      <!-- Tab: Розширені налаштування -->
+      <div class="tab-content" id="advancedTab">
+        <div class="section">
+          <h2 class="section-title" data-i18n="advanced_settings">🔧 Розширені налаштування</h2>
+
+          <div class="input-group">
+            <label for="confidenceThreshold" data-i18n="confidence_threshold">Поріг співпадіння</label>
+            <input type="range" id="confidenceThreshold" min="0" max="100" value="70">
+            <span id="confidenceValue">70%</span>
+          </div>
+
+          <div class="input-group">
+            <label for="outputFormat" data-i18n="output_format">Формат виводу</label>
+            <select id="outputFormat">
+              <option value="expanded" data-i18n="expanded_format">Розгорнутий</option>
+              <option value="compressed" data-i18n="compressed_format">Стиснутий</option>
+              <option value="minified" data-i18n="minified_format">Мініфікований</option>
+            </select>
+          </div>
+
+        </div>
+      </div>
+      <!-- Sidebar для стилів -->
+      <aside class="styles-sidebar" id="stylesSidebar">
+        <div class="styles-sidebar-header">
+          <div class="styles-sidebar-title" data-i18n="selected_layers_styles">🧩 Стилі вибраних Layers</div>
+          <div class="controls-group">
+            <button class="btn btn-secondary" onclick="toggleSidebar(false)" data-i18n="close">✖</button>
+            <button class="btn btn-success" onclick="copyAllStyles()" data-i18n="copy_all">📋 Копіювати все</button>
+          </div>
+        </div>
+        <div class="styles-sidebar-content" id="stylesContent"></div>
+      </aside>
+    </div>
+
+    <!-- Панель дій -->
+    <div class="actions-panel">
+      <button class="btn btn-secondary" onclick="loadLastSettings()" data-i18n="load_settings">📂 Завантажити</button>
+      <button class="btn btn-secondary" onclick="saveSettings()" data-i18n="save_settings">💾 Зберегти</button>
+      <button class="btn btn-secondary" onclick="clearSettings()" data-i18n="clear_settings">🗑️ Очистити</button>
+      <button class="btn btn-primary" id="generateBtn" onclick="console.log('🖱️ Generate CSS button clicked!'); generateCSS()" data-i18n="generate_css">
+        🇺🇦 🚀 Генерувати CSS
+      </button>
+    </div>
+
+    <script>
+      // ✅ FIX: VSCode API та глобальні змінні - лінія 780-790 ✅
+      let vscode;
+      try {
+        vscode = acquireVsCodeApi();
+        console.log('✅ VS Code API acquired successfully');
+      } catch (error) {
+        console.error('❌ Failed to acquire VS Code API:', error);
+        vscode = {
+          postMessage: (message) => {
+            console.error('❌ VS Code API not available, message:', message);
+            alert('VS Code API не доступний. Будь ласка, перезапустіть розширення.');
+          }
+        };
+      }
+
+      let state = {
+        mode: "minimal",
+        currentHTMLFile: null,
+        currentHTMLPath: null,
+        figmaLink: "",
+        figmaToken: "",
+        selectedCanvases: [], // [{id,name,...}]
+        selectedLayers: [],   // [{id,name,...}]
+        selectedCanvasIds: new Set(),
+        selectedLayerIds: new Set(),
+        settings: {},
+        currentLanguage: 'uk', // Українська як основна мова
+        lastRenderedLayout: null,
+        cssFileNameTemplate: "styles.css" // Шаблон для назви CSS файлу
+      }
+
+      // ✅ MULTILINGUAL SUPPORT: Translation system
+      const translations = {
+        uk: {
+          // Main interface
+          title: "CSS Classes from HTML v0.0.7",
+          main_title: "CSS Classes from HTML v0.0.7",
+          subtitle: "Автоматична генерація CSS • Реальна інтеграція з Figma • Розумне співставлення",
+          current_html_file: "Поточний HTML файл:",
+          not_selected: "Не вибрано",
+          select: "Вибрати",
+          refresh: "Оновити",
+          language_label: "Мова:",
+          auto_language: "Автоматично (за мовою VS Code)",
+          
+          // Режими
+          minimal_mode: "Мінімальний",
+          minimal_description: "Базова генерація CSS класів",
+          maximum_mode: "Максимальний", 
+          maximum_description: "Повна Figma інтеграція",
+          production_mode: "Production",
+          production_description: "Оптимізований CSS",
+          
+          // Вкладки
+          basic_tab: "Основні",
+          figma_tab: "Figma",
+          advanced_tab: "Розширені",
+          
+          // Основні налаштування
+          basic_settings: "Основні налаштування",
+          css_file_name: "Назва CSS файлу",
+          css_file_name_placeholder: "styles.css",
+          include_reset: "Включити Reset стилі",
+          include_reset_tooltip: "Додає базові reset стилі",
+          include_variables: "CSS змінні",
+          include_variables_tooltip: "Додає CSS custom properties",
+          include_responsive: "Responsive стилі",
+          include_responsive_tooltip: "Додає media queries",
+          include_global: "Глобальні стилі",
+          include_global_tooltip: "Додає глобальні стилі для базових елементів",
+          include_custom_styles: "Користувацькі стилі під макет",
+          include_custom_styles_tooltip: "Додає користувацькі стилі адаптовані під конкретний макет",
+          
+          // Figma інтеграція
+          figma_integration: "🎨 Figma інтеграція",
+          figma_link: "Figma File URL",
+          figma_link_placeholder: "https://www.figma.com/file/...",
+          figma_token: "Figma API Token",
+          figma_token_placeholder: "Get from figma.com/developers/api",
+          load_canvas: "📋 Завантажити Canvas",
+          get_token: "🔑 Отримати Token",
+          
+          // Canvas та Layers
+          canvas_selection: "📋 Вибір Canvas",
+          layers_selection: "🎨 Вибір Layers",
+          select_all: "✅ Всі",
+          clear_all: "❌ Очистити",
+          get_styles: "🎯 Отримати стилі",
+          import_images: "🖼️ Імпорт зображень",
+          import_fonts: "🔤 Імпорт шрифтів",
+          search_layers: "Пошук по Layers... (за назвою)",
+          clear_search: "Очистити пошук",
+          copy_all: "📋 Копіювати все",
+          
+          // Розширені налаштування
+          advanced_settings: "🔧 Розширені налаштування",
+          confidence_threshold: "Поріг співпадіння",
+          output_format: "Формат виводу",
+          expanded_format: "Розгорнутий",
+          compressed_format: "Стиснутий",
+          minified_format: "Мініфікований",
+          
+          // Sidebar
+          selected_layers_styles: "🧩 Стилі вибраних Layers",
+          close: "Закрити",
+          
+          // Панель дій
+          load_settings: "📂 Завантажити",
+          save_settings: "💾 Зберегти",
+          clear_settings: "🗑️ Очистити",
+          generate_css: "🚀 Генерувати CSS",
+          
+          // Старі ключі для сумісності
+          figmaIntegration: "🎨 Figma інтеграція",
+          figmaLink: "Figma посилання",
+          figmaToken: "Figma токен",
+          saveSettings: "Зберегти налаштування",
+          
+          // Tabs
+          quickMode: "⚡ Швидкий режим",
+          fullMode: "🧠 Повний режим", 
+          
+          // Canvas section
+          canvasSection: "📋 Canvas Selection",
+          selectAll: "Вибрати всі",
+          deselectAll: "Скасувати вибір",
+          loadCanvas: "📋 Завантажити Canvas",
+          getToken: "🔑 Отримати Token",
+          importImages: "🖼️ Імпорт зображень",
+          importFonts: "🔤 Імпорт шрифтів",
+          
+          // Layers section  
+          layersSection: "🗂️ Layers Selection",
+          searchLayers: "Пошук по Layers... (за назвою)",
+          clearSearch: "Очистити пошук",
+          getStyles: "🎯 Отримати стилі",
+          
+          // Generation options
+          generationMode: "🎛️ Режим генерації",
+          minimal: "Мінімальний",
+          balanced: "Збалансований", 
+          maximum: "Максимальний",
+          confidenceThreshold: "Поріг впевненості",
+          
+          // Mode descriptions
+          quickModeDesc: "Швидка генерація без Figma",
+          fullModeDesc: "Повна Figma інтеграція",
+          
+          // Buttons and actions
+          generateCSS: "🚀 Генерувати CSS",
+          copyStyles: "📋 Копіювати всі стилі",
+          selectHTML: "📂 Вибрати HTML файл",
+          
+          // Status messages
+          layerRenamed: "Layer перейменовано",
+          cssClassUpdated: "CSS клас оновлено",
+          selectLayersFirst: "Спочатку виберіть Layers для імпорту",
+          setupFigmaFirst: "Спочатку налаштуйте Figma інтеграцію",
+          selectFormat: "Оберіть хоча б один формат",
+          cssGenerated: "✅ CSS згенеровано успішно!",
+          layersLoaded: "✅ Завантажено Layers",
+          showAllLayers: "🔍 Показано всі Layers",
+          layerRenameError: "Помилка перейменовування Layer",
+          loadLayersError: "Помилка завантаження Layers",
+          
+          // Image import dialog
+          imageImportTitle: "🖼️ Імпорт зображень",
+          selectFormats: "Виберіть формати для імпорту:",
+          
+          // Style library dialog
+          styleLibraryTitle: "📚 Бібліотека стилів",
+          libraryName: "Назва бібліотеки:",
+          includeInLibrary: "Включити в бібліотеку:",
+          savingLibrary: "Збереження бібліотеки",
+          save: "Зберегти",
+          cancel: "Скасувати",
+          png: "PNG (без втрат, підтримка прозорості)",
+          jpg: "JPG (стиснення, менший розмір)",
+          svg: "SVG (векторний, масштабування)",
+          webp: "WebP (сучасний, стиснення)",
+          fileOrganization: "🗂️ Організація файлів",
+          retinaFolders: "Створити підтеки @1x та @2x для Retina",
+          formatFolders: "Розсортувати по теках за форматами",
+          cancel: "Скасувати",
+          import: "Імпортувати",
+          
+          // Placeholders
+          figmaLinkPlaceholder: "https://www.figma.com/file/...",
+          figmaTokenPlaceholder: "Отримати з figma.com/developers/api",
+          
+          // Elements count
+          elements: "елементів",
+          
+          // Status messages
+          htmlFile: "HTML файл",
+          fileSelected: "Файл вибрано",
+          settingsLoaded: "Налаштування завантажено",
+          canvasesLoaded: "Завантажено Canvas",
+          canvasLoadError: "Помилка завантаження Canvas",
+          layersLoaded: "Завантажено Layers",
+          layersLoadError: "Помилка завантаження Layers",
+          stylesReceived: "Стилі отримано",
+          stylesError: "Помилка отримання стилів",
+          cssGenerated: "CSS згенеровано успішно!",
+          generationError: "Помилка генерації",
+          imagesImported: "Зображення імпортовано",
+          imageImportError: "Помилка імпорту зображень",
+          fontsImported: "Шрифти імпортовано",
+          fontImportError: "Помилка імпорту шрифтів",
+          layerRenamed: "Layer перейменовано",
+          layerRenameError: "Помилка перейменовування Layer",
+          updatingContext: "Оновлення контексту...",
+          modeSelected: "Режим \"{mode}\" вибрано",
+          selectFileAndMode: "Виберіть HTML файл та режим генерації",
+          enterFigmaCredentials: "Введіть Figma URL та API Token",
+          showAllLayers: "Показано всі Layers",
+          selectLayersFirst: "Спочатку виберіть хоча б один Layer",
+          setupFigmaFirst: "Спочатку налаштуйте Figma інтеграцію",
+          copiedToClipboard: "Скопійовано у буфер обміну",
+          copyFailed: "Не вдалося скопіювати",
+          loadingSettings: "Завантаження налаштувань...",
+          savingSettings: "Збереження налаштувань...",
+          settingsCleared: "Налаштування очищено",
+          languageLabel: "Мова:",
+          languageChanged: "Мову змінено на {lang}",
+          autoLanguage: "Автоматично (за мовою VS Code)",
+          
+          // New translations for added elements
+          mainTitle: "CSS Classes from HTML v0.0.7",
+          refresh: "Оновити",
+          basicTab: "Основні",
+          figmaTab: "Figma", 
+          advancedTab: "Розширені",
+          basicSettings: "Основні налаштування",
+          cssFileName: "Назва CSS файлу",
+          cssFileNamePlaceholder: "styles.css",
+          includeReset: "Включити Reset стилі",
+          includeResetTooltip: "Додає базові reset стилі",
+          includeVariables: "CSS змінні",
+          includeVariablesTooltip: "Додає CSS custom properties",
+          includeResponsive: "Responsive стилі",
+          includeResponsiveTooltip: "Додає media queries",
+          includeModernNormalize: "Modern Normalize",
+          includeModernNormalizeTooltip: "Підключити modern-normalize з CDN в head HTML файлу",
+          canvasSelection: "Вибір Canvas",
+          layersSelection: "Вибір Layers",
+          advancedSettings: "Розширені налаштування",
+          outputFormat: "Формат виводу",
+          expandedFormat: "Розгорнутий",
+          compressedFormat: "Стиснутий",
+          minifiedFormat: "Мініфікований",
+          selectedLayersStyles: "Стилі вибраних Layers",
+          close: "Закрити",
+          loadSettings: "Завантажити",
+          clearSettings: "Очистити"
+        },
+        
+        en: {
+          // Main interface
+          title: "CSS Classes from HTML v0.0.7",
+          main_title: "CSS Classes from HTML v0.0.7",
+          subtitle: "Automatic CSS generation • Real Figma integration • Smart mapping",
+          current_html_file: "Current HTML file:",
+          not_selected: "Not selected",
+          select: "Select",
+          refresh: "Refresh",
+          language_label: "Language:",
+          auto_language: "Auto (VS Code language)",
+          
+          // Modes
+          minimal_mode: "Minimal",
+          minimal_description: "Basic CSS class generation",
+          maximum_mode: "Maximum", 
+          maximum_description: "Full Figma integration",
+          production_mode: "Production",
+          production_description: "Optimized CSS",
+          
+          // Tabs
+          basic_tab: "Basic",
+          figma_tab: "Figma",
+          advanced_tab: "Advanced",
+          
+          // Basic settings
+          basic_settings: "Basic Settings",
+          css_file_name: "CSS File Name",
+          css_file_name_placeholder: "styles.css",
+          include_reset: "Include Reset Styles",
+          include_reset_tooltip: "Adds basic reset styles",
+          include_variables: "CSS Variables",
+          include_variables_tooltip: "Adds CSS custom properties",
+          include_responsive: "Responsive Styles", 
+          include_responsive_tooltip: "Adds media queries",
+          include_global: "Global Styles",
+          include_global_tooltip: "Adds global styles for basic elements",
+          include_custom_styles: "Custom Layout Styles",
+          include_custom_styles_tooltip: "Adds custom styles adapted to specific layout",
+          
+          // Figma integration
+          figma_integration: "🎨 Figma Integration",
+          figmaIntegration: "🎨 Figma Integration",
+          figma_link: "Figma File URL",
+          figma_link_placeholder: "https://www.figma.com/file/...",
+          figma_token: "Figma API Token",
+          figma_token_placeholder: "Get from figma.com/developers/api",
+          load_canvas: "📋 Load Canvas",
+          get_token: "🔑 Get Token",
+          
+          // Canvas and Layers
+          canvas_selection: "📋 Canvas Selection",
+          layers_selection: "🎨 Layers Selection",
+          select_all: "✅ All",
+          clear_all: "❌ Clear",
+          get_styles: "🎯 Get Styles",
+          import_images: "🖼️ Import Images", 
+          import_fonts: "🔤 Import Fonts",
+          search_layers: "Search Layers... (by name)",
+          clear_search: "Clear search",
+          copy_all: "📋 Copy All",
+          
+          // Advanced settings
+          advanced_settings: "🔧 Advanced Settings",
+          confidence_threshold: "Confidence Threshold",
+          output_format: "Output Format", 
+          expanded_format: "Expanded",
+          compressed_format: "Compressed",
+          minified_format: "Minified",
+          
+          // Sidebar
+          selected_layers_styles: "🧩 Selected Layers Styles",
+          close: "Close",
+          
+          // Action panel
+          load_settings: "📂 Load",
+          save_settings: "💾 Save", 
+          clear_settings: "🗑️ Clear",
+          generate_css: "🚀 Generate CSS",
+          
+          figmaIntegration: "🎨 Figma Integration",
+          figmaLink: "Figma Link",
+          figmaToken: "Figma Token", 
+          saveSettings: "Save Settings",
+          
+          // Tabs
+          quickMode: "⚡ Quick Mode",
+          fullMode: "🧠 Full Mode",
+          
+          // Canvas section
+          canvasSection: "📋 Canvas Selection",
+          selectAll: "Select All",
+          deselectAll: "Deselect All",
+          loadCanvas: "📋 Load Canvas",
+          getToken: "🔑 Get Token",
+          importImages: "🖼️ Import Images",
+          importFonts: "🔤 Import Fonts",
+          
+          // Layers section
+          layersSection: "🗂️ Layers Selection", 
+          searchLayers: "Search Layers... (by name)",
+          clearSearch: "Clear Search",
+          getStyles: "🎯 Get Styles",
+          
+          // Generation options
+          generationMode: "🎛️ Generation Mode",
+          minimal: "Minimal",
+          balanced: "Balanced",
+          maximum: "Maximum", 
+          confidenceThreshold: "Confidence Threshold",
+          
+          // Mode descriptions
+          quickModeDesc: "Quick generation without Figma",
+          fullModeDesc: "Full Figma integration",
+          
+          // Buttons and actions
+          generateCSS: "🚀 Generate CSS",
+          copyStyles: "📋 Copy All Styles",
+          selectHTML: "📂 Select HTML File",
+          
+          // Status messages
+          layerRenamed: "Layer renamed",
+          cssClassUpdated: "CSS class updated",
+          selectLayersFirst: "First select Layers for import",
+          setupFigmaFirst: "Setup Figma integration first", 
+          selectFormat: "Select at least one format",
+          cssGenerated: "✅ CSS generated successfully!",
+          layersLoaded: "✅ Loaded Layers",
+          showAllLayers: "🔍 Showing all Layers",
+          layerRenameError: "Layer rename error",
+          loadLayersError: "Error loading Layers",
+          
+          // Image import dialog
+          imageImportTitle: "🖼️ Import Images",
+          selectFormats: "Select formats for import:",
+          
+          // Style library dialog
+          styleLibraryTitle: "📚 Style Library",
+          libraryName: "Library name:",
+          includeInLibrary: "Include in library:",
+          savingLibrary: "Saving library",
+          save: "Save",
+          cancel: "Cancel",
+          png: "PNG (lossless, transparency support)",
+          jpg: "JPG (compression, smaller size)",
+          svg: "SVG (vector, scalable)",
+          webp: "WebP (modern, compression)",
+          fileOrganization: "🗂️ File Organization",
+          retinaFolders: "Create @1x and @2x subfolders for Retina",
+          formatFolders: "Sort into folders by format",
+          cancel: "Cancel",
+          import: "Import",
+          
+          // Placeholders
+          figmaLinkPlaceholder: "https://www.figma.com/file/...",
+          figmaTokenPlaceholder: "Get from figma.com/developers/api",
+          
+          // Elements count
+          elements: "elements",
+          
+          // Status messages
+          htmlFile: "HTML file",
+          fileSelected: "File selected",
+          settingsLoaded: "Settings loaded",
+          canvasesLoaded: "Canvas loaded",
+          canvasLoadError: "Canvas loading error",
+          layersLoaded: "Layers loaded",
+          layersLoadError: "Layers loading error",
+          stylesReceived: "Styles received",
+          stylesError: "Styles error",
+          cssGenerated: "CSS generated successfully!",
+          generationError: "Generation error",
+          imagesImported: "Images imported",
+          imageImportError: "Image import error",
+          fontsImported: "Fonts imported",
+          fontImportError: "Font import error",
+          layerRenamed: "Layer renamed",
+          layerRenameError: "Layer rename error",
+          updatingContext: "Updating context...",
+          modeSelected: "Mode \"{mode}\" selected",
+          selectFileAndMode: "Select HTML file and generation mode",
+          enterFigmaCredentials: "Enter Figma URL and API Token",
+          showAllLayers: "All Layers shown",
+          selectLayersFirst: "First select at least one Layer",
+          setupFigmaFirst: "First setup Figma integration",
+          copiedToClipboard: "Copied to clipboard",
+          copyFailed: "Failed to copy",
+          loadingSettings: "Loading settings...",
+          savingSettings: "Saving settings...",
+          settingsCleared: "Settings cleared",
+          languageLabel: "Language:",
+          languageChanged: "Language changed to {lang}",
+          autoLanguage: "Auto (VS Code language)",
+          
+          // New translations for added elements
+          mainTitle: "CSS Classes from HTML v0.0.7",
+          refresh: "Refresh",
+          basicTab: "Basic",
+          figmaTab: "Figma", 
+          advancedTab: "Advanced",
+          basicSettings: "Basic Settings",
+          cssFileName: "CSS File Name",
+          cssFileNamePlaceholder: "styles.css",
+          includeReset: "Include Reset Styles",
+          includeResetTooltip: "Adds basic reset styles",
+          includeVariables: "CSS Variables",
+          includeVariablesTooltip: "Adds CSS custom properties",
+          includeResponsive: "Responsive Styles",
+          includeResponsiveTooltip: "Adds media queries",
+          includeModernNormalize: "Modern Normalize",
+          includeModernNormalizeTooltip: "Include modern-normalize from CDN in HTML head",
+          canvasSelection: "Canvas Selection",
+          layersSelection: "Layers Selection",
+          advancedSettings: "Advanced Settings",
+          outputFormat: "Output Format",
+          expandedFormat: "Expanded",
+          compressedFormat: "Compressed",
+          minifiedFormat: "Minified",
+          selectedLayersStyles: "Selected Layers Styles",
+          close: "Close",
+          loadSettings: "Load",
+          clearSettings: "Clear",
+          
+          // Status messages
+          htmlFile: "📄 HTML file",
+          modeSelected: "Mode \"{mode}\" selected",
+          languageChanged: "🌍 Language changed to {lang}",
+          loadingSettings: "⏳ Loading settings...",
+          settingsLoaded: "✅ Settings loaded",
+          canvasesLoaded: "✅ Canvas loaded",
+          layersLoaded: "✅ Layers loaded",
+          cssGenerated: "✅ CSS generated successfully!",
+          copiedToClipboard: "📋 Copied to clipboard",
+          selectFileAndMode: "Select HTML file and generation mode",
+          enterFigmaCredentials: "Enter Figma URL and API Token",
+          setupFigmaFirst: "First setup Figma integration",
+          selectLayersFirst: "First select at least one Layer"
+        },
+        
+        de: {
+          // Main interface  
+          title: "CSS Classes from HTML v0.0.7",
+          main_title: "CSS Classes from HTML v0.0.7",
+          subtitle: "Automatische CSS-Generierung • Echte Figma-Integration • Intelligente Zuordnung",
+          current_html_file: "Aktuelle HTML-Datei:",
+          not_selected: "Nicht ausgewählt",
+          select: "Auswählen",
+          refresh: "Aktualisieren",
+          language_label: "Sprache:",
+          auto_language: "Auto (VS Code Sprache)",
+          
+          // Modes
+          minimal_mode: "Minimal",
+          minimal_description: "Grundlegende CSS-Klassenerstellung",
+          maximum_mode: "Maximal", 
+          maximum_description: "Vollständige Figma-Integration",
+          production_mode: "Production",
+          production_description: "Optimiertes CSS",
+          
+          // Tabs
+          basic_tab: "Grundlegend",
+          figma_tab: "Figma",
+          advanced_tab: "Erweitert",
+          
+          // Basic settings
+          basic_settings: "Grundeinstellungen",
+          css_file_name: "CSS-Dateiname",
+          css_file_name_placeholder: "styles.css",
+          include_reset: "Reset-Styles einschließen",
+          include_reset_tooltip: "Fügt grundlegende Reset-Styles hinzu",
+          include_variables: "CSS-Variablen",
+          include_variables_tooltip: "Fügt CSS custom properties hinzu",
+          include_responsive: "Responsive Styles", 
+          include_responsive_tooltip: "Fügt Media Queries hinzu",
+          include_global: "Globale Stile",
+          include_global_tooltip: "Fügt globale Stile für Basis-Elemente hinzu",
+          include_custom_styles: "Benutzerdefinierte Layout-Stile",
+          include_custom_styles_tooltip: "Fügt benutzerdefinierte Stile für spezifische Layouts hinzu",
+          
+          // Figma integration
+          figma_integration: "🎨 Figma-Integration",
+          figmaIntegration: "🎨 Figma Integration",
+          figma_link: "Figma File URL",
+          figma_link_placeholder: "https://www.figma.com/file/...",
+          figma_token: "Figma API Token",
+          figma_token_placeholder: "Von figma.com/developers/api abrufen",
+          load_canvas: "📋 Canvas laden",
+          get_token: "🔑 Token abrufen",
+          
+          // Canvas and Layers
+          canvas_selection: "📋 Canvas-Auswahl",
+          layers_selection: "🎨 Layers-Auswahl",
+          select_all: "✅ Alle",
+          clear_all: "❌ Löschen",
+          get_styles: "🎯 Styles abrufen",
+          import_images: "🖼️ Bilder importieren", 
+          import_fonts: "🔤 Schriften importieren",
+          search_layers: "Layers suchen... (nach Name)",
+          clear_search: "Suche löschen",
+          copy_all: "📋 Alle kopieren",
+          
+          // Advanced settings
+          advanced_settings: "🔧 Erweiterte Einstellungen",
+          confidence_threshold: "Vertrauensschwelle",
+          output_format: "Ausgabeformat", 
+          expanded_format: "Erweitert",
+          compressed_format: "Komprimiert",
+          minified_format: "Minifiziert",
+          
+          // Sidebar
+          selected_layers_styles: "🧩 Ausgewählte Layers-Styles",
+          close: "Schließen",
+          
+          // Action panel
+          load_settings: "📂 Laden",
+          save_settings: "💾 Speichern", 
+          clear_settings: "🗑️ Löschen",
+          generate_css: "🚀 CSS generieren",
+          
+          figmaLink: "Figma Link",
+          figmaToken: "Figma Token",
+          saveSettings: "Einstellungen speichern",
+          
+          // Tabs
+          quickMode: "⚡ Schnellmodus",
+          fullMode: "🧠 Vollmodus",
+          
+          // Canvas section
+          canvasSection: "📋 Canvas Auswahl",
+          selectAll: "Alle auswählen", 
+          deselectAll: "Auswahl aufheben",
+          loadCanvas: "📋 Canvas laden",
+          getToken: "🔑 Token abrufen",
+          importImages: "🖼️ Bilder importieren",
+          importFonts: "🔤 Schriften importieren",
+          
+          // Layers section
+          layersSection: "🗂️ Layers Auswahl",
+          searchLayers: "Layers suchen... (nach Name)",
+          clearSearch: "Suche löschen", 
+          getStyles: "🎯 Stile abrufen",
+          
+          // Generation options
+          generationMode: "🎛️ Generierungsmodus",
+          minimal: "Minimal",
+          balanced: "Ausgewogen",
+          maximum: "Maximal",
+          confidenceThreshold: "Vertrauensschwelle",
+          
+          // Mode descriptions
+          quickModeDesc: "Schnelle Generierung ohne Figma",
+          fullModeDesc: "Vollständige Figma-Integration",
+          
+          // Buttons and actions
+          generateCSS: "🚀 CSS generieren",
+          copyStyles: "📋 Alle Stile kopieren",
+          selectHTML: "📂 HTML-Datei auswählen",
+          
+          // Status messages
+          layerRenamed: "Layer umbenannt",
+          cssClassUpdated: "CSS-Klasse aktualisiert", 
+          selectLayersFirst: "Wählen Sie zuerst Layers zum Import",
+          setupFigmaFirst: "Figma-Integration zuerst einrichten",
+          selectFormat: "Mindestens ein Format auswählen",
+          cssGenerated: "✅ CSS erfolgreich generiert!",
+          layersLoaded: "✅ Layers geladen",
+          showAllLayers: "🔍 Alle Layers anzeigen",
+          layerRenameError: "Layer-Umbenennungsfehler",
+          loadLayersError: "Fehler beim Laden der Layers",
+          
+          // Image import dialog
+          imageImportTitle: "🖼️ Bilder importieren",
+          selectFormats: "Formate für Import auswählen:",
+          
+          // Style library dialog
+          styleLibraryTitle: "📚 Stil-Bibliothek",
+          libraryName: "Bibliotheksname:",
+          includeInLibrary: "In Bibliothek einschließen:",
+          savingLibrary: "Bibliothek speichern",
+          save: "Speichern",
+          cancel: "Abbrechen",
+          png: "PNG (verlustfrei, Transparenz-Unterstützung)",
+          jpg: "JPG (Komprimierung, kleinere Größe)",
+          svg: "SVG (Vektor, skalierbar)",
+          webp: "WebP (modern, Komprimierung)",
+          fileOrganization: "🗂️ Dateiorganisation",
+          retinaFolders: "@1x und @2x Unterordner für Retina erstellen",
+          formatFolders: "Nach Format in Ordner sortieren",
+          cancel: "Abbrechen",
+          import: "Importieren",
+          
+          // Placeholders
+          figmaLinkPlaceholder: "https://www.figma.com/file/...",
+          figmaTokenPlaceholder: "Von figma.com/developers/api abrufen",
+          
+          // Elements count
+          elements: "Elemente",
+          
+          // Status messages
+          htmlFile: "HTML Datei",
+          fileSelected: "Datei ausgewählt",
+          settingsLoaded: "Einstellungen geladen",
+          canvasesLoaded: "Canvas geladen",
+          canvasLoadError: "Canvas Ladefehler",
+          layersLoaded: "Layers geladen",
+          layersLoadError: "Layers Ladefehler",
+          stylesReceived: "Stile erhalten",
+          stylesError: "Stile Fehler",
+          cssGenerated: "CSS erfolgreich generiert!",
+          generationError: "Generierungsfehler",
+          imagesImported: "Bilder importiert",
+          imageImportError: "Bildimport Fehler",
+          fontsImported: "Schriften importiert",
+          fontImportError: "Schriftimport Fehler",
+          layerRenamed: "Layer umbenannt",
+          layerRenameError: "Layer Umbenennung Fehler",
+          updatingContext: "Kontext aktualisieren...",
+          modeSelected: "Modus \"{mode}\" ausgewählt",
+          selectFileAndMode: "HTML-Datei und Generierungsmodus auswählen",
+          enterFigmaCredentials: "Figma URL und API Token eingeben",
+          showAllLayers: "Alle Layers angezeigt",
+          selectLayersFirst: "Zuerst mindestens einen Layer auswählen",
+          setupFigmaFirst: "Zuerst Figma-Integration einrichten",
+          copiedToClipboard: "In Zwischenablage kopiert",
+          copyFailed: "Kopieren fehlgeschlagen",
+          loadingSettings: "Einstellungen laden...",
+          savingSettings: "Einstellungen speichern...",
+          settingsCleared: "Einstellungen gelöscht",
+          languageLabel: "Sprache:",
+          languageChanged: "Sprache geändert zu {lang}",
+          autoLanguage: "Auto (VS Code Sprache)",
+          
+          // New translations for added elements
+          mainTitle: "CSS Classes from HTML v0.0.7",
+          refresh: "Aktualisieren",
+          basicTab: "Grundlegend",
+          figmaTab: "Figma", 
+          advancedTab: "Erweitert",
+          basicSettings: "Grundlegende Einstellungen",
+          cssFileName: "CSS-Dateiname",
+          cssFileNamePlaceholder: "styles.css",
+          includeReset: "Reset-Styles einschließen",
+          includeResetTooltip: "Fügt grundlegende Reset-Styles hinzu",
+          includeVariables: "CSS-Variablen",
+          includeVariablesTooltip: "Fügt CSS custom properties hinzu",
+          includeResponsive: "Responsive Styles",
+          includeResponsiveTooltip: "Fügt Media Queries hinzu",
+          includeModernNormalize: "Modern Normalize",
+          includeModernNormalizeTooltip: "Modern-Normalize vom CDN in HTML head einbinden",
+          canvasSelection: "Canvas-Auswahl",
+          layersSelection: "Layers-Auswahl",
+          advancedSettings: "Erweiterte Einstellungen",
+          outputFormat: "Ausgabeformat",
+          expandedFormat: "Erweitert",
+          compressedFormat: "Komprimiert",
+          minifiedFormat: "Minifiziert",
+          selectedLayersStyles: "Ausgewählte Layers-Styles",
+          close: "Schließen",
+          loadSettings: "Laden",
+          clearSettings: "Löschen",
+          
+          // Status messages
+          htmlFile: "📄 HTML-Datei",
+          modeSelected: "Modus \"{mode}\" ausgewählt",
+          languageChanged: "🌍 Sprache geändert zu {lang}",
+          loadingSettings: "⏳ Einstellungen laden...",
+          settingsLoaded: "✅ Einstellungen geladen",
+          canvasesLoaded: "✅ Canvas geladen",
+          layersLoaded: "✅ Layers geladen",
+          cssGenerated: "✅ CSS erfolgreich generiert!",
+          copiedToClipboard: "📋 In Zwischenablage kopiert",
+          selectFileAndMode: "HTML-Datei und Generierungsmodus auswählen",
+          enterFigmaCredentials: "Figma URL und API Token eingeben",
+          setupFigmaFirst: "Zuerst Figma-Integration einrichten",
+          selectLayersFirst: "Zuerst mindestens einen Layer auswählen"
+        }
+      }
+
+      // ✅ FIX: Глобальний стейт - об'єднано з основним state вище
+
+      // Language functions
+      window.t = function(key, params = {}) {
+        const currentLang = state.currentLanguage
+        const langTranslations = translations[currentLang]
+        const fallbackTranslations = translations.uk
+        
+        let text = langTranslations?.[key] || fallbackTranslations?.[key] || key
+        
+        console.log(`🌐 Translation lookup:`, {
+          key: key,
+          currentLanguage: currentLang,
+          hasLangTranslations: !!langTranslations,
+          hasKeyInLang: !!langTranslations?.[key],
+          hasKeyInFallback: !!fallbackTranslations?.[key],
+          result: text
+        })
+        
+        // Replace parameters like {count}, {name}, etc.
+        if (params && typeof params === 'object') {
+          Object.keys(params).forEach(param => {
+            text = text.replace(new RegExp(`\\{${param}\\}`, 'g'), params[param])
+          })
+        }
+        
+        return text
+      }
+
+      window.setLanguage = function(lang) {
+        console.log(`🌍 setLanguage() викликана з мовою: ${lang}`)
+        console.log(`📊 Поточний state.currentLanguage:`, state.currentLanguage)
+        
+        // Обробляємо випадок автоматичного визначення мови
+        if (lang === 'auto') {
+          const detectedLang = getVSCodeLanguage()
+          state.currentLanguage = detectedLang
+          document.documentElement.lang = detectedLang
+          console.log(`✅ Language set to auto-detected: ${detectedLang}`)
+          
+          updateAllTranslations()
+          updateActiveLanguageButton()
+          localStorage.removeItem('css-classes-language') // Видаляємо збережену мову
+          
+          // Показуємо повідомлення про зміну мови
+          showStatus(`🌍 ${t('languageChanged', {lang: 'AUTO'})} (${detectedLang.toUpperCase()})`, 'success')
+          return
+        }
+        
+        if (translations[lang]) {
+          console.log(`✅ Language ${lang} is supported, switching...`)
+          state.currentLanguage = lang
+          document.documentElement.lang = lang
+          console.log(`✅ Language switched to: ${lang}`)
+          console.log(`✅ State updated:`, state)
+          
+          updateAllTranslations()
+          updateActiveLanguageButton()
+          localStorage.setItem('css-classes-language', lang)
+          
+          // Показуємо повідомлення про зміну мови
+          const message = `🌍 ${t('languageChanged', {lang: lang.toUpperCase()})}`
+          console.log('📢 Showing status message:', message)
+          showStatus(message, 'success')
+        } else {
+          console.error(`❌ Language not supported: ${lang}`)
+          console.error(`❌ Available languages:`, Object.keys(translations))
+        }
+      }
+
+      window.updateActiveLanguageButton = function() {
+        console.log('🎯 Updating active language button for:', state.currentLanguage)
+        
+        // Прибираємо активний клас від всіх кнопок мов
+        document.querySelectorAll('.lang-flag-btn').forEach(btn => {
+          btn.classList.remove('btn-primary')
+        })
+        
+        // Перевіряємо, чи використовується автоматичне визначення мови
+        const savedLang = localStorage.getItem('css-classes-language')
+        let activeLang = state.currentLanguage
+        
+        // Якщо немає збереженої мови, то активна кнопка 'auto'
+        if (!savedLang) {
+          activeLang = 'auto'
+          console.log('🔄 No saved language, using auto button')
+        }
+        
+        // Додаємо активний клас до поточної мови
+        const activeBtn = document.querySelector(`.lang-flag-btn[data-lang="${activeLang}"]`)
+        if (activeBtn) {
+          activeBtn.classList.add('btn-primary')
+          console.log('✅ Active button set to:', activeLang)
+        } else {
+          console.log('❌ No button found for language:', activeLang)
+        }
+      }
+
+      window.getVSCodeLanguage = function() {
+        // Пробуємо визначити мову VSCode інтерфейсу
+        const browserLang = navigator.language || navigator.userLanguage || 'en'
+        const allLanguages = navigator.languages || [browserLang]
+        
+        console.log('🔍 VSCode Language Detection:', {
+          browserLang,
+          allLanguages,
+          detected: 'mapping...'
+        })
+        
+        // Перевіряємо всі доступні мови, починаючи з основної
+        for (const lang of allLanguages) {
+          const langCode = lang.toLowerCase()
+          
+          // Українська
+          if (langCode.startsWith('uk') || langCode.includes('ua') || langCode.includes('ukrainian')) {
+            console.log('✅ Detected Ukrainian language from:', lang)
+            return 'uk'
+          }
+          
+          // Німецька
+          if (langCode.startsWith('de') || langCode.includes('german')) {
+            console.log('✅ Detected German language from:', lang)
+            return 'de'
+          }
+          
+          // Англійська
+          if (langCode.startsWith('en') || langCode.includes('english')) {
+            console.log('✅ Detected English language from:', lang)
+            return 'en'
+          }
+        }
+        
+        // Українська за замовчуванням якщо нічого не знайдено
+        console.log('✅ Defaulting to Ukrainian language (no match found)')
+        return 'uk'
+      }
+
+      window.updateAllTranslations = function() {
+        console.log('🔄 Updating translations for language:', state.currentLanguage)
+        
+        // ✅ FIX: Використовуємо збережений стан для перевірки чи вибрано файл
+        const isFileSelected = state.currentHTMLFile && state.currentHTMLFile !== null
+        
+        const elements = document.querySelectorAll('[data-i18n]')
+        console.log(`📝 Found ${elements.length} elements with data-i18n attributes`)
+        
+        // Update all elements with data-i18n attribute
+        elements.forEach((el, index) => {
+          const key = el.getAttribute('data-i18n')
+          if (key) {
+            const translation = t(key)
+            console.log(`🔄 [${index}] Updating element:`, {
+              tagName: el.tagName,
+              key: key,
+              translation: translation,
+              currentText: el.textContent?.trim(),
+              currentPlaceholder: el.placeholder
+            })
+            if (el.tagName === 'INPUT') {
+              if (el.type === 'text' || el.type === 'password') {
+                el.placeholder = t(key)
+              }
+            } else if (el.tagName === 'SELECT') {
+              // Handle select options
+              const options = el.querySelectorAll('option[data-i18n]')
+              options.forEach(option => {
+                const optionKey = option.getAttribute('data-i18n')
+                if (optionKey) {
+                  option.textContent = t(optionKey)
+                }
+              })
+            } else if (el.tagName === 'BUTTON' || el.tagName === 'A') {
+              // Update both title and text content for buttons and links
+              if (el.hasAttribute('title')) {
+                el.title = t(key)
+              }
+              // Special handling for language flag buttons - don't update text
+              if (el.classList.contains('lang-flag-btn')) {
+                // Keep flag emoji, don't update text content
+                return
+              }
+              // For all other buttons and links, update text content
+              const translation = t(key)
+              // Preserve icons at the beginning if they exist
+              const iconMatch = el.textContent.match(/^([🇺🇦🇺🇸🇩🇪🌐⚡🚀📦⚙️🎨🔧📂💾🗑️🔄📄🎯🖼️🔤✖📋✅❌]+\s*)/)
+              if (iconMatch) {
+                el.textContent = iconMatch[1] + translation.replace(/^[🇺🇦🇺🇸🇩🇪🌐⚡🚀📦⚙️🎨🔧📂💾🗑️🔄📄🎯🖼️🔤✖📋✅❌]+\s*/, '')
+              } else {
+                el.textContent = translation
+              }
+            } else if (el.tagName === 'SPAN' && el.classList.contains('tooltiptext')) {
+              // Handle tooltip text
+              el.textContent = t(key)
+            } else {
+              // Default: update text content
+              el.textContent = t(key)
+            }
+          }
+        })
+
+        // Update document title
+        document.title = t('title')
+        
+        // ✅ FIX: Відновлюємо стан HTML файлу після оновлення перекладів
+        setTimeout(() => {
+          if (isFileSelected) {
+            // Відновлюємо відображення поточного файлу
+            updateHTMLDisplay(state.currentHTMLFile, state.currentHTMLPath)
+          } else {
+            // Якщо файл не вибрано, встановлюємо перекладений текст "Не вибрано"
+            updateHTMLDisplay(null)
+          }
+        }, 50)
+        
+        console.log('✅ Translation update completed')
+      }
+
+      // ✅ FIX: Ініціалізація при завантаженні - лінія 793-810 ✅
+      window.addEventListener("DOMContentLoaded", () => {
+        console.log("🚀 Initializing CSS Classes Menu v0.0.7...")
+
+        // ✅ MULTILINGUAL: Initialize language system
+        // Спочатку перевіряємо збережену мову користувача
+        const savedLang = localStorage.getItem('css-classes-language')
+        let finalLang = savedLang
+        
+        // Якщо немає збереженої мови, використовуємо мову VS Code як за замовчуванням
+        if (!finalLang) {
+          finalLang = getVSCodeLanguage()
+          console.log('🌍 No saved language, using VS Code language as default:', finalLang)
+        } else {
+          console.log('🌍 Using saved language:', finalLang)
+        }
+        
+        console.log('🌍 Language Initialization:', {
+          vscodeDetected: getVSCodeLanguage(),
+          savedInStorage: savedLang,
+          finalChoice: finalLang,
+          availableTranslations: Object.keys(translations)
+        })
+        
+        if (translations[finalLang]) {
+          state.currentLanguage = finalLang
+          document.documentElement.lang = finalLang
+          console.log(`✅ Language set to: ${finalLang}`)
+          console.log(`✅ State after initialization:`, state)
+        } else {
+          state.currentLanguage = 'uk' // fallback до української (за замовчуванням)
+          document.documentElement.lang = 'uk'
+          console.log(`⚠️ Language fallback to Ukrainian (default), requested: ${finalLang}`)
+          console.log(`⚠️ State after fallback:`, state)
+        }
+
+        // Слухаємо повідомлення від extension
+        window.addEventListener("message", handleMessage)
+
+        // Запитуємо початковий контекст
+        vscode.postMessage({command: "getInitialContext"})
+
+        // ✅ MULTILINGUAL: Apply translations after DOM is loaded
+        setTimeout(() => {
+          console.log('🔄 Applying initial translations...')
+          updateAllTranslations()
+          updateActiveLanguageButton()
+          console.log('✅ Initial translations applied')
+          
+          // ✅ Додаємо обробник зміни назви CSS файлу
+          const cssFileNameInput = document.getElementById('cssFileName')
+          if (cssFileNameInput) {
+            // Встановлюємо початкове значення з state
+            cssFileNameInput.value = state.cssFileNameTemplate
+            cssFileNameInput.placeholder = state.cssFileNameTemplate
+            
+            // Додаємо обробник зміни
+            cssFileNameInput.addEventListener('input', function(e) {
+              const newValue = e.target.value.trim() || 'styles.css'
+              state.cssFileNameTemplate = newValue
+              console.log('💾 CSS file name template updated:', state.cssFileNameTemplate)
+            })
+          }
+        }, 100)
+
+        // ✅ MULTILINGUAL: Add event listeners for language buttons
+        document.querySelectorAll('.lang-flag-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const lang = e.target.getAttribute('data-lang')
+            console.log('🖱️ Language button clicked:', lang)
+            console.log('🔍 setLanguage function exists:', typeof window.setLanguage)
+            if (window.setLanguage) {
+              window.setLanguage(lang)
+            } else {
+              console.error('❌ setLanguage function not found!')
+            }
+          })
+        })
+
+        // Налаштування слайдера
+        const slider = document.getElementById("confidenceThreshold")
+        const value = document.getElementById("confidenceValue")
+        if (slider) {
+          slider.addEventListener("input", function () {
+            value.textContent = this.value + "%"
+          })
+        }
+
+        // Центрування секцій при першому наведенні
+        const bindCenterOnFirstHover = (id) => {
+          const el = document.getElementById(id)
+          if (!el || el._centerBound) return
+          el._centerBound = true
+          let hovered = false
+          let hoverTimer = null
+          
+          el.addEventListener('mouseenter', () => {
+            if (hovered) return
+            hovered = true
+            clearTimeout(hoverTimer)
+            hoverTimer = setTimeout(() => {
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            }, 120)
+          })
+        }
+        bindCenterOnFirstHover('canvasSection')
+        bindCenterOnFirstHover('layersSection')
+
+      })
+
+      // ✅ FIX: Обробка повідомлень від extension - лінія 813-890 ✅
+      window.handleMessage = function(event) {
+        const message = event.data
+        console.log("📨 Received:", message.command, message)
+
+        switch (message.command) {
+          case "initializeContext":
+          case "updateHTMLContext":
+            console.log("🎯 Processing initializeContext/updateHTMLContext:", {
+              htmlFile: message.htmlFile,
+              fileName: message.fileName,
+              config: message.config
+            });
+            
+            if (message.htmlFile) {
+              console.log("✅ Setting state.currentHTMLFile to:", message.htmlFile);
+              state.currentHTMLFile = message.htmlFile
+              updateHTMLDisplay(message.fileName || message.htmlFile, message.htmlFile)
+              showStatus(`📄 ${t('htmlFile')}: ${message.fileName}`, "info")
+            } else {
+              console.log("❌ No htmlFile in message");
+            }
+            
+            if (message.config) {
+              console.log("🔧 Applying config:", message.config);
+              applySettings(message.config)
+            }
+            
+            console.log("📊 Updated state:", {
+              currentHTMLFile: state.currentHTMLFile,
+              mode: state.mode
+            });
+            break
+
+          case "htmlFileSelected":
+            state.currentHTMLFile = message.htmlFile
+            updateHTMLDisplay(message.fileName, message.htmlFile)
+            showStatus(`✅ ${t('fileSelected')}: ${message.fileName}`, "success")
+            break
+
+          case "lastSettingsLoaded":
+            if (message.settings) {
+              applySettings(message.settings)
+              if (message.settings.currentHTMLFile) {
+                state.currentHTMLFile = message.settings.currentHTMLFile
+                updateHTMLDisplay(message.settings.currentHTMLFileName, message.settings.currentHTMLFile)
+              }
+              showStatus(`✅ ${t('settingsLoaded')}`, "success")
+            }
+            break
+
+          case "figmaCanvases":
+            if (message.success && message.canvases) {
+              displayCanvases(message.canvases)
+              showStatus(`✅ ${t('canvasesLoaded')}: ${message.canvases.length} Canvas`, "success")
+            } else {
+              showStatus(message.error || t('canvasLoadError'), "error")
+            }
+            break
+
+          case "figmaLayers":
+            if (message.success && message.layers) {
+              displayLayers(message.layers)
+              showStatus(`✅ ${t('layersLoaded')}: ${message.layers.length} Layers`, "success")
+            } else {
+              showStatus(message.error || t('layersLoadError'), "error")
+            }
+            break
+
+          case "layerStyles":
+            if (message.success && message.styles) {
+              renderLayerStyles(message.styles)
+              toggleSidebar(true)
+              showStatus(`✅ ${t('stylesReceived')}`, "success")
+            } else {
+              showStatus(message.error || t('stylesError'), "error")
+            }
+            break
+
+          case "generationComplete":
+            hideProgress()
+            if (message.success) {
+              showStatus(`✅ ${t('cssGenerated')}`, "success")
+            } else {
+              showStatus(message.error || t('generationError'), "error")
+            }
+            break
+
+          case "imagesImported":
+            hideProgress()
+            if (message.success) {
+              showStatus(`✅ ${t('imagesImported')}: ${message.images} файлів у ${message.outputDir}`, "success")
+            } else {
+              showStatus(message.error || t('imageImportError'), "error")
+            }
+            break
+
+          case "fontsImported":
+            hideProgress()
+            if (message.success) {
+              showStatus(`✅ ${t('fontsImported')}: ${message.fonts} шрифтів у ${message.htmlFile}`, "success")
+            } else {
+              showStatus(message.error || t('fontImportError'), "error")
+            }
+            break
+
+          case "layerRenamed":
+            if (message.success) {
+              showStatus(`✏️ ${t('layerRenamed')}: ${message.newName}`, "success")
+            } else {
+              showStatus(message.error || t('layerRenameError'), "error")
+            }
+            break
+
+          case "error":
+            hideProgress()
+            showStatus(message.message, "error")
+            break
+
+          case "styleLibrarySaved":
+            hideProgress()
+            if (message.success) {
+              showStatus(`💾 ${t('savingLibrary')} завершено: ${message.filePath}`, "success")
+            } else {
+              showStatus(message.error || `${t('savingLibrary')} помилка`, "error")
+            }
+            break
+
+          case "styleLibrarySelected":
+            if (message.success) {
+              const fileName = message.selected ? message.selected.split(/[\/\\]/).pop() : 'Невідома'
+              showStatus(`📚 Бібліотека обрана: ${fileName}`, "success")
+              if (message.library) {
+                // Застосовуємо налаштування з бібліотеки
+                if (message.library.includeGlobal !== undefined)
+                  document.getElementById("includeGlobal").checked = message.library.includeGlobal
+                if (message.library.includeReset !== undefined)
+                  document.getElementById("includeReset").checked = message.library.includeReset
+                if (message.library.includeVariables !== undefined)
+                  document.getElementById("includeVariables").checked = message.library.includeVariables
+                if (message.library.includeResponsive !== undefined)
+                  document.getElementById("includeResponsive").checked = message.library.includeResponsive
+                if (message.library.includeModernNormalize !== undefined)
+                  document.getElementById("includeModernNormalize").checked = message.library.includeModernNormalize
+                if (message.library.includeCustomStyles !== undefined)
+                  document.getElementById("includeCustomStyles").checked = message.library.includeCustomStyles
+              }
+            } else {
+              showStatus(message.error || "Помилка вибору бібліотеки", "error")
+            }
+            break
+        }
+      }
+
+      // ✅ FIX: Функції роботи з HTML контекстом - лінія 893-920 ✅
+      window.selectHTMLFile = function() {
+        vscode.postMessage({command: "selectHTMLFile"})
+      }
+
+      window.refreshHTMLContext = function() {
+        vscode.postMessage({command: "refreshHTMLContext"})
+        showStatus(`🔄 ${t('updatingContext')}`, "info")
+      }
+
+      window.updateHTMLDisplay = function(fileName, fullPath = null) {
+        const element = document.getElementById("currentHTMLFile")
+        
+        // ✅ FIX: Оновлюємо глобальний стан
+        state.currentHTMLFile = fileName
+        state.currentHTMLPath = fullPath
+        
+        if (element) {
+          if (fileName) {
+            // ✅ FIX: Показуємо лише ім'я файлу, але зберігаємо повний шлях в title
+            element.textContent = fileName
+            element.style.color = "white"
+            element.title = fullPath || fileName
+            
+            // ✅ FIX: Додаємо індикатор що файл вибраний
+            element.style.fontWeight = "600"
+            element.style.background = "rgba(0, 122, 204, 0.1)"
+            element.style.padding = "4px 8px"
+            element.style.borderRadius = "4px"
+            element.style.border = "1px solid rgba(0, 122, 204, 0.3)"
+          } else {
+            element.textContent = t('not_selected') || "Не вибрано"
+            element.style.color = "rgba(255,255,255,0.7)"
+            element.title = ""
+            element.style.fontWeight = "normal"
+            element.style.background = "transparent"
+            element.style.padding = "0"
+            element.style.borderRadius = "0"
+            element.style.border = "none"
+          }
+        }
+
+        // ✅ FIX: Оновлюємо контекстну панель заголовку
+        const contextBar = document.getElementById("htmlContextBar")
+        if (contextBar) {
+          if (fileName) {
+            contextBar.style.borderBottom = "2px solid var(--success)"
+          } else {
+            contextBar.style.borderBottom = "2px solid rgba(255,255,255,0.1)"
+          }
+        }
+
+        // Активуємо кнопку генерації якщо є файл
+        const generateBtn = document.getElementById("generateBtn")
+        if (generateBtn) {
+          generateBtn.disabled = !fileName
+          
+          // Візуальна індикація готовності до генерації
+          if (fileName) {
+            generateBtn.style.opacity = "1"
+            generateBtn.style.cursor = "pointer"
+          } else {
+            generateBtn.style.opacity = "0.6"
+            generateBtn.style.cursor = "not-allowed"
+          }
+        }
+        
+        // Оновлюємо статус у заголовку
+        const subtitle = document.querySelector('.html-context-subtitle')
+        if (subtitle && fileName) {
+          const originalText = subtitle.getAttribute('data-original-text') || subtitle.textContent
+          if (!subtitle.getAttribute('data-original-text')) {
+            subtitle.setAttribute('data-original-text', subtitle.textContent)
+          }
+          subtitle.textContent = `${originalText} • Активний файл: ${fileName}`
+        } else if (subtitle && !fileName) {
+          const originalText = subtitle.getAttribute('data-original-text')
+          if (originalText) {
+            subtitle.textContent = originalText
+          }
+        }
+      }
+
+      // Вибір режиму
+      window.selectMode = function(mode) {
+        console.log("🔧 selectMode() викликана з режимом:", mode);
+        state.mode = mode
+
+        // Оновлення візуального стану
+        document.querySelectorAll(".mode-card").forEach(card => {
+          card.classList.remove("selected")
+        })
+        document.querySelector(`[data-mode="${mode}"]`).classList.add("selected")
+
+        // Показ/приховування секцій залежно від режиму
+        if (mode === "maximum") {
+          switchTab("figma")
+        } else {
+          switchTab("basic")
+        }
+
+        console.log("✅ Режим встановлено:", state.mode);
+        showStatus(t('modeSelected', {mode: getModeTitle(mode)}), "success")
+      }
+
+      window.getModeTitle = function(mode) {
+        const titles = {
+          minimal: "Мінімальний",
+          maximum: "Максимальний",
+          production: "Production"
+        }
+        return titles[mode] || mode
+      }
+
+      // Переключення табів
+      window.switchTab = function(tabName) {
+        // Оновлення табів
+        document.querySelectorAll(".tab").forEach(tab => {
+          tab.classList.remove("active")
+        })
+        document.querySelectorAll(".tab-content").forEach(content => {
+          content.classList.remove("active")
+        })
+
+        // Активація вибраного
+        const tabButton = Array.from(document.querySelectorAll(".tab")).find(
+          t =>
+            t.textContent.toLowerCase().includes(tabName.toLowerCase()) ||
+            t.onclick.toString().includes(tabName)
+        )
+        if (tabButton) tabButton.classList.add("active")
+
+        const tabContent = document.getElementById(tabName + "Tab")
+        if (tabContent) tabContent.classList.add("active")
+      }
+
+      // ✅ FIX: Генерація CSS з контекстом - лінія 965-985 ✅
+      window.generateCSS = function() {
+        console.log("🖱️ generateCSS() функція викликана!");
+        console.log("📄 Current state:", {
+          currentHTMLFile: state.currentHTMLFile,
+          mode: state.mode
+        });
+
+        if (!state.currentHTMLFile && !state.mode) {
+          console.log("❌ Помилка: відсутній HTML файл або режим");
+          showStatus(`❌ ${t('selectFileAndMode')}`, "error")
+          return
+        }
+
+        console.log("✅ Валідація пройшла, починаю генерацію CSS...");
+        showProgress("Генерація CSS...")
+
+        const settings = {
+          mode: state.mode,
+          htmlFile: state.currentHTMLFile,
+          cssFileName: state.cssFileNameTemplate,
+          figmaLink: document.getElementById("figmaLink").value,
+          figmaToken: document.getElementById("figmaToken").value,
+          includeReset: document.getElementById("includeReset").checked,
+          includeVariables: document.getElementById("includeVariables").checked,
+          includeResponsive: document.getElementById("includeResponsive").checked,
+          includeModernNormalize: document.getElementById("includeModernNormalize").checked,
+          includeGlobal: document.getElementById("includeGlobal").checked,
+          includeCustomStyles: document.getElementById("includeCustomStyles").checked,
+          outputFormat: document.getElementById("outputFormat").value,
+          confidenceThreshold: document.getElementById("confidenceThreshold").value,
+          selectedCanvases: state.selectedCanvases,
+          selectedLayers: state.selectedLayers
+        }
+
+        console.log("📤 Відправляю повідомлення до extension:", {
+          command: "generateCSS",
+          settings: settings
+        });
+
+        vscode.postMessage({
+          command: "generateCSS",
+          settings: settings
+        })
+
+        console.log("✅ Повідомлення відправлено до extension!");
+      }
+
+      // Figma функції
+      window.loadFigmaCanvases = function() {
+        const { figmaLink, figmaToken, linkOk, tokenOk } = getFigmaCreds()
+
+        if (!linkOk || !tokenOk) {
+          showStatus(`❌ ${t('enterFigmaCredentials')}`, "error")
+          return
+        }
+
+        showProgress("Завантаження Canvas з Figma...")
+
+        // Зберігаємо в state для інших дій (імпорт)
+        state.figmaLink = figmaLink
+        state.figmaToken = figmaToken
+
+        vscode.postMessage({
+          command: "getFigmaCanvases",
+          figmaLink,
+          figmaToken
+        })
+      }
+
+      // Допоміжна: отримання валідних креденшелів з індикаторами
+      window.getFigmaCreds = function() {
+        const figmaLinkInput = document.getElementById("figmaLink")
+        const figmaTokenInput = document.getElementById("figmaToken")
+        const linkIndicator = document.getElementById('figmaLinkIndicator')
+        const tokenIndicator = document.getElementById('figmaTokenIndicator')
+        const figmaLink = (figmaLinkInput?.value || '').trim()
+        const figmaToken = (figmaTokenInput?.value || '').trim()
+        const linkOk = /figma\.com\/(file|design|proto)\//.test(figmaLink)
+        const tokenOk = /^fig[a-z]_/.test(figmaToken)
+        if (linkIndicator) linkIndicator.className = 'indicator ' + (linkOk ? 'green' : 'red')
+        if (tokenIndicator) tokenIndicator.className = 'indicator ' + (tokenOk ? 'green' : 'red')
+        return { figmaLink, figmaToken, linkOk, tokenOk }
+      }
+
+      window.displayCanvases = function(canvases) {
+        const container = document.getElementById("canvasList")
+        container.innerHTML = ""
+
+        // Сортуємо: вибрані Canvas зверху в порядку додавання
+        const selectedFirst = [...canvases].sort((a, b) => {
+          const sa = state.selectedCanvasIds.has(a.id) ? 0 : 1
+          const sb = state.selectedCanvasIds.has(b.id) ? 0 : 1
+          return sa - sb
+        })
+
+        selectedFirst.forEach(canvas => {
+          const item = createListItem(canvas, "canvas")
+          // Відмічаємо чекбокс якщо вже вибрано
+          const cb = item.querySelector('input[type="checkbox"]')
+          if (cb && state.selectedCanvasIds.has(canvas.id)) cb.checked = true
+          container.appendChild(item)
+        })
+
+        document.getElementById("canvasSection").style.display = "block"
+        // При успішній авторизації та завантаженні Canvas – ховаємо блок авторизації
+        const auth = document.getElementById('figmaAuthSection')
+        if (auth) auth.style.display = 'none'
+        hideProgress()
+      }
+
+      window.displayLayers = function(layers) {
+        const container = document.getElementById("layersList")
+        container.innerHTML = ""
+
+        // Побудуємо ієрархію parent->children
+        const byId = new Map()
+        const roots = []
+        // ✅ FIX: збережемо оригінал списку для пошуку та каскадного вибору
+        state._allLayers = layers
+        state.allLayers = layers // Додаємо для каскадного вибору
+        layers.forEach(l => byId.set(l.id, { ...l, children: [] }))
+
+        layers.forEach(l => {
+          const parentId = l.parentId || null
+          if (parentId && byId.has(parentId)) {
+            byId.get(parentId).children.push(byId.get(l.id))
+          } else {
+            roots.push(byId.get(l.id))
+          }
+        })
+
+        // ✅ FIX: Сортуємо кореневі елементи та дітей за позицією
+        const sortByPosition = (a, b) => {
+          // Спочатку за Y позицією (зверху вниз)
+          const aY = a.y || 0
+          const bY = b.y || 0
+          if (Math.abs(aY - bY) > 10) {
+            return aY - bY
+          }
+          // Якщо Y позиції близькі, сортуємо за X (зліва направо)
+          const aX = a.x || 0
+          const bX = b.x || 0
+          return aX - bX
+        }
+
+        // Сортуємо кореневі елементи
+        roots.sort(sortByPosition)
+        
+        // Сортуємо дітей для кожного вузла
+        const sortChildren = (node) => {
+          if (node.children && node.children.length > 0) {
+            node.children.sort(sortByPosition)
+            node.children.forEach(sortChildren)
+          }
+        }
+        roots.forEach(sortChildren)
+
+        // ✅ FIX: Покращена ієрархія Layers як на макеті
+        const renderNode = (node, depth = 0) => {
+          const row = document.createElement('div')
+          row.className = 'tree-item'
+          row.style.marginLeft = `${depth * 20}px` // відступ для ієрархії
+
+          // Іконка типу елемента (як на макеті)
+          const icon = document.createElement('span')
+          icon.className = 'layer-icon'
+          
+          // Визначаємо іконку за типом
+          if (node.type === 'FRAME') {
+            icon.textContent = '#'
+            icon.style.color = '#8B5CF6'
+          } else if (node.type === 'TEXT') {
+            icon.textContent = 'T'
+            icon.style.color = '#10B981'
+          } else if (node.type === 'COMPONENT') {
+            icon.textContent = '🗐'
+            icon.style.color = '#F59E0B'
+          } else {
+            icon.textContent = '🗐'
+            icon.style.color = '#6B7280'
+          }
+          
+          icon.style.marginRight = '8px'
+          icon.style.fontWeight = 'bold'
+          row.appendChild(icon)
+
+          // Перемикач згортання (тільки якщо є діти)
+          if (node.children.length > 0) {
+            const toggle = document.createElement('span')
+            toggle.className = 'tree-toggle'
+            toggle.textContent = node.expanded ? '▾' : '▸'
+            toggle.style.marginRight = '8px'
+            toggle.style.cursor = 'pointer'
+            toggle.style.color = '#9CA3AF'
+            
+            toggle.onclick = (e) => {
+              e.stopPropagation()
+              node.expanded = !node.expanded
+              toggle.textContent = node.expanded ? '▾' : '▸'
+              
+              // Показуємо/ховаємо дітей
+              const childrenRows = container.querySelectorAll(`[data-parent="${node.id}"]`)
+              childrenRows.forEach(childRow => {
+                childRow.style.display = node.expanded ? '' : 'none'
+              })
+            }
+            row.appendChild(toggle)
+          } else {
+            // Порожній простір для вирівнювання
+            const spacer = document.createElement('span')
+            spacer.style.marginRight = '16px'
+            row.appendChild(spacer)
+          }
+
+          // Чекбокс
+          const cb = document.createElement('input')
+          cb.type = 'checkbox'
+          cb.dataset.id = node.id
+          cb.checked = state.selectedLayerIds.has(node.id)
+          cb.style.marginRight = '8px'
+          cb.onchange = (e) => {
+            e.stopPropagation()
+            handleItemSelection(node, cb.checked, 'layer', e)
+          }
+          row.appendChild(cb)
+
+          // Назва та метадані
+          const name = document.createElement('div')
+          name.className = 'list-item-info'
+          name.style.flex = '1'
+          name.style.position = 'relative'
+          
+          const nameDiv = document.createElement('div')
+          nameDiv.className = 'list-item-name'
+          nameDiv.textContent = node.name
+          nameDiv.style.fontWeight = '500'
+          nameDiv.style.color = '#F9FAFB'
+          nameDiv.style.cursor = 'pointer'
+          nameDiv.dataset.nodeId = node.id
+          
+          const metaDiv = document.createElement('div')
+          metaDiv.className = 'list-item-meta'
+          metaDiv.textContent = `${node.type || 'Unknown'} • ${node.children.length} елементів`
+          metaDiv.style.fontSize = '12px'
+          metaDiv.style.color = '#9CA3AF'
+          metaDiv.style.marginTop = '2px'
+          
+          // ✅ FIX: Кнопка перейменовування
+          const renameBtn = document.createElement('button')
+          renameBtn.className = 'rename-btn'
+          renameBtn.innerHTML = '✏️'
+          renameBtn.style.cssText = `
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            color: #9CA3AF;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 12px;
+            opacity: 0;
+            transition: all 0.2s ease;
+          `
+          renameBtn.title = 'Перейменувати Layer'
+          
+          // Показуємо кнопку при hover
+          name.addEventListener('mouseenter', () => {
+            renameBtn.style.opacity = '1'
+          })
+          name.addEventListener('mouseleave', () => {
+            renameBtn.style.opacity = '0'
+          })
+          
+          // Обробка кліку на кнопку перейменовування
+          renameBtn.onclick = (e) => {
+            e.stopPropagation()
+            startRenameLayer(node, nameDiv, renameBtn)
+          }
+          
+          name.appendChild(nameDiv)
+          name.appendChild(metaDiv)
+          name.appendChild(renameBtn)
+          row.appendChild(name)
+
+          // Клік по всьому рядку
+          row.onclick = (e) => {
+            // Якщо клік був по чекбоксу, не дублюємо дію
+            if (e.target === cb) {
+              return
+            }
+            
+            cb.checked = !cb.checked
+            // Ручне виконання подій змін
+            cb.dispatchEvent(new Event('change'))
+          }
+
+          // Додаємо атрибут для пошуку дітей
+          if (depth > 0) {
+            row.setAttribute('data-parent', node.parentId)
+            row.style.display = node.expanded ? '' : 'none'
+          }
+
+          container.appendChild(row)
+
+          // Рекурсивно рендеримо дітей
+          if (node.children.length > 0) {
+            node.children.forEach(child => renderNode(child, depth + 1))
+          }
+        }
+
+        // Рендеримо кореневі елементи
+        roots.forEach(r => renderNode(r, 0))
+
+        document.getElementById("layersSection").style.display = "block"
+        hideProgress()
+
+        // Пошук по назві layer
+        const search = document.getElementById('layersSearch')
+        if (search && !search._bound) {
+          search._bound = true
+          
+          // ✅ FIX: Функція для обробки пошуку
+          const handleSearch = () => {
+            const q = search.value.toLowerCase().trim()
+            if (!q) { 
+              // Показуємо всі Layers, коли поле пошуку порожнє
+              if (state._allLayers && state._allLayers.length > 0) {
+                displayLayers(state._allLayers)
+                showStatus(`🔍 ${t('showAllLayers')}`, 'info')
+              }
+              return 
+            }
+            // бекенд-пошук для великих дерев
+            vscode.postMessage({
+              command: 'searchFigmaLayers',
+              figmaLink: document.getElementById('figmaLink')?.value,
+              figmaToken: document.getElementById('figmaToken')?.value,
+              canvasIds: (state.selectedCanvases||[]).map(c=>c.id),
+              query: q
+            })
+          }
+          
+          // Обробка введення тексту
+          search.addEventListener('input', handleSearch)
+          
+          // ✅ FIX: Обробка очищення поля (кнопка X в браузері)
+          search.addEventListener('search', handleSearch)
+          
+          // ✅ FIX: Обробка натискання Escape
+          search.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+              search.value = ''
+              handleSearch()
+            }
+          })
+        }
+      }
+
+      // ✅ FIX: Функції перейменовування Layers
+      window.startRenameLayer = function(node, nameDiv, renameBtn) {
+        const currentName = node.name
+        const input = document.createElement('input')
+        input.type = 'text'
+        input.value = currentName
+        input.style.cssText = `
+          background: var(--bg-tertiary);
+          border: 1px solid var(--primary);
+          color: var(--text);
+          padding: 4px 8px;
+          border-radius: 4px;
+          font-size: 14px;
+          font-weight: 500;
+          width: 100%;
+          outline: none;
+        `
+        
+        // Замінюємо назву на input
+        nameDiv.style.display = 'none'
+        nameDiv.parentNode.insertBefore(input, nameDiv)
+        input.focus()
+        input.select()
+        
+        // Обробка завершення редагування
+        const finishRename = () => {
+          const newName = input.value.trim()
+          if (newName && newName !== currentName) {
+            renameLayer(node.id, newName)
+            node.name = newName
+            nameDiv.textContent = newName
+            
+            // ✅ FIX: Автоматичне оновлення CSS класів в sidebar після зміни імені Layer
+            updateSidebarAfterLayerRename(node.id, newName, currentName)
+          }
+          nameDiv.style.display = 'block'
+          input.remove()
+        }
+        
+        // Обробка подій
+        input.addEventListener('blur', finishRename)
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault()
+            finishRename()
+          } else if (e.key === 'Escape') {
+            e.preventDefault()
+            nameDiv.style.display = 'block'
+            input.remove()
+          }
+        })
+      }
+      
+      window.renameLayer = function(layerId, newName) {
+        // Відправляємо запит на бекенд
+        vscode.postMessage({
+          command: 'renameLayer',
+          layerId: layerId,
+          newName: newName
+        })
+        
+        showStatus(`✏️ ${t('layerRenamed')}: ${newName}`, "success")
+      }
+
+      // ✅ FIX: Автоматичне оновлення sidebar після зміни імені Layer
+      window.updateSidebarAfterLayerRename = function(layerId, newName, oldName) {
+        // Перевіряємо чи sidebar відображається і чи є CSS стилі
+        const sidebar = document.getElementById("stylesSidebar")
+        const stylesContent = document.getElementById("stylesContent")
+        
+        if (!sidebar.classList.contains("visible") || !stylesContent.innerHTML) {
+          console.log("🔄 Sidebar not visible or no styles - skipping auto-update")
+          return
+        }
+
+        // Зберігаємо alias в backend для подальшого використання
+        vscode.postMessage({
+          command: 'setLayerAlias',
+          layerId: layerId,
+          newName: newName
+        })
+
+        // Шукаємо style-block що відповідає цьому layerId
+        const styleBlocks = stylesContent.querySelectorAll('.style-block')
+        let foundBlock = null
+        
+        styleBlocks.forEach(block => {
+          const header = block.querySelector('.style-block-header')
+          if (header && header.textContent.includes(oldName)) {
+            foundBlock = block
+          }
+        })
+
+        if (foundBlock) {
+          console.log(`🔄 Updating sidebar CSS class for layer ${layerId}: "${oldName}" → "${newName}"`)
+          
+          // Генеруємо нову назву CSS класу (тільки для селектора)
+          const newClassName = generateClassName(newName, layerId)
+          const oldClassName = generateClassName(oldName, layerId)
+          
+          // Оновлюємо заголовок блоку - показуємо оригінальне ім'я і новий клас
+          const header = foundBlock.querySelector('.style-block-header')
+          
+          // ✅ FIX: В заголовку показуємо оригінальне ім'я але новий CSS клас
+          const headerText = `${oldName} <code style="background:var(--bg-tertiary); padding:2px 6px; border-radius:3px; font-size:11px; color:var(--primary);">.${newClassName}</code>`
+          header.innerHTML = headerText
+          
+          // Оновлюємо CSS код в блоці
+          const codeElement = foundBlock.querySelector('pre')
+          if (codeElement) {
+            // ✅ FIX: В CSS коментарях залишаємо оригінальне ім'я, але в селекторах використовуємо нове
+            let cssCode = codeElement.textContent
+            
+            // Замінюємо селектор класу на новий
+            cssCode = cssCode.replace(new RegExp(`\\.${oldClassName.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}`, 'g'), `.${newClassName}`)
+            
+            // НЕ замінюємо коментарі - залишаємо оригінальне ім'я в коментарях
+            // cssCode = cssCode.replace(new RegExp(`/\\* ${oldName.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')} \\*/`, 'g'), `/* ${oldName} */`)
+            
+            codeElement.textContent = cssCode
+          }
+
+          // Оновлюємо dataset для копіювання всіх стилів
+          const allCssElements = stylesContent.querySelectorAll('pre')
+          const allCss = Array.from(allCssElements).map(el => el.textContent).join('\n\n')
+          stylesContent.dataset.allCss = allCss
+
+          showStatus(`✅ Клас перейменовано: .${oldClassName} → .${newClassName}`, "success")
+        } else {
+          console.log(`⚠️ Could not find style block for layer ${layerId} with name "${oldName}"`)
+        }
+      }
+
+      // ✅ FIX: Функція очищення пошуку Layers
+      window.clearLayersSearch = function() {
+        const search = document.getElementById('layersSearch')
+        if (search) {
+          search.value = ''
+          // Показуємо всі Layers
+          if (state._allLayers && state._allLayers.length > 0) {
+            displayLayers(state._allLayers)
+            showStatus(`🔍 ${t('showAllLayers')}`, 'info')
+          }
+        }
+      }
+
+      window.renderFilteredLayers = function(filtered) {
+        const container = document.getElementById('layersList')
+        container.innerHTML = ''
+        // простий список збігів без ієрархії для швидкого пошуку
+        const frag = document.createDocumentFragment()
+        filtered.forEach(l => {
+          const item = createListItem({ id: l.id, name: l.name, type: l.type, childrenCount: l.childrenCount || 0 }, 'layer')
+          // ✅ FIX: зберігаємо поточний чекнутість та додаємо підтримку каскадного вибору
+          const cb = item.querySelector('input[type="checkbox"]')
+          if (cb && state.selectedLayerIds.has(l.id)) cb.checked = true
+          
+          // Додаємо обробник для каскадного вибору
+          cb.onchange = (e) => {
+            e.stopPropagation()
+            handleItemSelection(l, cb.checked, 'layer', e)
+          }
+          
+          frag.appendChild(item)
+        })
+        container.appendChild(frag)
+      }
+
+      window.toggleSidebar = function(show) {
+        const el = document.getElementById("stylesSidebar")
+        if (!el) return
+        el.classList.toggle("visible", !!show)
+      }
+
+      window.createListItem = function(data, type) {
+        const div = document.createElement("div")
+        div.className = "list-item"
+        div.dataset.id = data.id
+
+        const checkbox = document.createElement("input")
+        checkbox.type = "checkbox"
+        checkbox.dataset.id = data.id
+        checkbox.onclick = (e) => {
+          e.stopPropagation()
+          // ✅ FIX: Дозволяємо зміну чекбоксу, але блокуємо поширення події
+        }
+        checkbox.onchange = (e) => {
+          handleItemSelection(data, checkbox.checked, type, e)
+          console.log(`✅ Checkbox changed: ${data.name} -> ${checkbox.checked}`)
+        }
+
+        const info = document.createElement("div")
+        info.className = "list-item-info"
+
+        const name = document.createElement("div")
+        name.className = "list-item-name"
+        name.textContent = data.name
+
+        const meta = document.createElement("div")
+        meta.className = "list-item-meta"
+        meta.textContent = `${data.type || "Unknown"} • ${data.childrenCount || 0} елементів`
+
+        info.appendChild(name)
+        info.appendChild(meta)
+
+        div.appendChild(checkbox)
+        div.appendChild(info)
+
+        // ✅ FIX: Розділена логіка для Canvas та Layers  
+        div.onclick = (e) => {
+          // Якщо клік був по чекбоксу, не дублюємо дію
+          if (e.target === checkbox) {
+            return
+          }
+          
+          checkbox.checked = !checkbox.checked
+          // Ручне виконання подій змін
+          checkbox.dispatchEvent(new Event('change'))
+        }
+
+        return div
+      }
+
+      // ✅ FIX: Функція для отримання всіх дочірніх елементів рекурсивно
+      window.getAllChildren = function(parentId, layers) {
+        const children = []
+        const findChildren = (id) => {
+          layers.forEach(layer => {
+            if (layer.parentId === id) {
+              children.push(layer)
+              findChildren(layer.id) // Рекурсивно знаходимо дітей дітей
+            }
+          })
+        }
+        findChildren(parentId)
+        return children
+      }
+
+      // ✅ FIX: Функція для оновлення чекбоксів в UI
+      window.updateCheckboxesInUI = function(layerIds, isSelected) {
+        const list = document.getElementById('layersList')
+        if (!list) return
+
+        layerIds.forEach(layerId => {
+          const checkbox = list.querySelector(`input[data-id="${layerId}"]`)
+          if (checkbox) {
+            checkbox.checked = isSelected
+          }
+        })
+      }
+
+      window.handleItemSelection = function(item, isSelected, type, event) {
+        if (type === "canvas") {
+          if (isSelected) {
+            if (!state.selectedCanvasIds.has(item.id)) {
+              state.selectedCanvases.push(item)
+              state.selectedCanvasIds.add(item.id)
+            }
+          } else {
+            state.selectedCanvases = state.selectedCanvases.filter(c => c.id !== item.id)
+            state.selectedCanvasIds.delete(item.id)
+          }
+
+          if (state.selectedCanvases.length > 0) {
+            loadLayersForCanvases()
+          }
+          // ✅ FIX: НЕ пересортовуємо Canvas список - залишаємо позицію
+          // Canvas блоки залишаються на своїх місцях при виборі
+        } else if (type === "layer") {
+          // ✅ FIX: Каскадний вибір дочірніх елементів
+          if (isSelected) {
+            if (!state.selectedLayerIds.has(item.id)) {
+              state.selectedLayers.push(item)
+              state.selectedLayerIds.add(item.id)
+            }
+
+            // Знаходимо всіх дочірніх елементів
+            const allChildren = getAllChildren(item.id, state.allLayers || [])
+            console.log(`🌳 Selecting parent ${item.name} (${item.id}) with ${allChildren.length} children`)
+
+            // Додаємо всіх дочірніх елементів до вибраних
+            allChildren.forEach(child => {
+              if (!state.selectedLayerIds.has(child.id)) {
+                state.selectedLayers.push(child)
+                state.selectedLayerIds.add(child.id)
+                console.log(`  ✅ Added child: ${child.name} (${child.id})`)
+              }
+            })
+
+            // Оновлюємо чекбокси в UI для всіх дочірніх елементів
+            const childIds = allChildren.map(c => c.id)
+            updateCheckboxesInUI(childIds, true)
+
+          } else {
+            // При знятті вибору з батьківського елемента
+            state.selectedLayers = state.selectedLayers.filter(l => l.id !== item.id)
+            state.selectedLayerIds.delete(item.id)
+
+            // Знаходимо всіх дочірніх елементів
+            const allChildren = getAllChildren(item.id, state.allLayers || [])
+            console.log(`🌳 Deselecting parent ${item.name} (${item.id}) with ${allChildren.length} children`)
+
+            // Видаляємо всіх дочірніх елементів з вибраних
+            allChildren.forEach(child => {
+              state.selectedLayers = state.selectedLayers.filter(l => l.id !== child.id)
+              state.selectedLayerIds.delete(child.id)
+              console.log(`  ❌ Removed child: ${child.name} (${child.id})`)
+            })
+
+            // Оновлюємо чекбокси в UI для всіх дочірніх елементів
+            const childIds = allChildren.map(c => c.id)
+            updateCheckboxesInUI(childIds, false)
+          }
+
+          // ALT-режим: якщо користувач утримує Alt, виділяємо/знімаємо діапазон
+          // (спрощено — застосуємо до всіх видимих елементів списку з такою ж назвою типу)
+          if (event && event.altKey) {
+            const list = document.getElementById('layersList')
+            if (list) {
+              const boxes = list.querySelectorAll('input[type="checkbox"]')
+              boxes.forEach(cb => {
+                if (cb.dataset && cb.dataset.id && cb.dataset.id !== item.id) {
+                  // Легка евристика: застосувати до чекбоксів того ж типу (весь список)
+                  cb.checked = isSelected
+                  const fakeItem = { id: cb.dataset.id }
+                  handleItemSelection(fakeItem, isSelected, 'layer', { altKey: false })
+                }
+              })
+            }
+          }
+          
+          // ✅ FIX: Автоматично оновлюємо sidebar з стилями для всіх вибраних layers
+          if (state.selectedLayers.length > 0) {
+            const selectedIds = state.selectedLayers.map(l => l.id)
+            requestStylesForIds(selectedIds)
+          } else {
+            // Якщо немає вибраних layers - очищуємо sidebar
+            const sidebar = document.getElementById("stylesSidebar")
+            const stylesContent = document.getElementById("stylesContent")
+            if (stylesContent) {
+              stylesContent.innerHTML = `
+                <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                  <div style="font-size: 2rem; margin-bottom: 0.5rem;">📋</div>
+                  <div>Виберіть layers щоб побачити стилі</div>
+                </div>
+              `
+            }
+            if (sidebar && sidebar.classList.contains("visible")) {
+              toggleSidebar(false)
+            }
+          }
+        }
+      }
+
+      window.loadLayersForCanvases = function() {
+        const canvasIds = state.selectedCanvases.map(c => c.id)
+
+        vscode.postMessage({
+          command: "getFigmaLayers",
+          figmaLink: document.getElementById("figmaLink").value,
+          figmaToken: document.getElementById("figmaToken").value,
+          canvasIds: canvasIds
+        })
+      }
+
+      window.requestLayerStyles = function() {
+        const layerIds = state.selectedLayers.map(l => l.id)
+        if (layerIds.length === 0) {
+          showStatus(`⚠️ ${t('selectLayersFirst')}`, "warning")
+          return
+        }
+        requestStylesForIds(layerIds)
+      }
+
+      window.requestStylesForIds = function(ids) {
+        const link = document.getElementById('figmaLink')?.value
+        const token = document.getElementById('figmaToken')?.value
+        if (!link || !token) { showStatus(`❌ ${t('setupFigmaFirst')}`, 'error'); return }
+        vscode.postMessage({
+          command: 'getLayerStyles',
+          figmaLink: link,
+          figmaToken: token,
+          layerIds: ids
+        })
+        showProgress('Отримання стилів...')
+      }
+
+      // ✅ FIX: Функція для генерації назви CSS класу з назви Layer
+      window.generateClassName = function(layerName, layerId) {
+        if (!layerName) {
+          return `layer-${layerId || 'unknown'}`
+        }
+        
+        return layerName
+          .toLowerCase()                    // Перетворюємо в нижній регістр
+          .replace(/[^a-z0-9\s-]/g, '')    // Видаляємо спеціальні символи, але залишаємо дефіси
+          .replace(/\s+/g, '-')            // Замінюємо пробіли на дефіси
+          .replace(/^-+|-+$/g, '')         // Видаляємо дефіси на початку/кінці
+          .replace(/-+/g, '-')             // Замінюємо множинні дефіси на один
+      }
+
+      // ✅ FIX: Функція для ієрархічного сортування стилів, як в displayLayers
+      window.sortStylesHierarchically = function(styles) {
+        if (!state.allLayers || state.allLayers.length === 0) {
+          // Якщо немає layers, використовуємо стару логіку
+          return [...styles].sort((a, b) => {
+            const aLevel = (Array.isArray(a.htmlPath) ? a.htmlPath.length : (a.level ?? 0))
+            const bLevel = (Array.isArray(b.htmlPath) ? b.htmlPath.length : (b.level ?? 0))
+            if (aLevel !== bLevel) return aLevel - bLevel
+            const aPath = Array.isArray(a.htmlPath) ? a.htmlPath.join('/') : (a.htmlPath || '')
+            const bPath = Array.isArray(b.htmlPath) ? b.htmlPath.join('/') : (b.htmlPath || '')
+            return aPath.localeCompare(bPath)
+          })
+        }
+
+        // Створюємо мапу layers для швидкого пошуку
+        const layersMap = new Map()
+        state.allLayers.forEach(layer => {
+          layersMap.set(layer.id, layer)
+        })
+
+        // Додаємо інформацію про позицію до стилів
+        const stylesWithPosition = styles.map(style => {
+          const layer = layersMap.get(style.layerId || style.id)
+          return {
+            ...style,
+            y: layer?.y || layer?.absoluteBoundingBox?.y || 0,
+            x: layer?.x || layer?.absoluteBoundingBox?.x || 0,
+            parentId: layer?.parentId || null
+          }
+        })
+
+        // ✅ FIX: Використовуємо ту ж логіку сортування, що й в displayLayers
+        const sortByPosition = (a, b) => {
+          // Спочатку за Y позицією (зверху вниз)
+          const aY = a.y || 0
+          const bY = b.y || 0
+          if (Math.abs(aY - bY) > 10) {
+            return aY - bY
+          }
+          // Якщо Y позиції близькі, сортуємо за X (зліва направо)
+          const aX = a.x || 0
+          const bX = b.x || 0
+          return aX - bX
+        }
+
+        // Сортуємо за позицією
+        return stylesWithPosition.sort(sortByPosition)
+      }
+
+      // ✅ FIX: Функція для обчислення рівня вкладеності layer
+      window.calculateLayerDepth = function(layerId, layers) {
+        const layer = layers.find(l => l.id === layerId)
+        if (!layer || !layer.parentId) return 0
+        
+        let depth = 0
+        let currentParentId = layer.parentId
+        
+        while (currentParentId) {
+          depth++
+          const parent = layers.find(l => l.id === currentParentId)
+          if (!parent) break
+          currentParentId = parent.parentId
+        }
+        
+        return depth
+      }
+
+      window.renderLayerStyles = function(styles) {
+        const container = document.getElementById("stylesContent")
+        container.innerHTML = ""
+        const allCss = []
+
+        // ✅ FIX: Фільтруємо тільки вибрані layers для відображення в sidebar
+        const selectedLayerIds = state.selectedLayerIds || new Set()
+        const filteredStyles = styles.filter(style => {
+          // Показуємо тільки ті стилі, які відповідають вибраним layers
+          return selectedLayerIds.has(style.layerId) || selectedLayerIds.has(style.id)
+        })
+        
+        console.log(`📋 Rendering styles for ${filteredStyles.length}/${styles.length} layers (only selected)`)
+
+        // ✅ FIX: Використовуємо ту ж ієрархічну логіку, що й в displayLayers
+        const sorted = sortStylesHierarchically(filteredStyles)
+
+        sorted.forEach(s => {
+          const block = document.createElement("div")
+          block.className = "style-block"
+
+          const header = document.createElement("div")
+          header.className = "style-block-header"
+          const pathLabel = Array.isArray(s.htmlPath) ? ` <small style="color:var(--text-secondary)">(${s.htmlPath.join(' / ')})</small>` : ''
+          
+          // ✅ FIX: Додаємо назву класу до заголовка
+          let classNameDisplay = ''
+          if (s.name) {
+            const className = generateClassName(s.name, s.layerId)
+            classNameDisplay = ` <code style="background:var(--bg-tertiary); padding:2px 6px; border-radius:3px; font-size:11px; color:var(--primary);">.${className}</code>`
+          }
+          
+          // ✅ FIX: Додаємо візуальний індикатор ієрархії
+          let hierarchyIndicator = ''
+          if (s.parentId) {
+            // Знаходимо рівень вкладеності
+            const layer = state.allLayers?.find(l => l.id === s.layerId || l.id === s.id)
+            if (layer) {
+              const depth = calculateLayerDepth(layer.id, state.allLayers)
+              const indent = '&nbsp;'.repeat(depth * 2)
+              hierarchyIndicator = `<span style="color:var(--text-secondary); font-family:monospace;">${indent}</span>`
+            }
+          }
+          
+          // У заголовку показуємо старе ім'я (originalName), якщо воно є
+          const displayName = s.originalName || s.name || s.layerId
+          header.innerHTML = `<span>${hierarchyIndicator}🔹 ${displayName}${classNameDisplay}${pathLabel}</span>`
+
+          const copyBtn = document.createElement("button")
+          copyBtn.className = "btn btn-secondary"
+          copyBtn.textContent = "📋 Копіювати"
+          copyBtn.onclick = () => copyToClipboard(cssWithClassName)
+
+          header.appendChild(copyBtn)
+
+          const code = document.createElement("pre")
+          code.className = "code"
+          
+          // ✅ FIX: Додаємо назву класу до CSS: коментар = старе ім'я, селектор = alias
+          let cssWithClassName = s.css || "/* Немає стилів */"
+          if (s.css && s.name) {
+            // Створюємо назву класу з назви Layer
+            const className = generateClassName(s.name, s.layerId)
+            const commentName = s.originalName || s.name
+            // ✅ FIX: Розумна логіка очищення CSS - перевіряємо чи CSS вже правильно відформатований
+            let cleanCSS = s.css.trim()
+            
+            // Діагностика: логуємо оригінальний CSS
+            console.log(`🔍 Original CSS for ${className}:`, JSON.stringify(cleanCSS))
+            
+            // Перевіряємо чи CSS вже має правильну структуру з коментарем та селектором
+            const isAlreadyFormatted = /^\/\*.*\*\/\s*\n\.[\w-]+\s*\{[\s\S]*\}\s*$/.test(cleanCSS)
+            
+            if (isAlreadyFormatted) {
+              console.log(`✅ CSS is already properly formatted for ${className}`)
+              cssWithClassName = cleanCSS
+            } else {
+              console.log(`🔧 Cleaning malformed CSS for ${className}`)
+              
+              // Крок 1: Видаляємо всі коментарі /* ... */ (включаючи вкладені)
+              cleanCSS = cleanCSS.replace(/\/\*[\s\S]*?\*\//g, '')
+              
+              // Крок 2: Видаляємо селектори (.className {) - підтримка багаторядкового CSS
+              cleanCSS = cleanCSS.replace(/^\s*\.\w+\s*\{/gm, '').trim()
+              
+              // Крок 3: Видаляємо зайві фігурні дужки з початку та кінця
+              while ((cleanCSS.startsWith('{') && cleanCSS.endsWith('}')) || 
+                     (cleanCSS.match(/^\s*\{/) && cleanCSS.match(/\}\s*$/))) {
+                  cleanCSS = cleanCSS.replace(/^\s*\{/, '').replace(/\}\s*$/, '').trim()
+              }
+              
+              // Крок 4: Виправляємо обрізані властивості CSS
+              cleanCSS = cleanCSS.replace(/border-style:\s*soli\b/g, 'border-style: solid')
+              
+              // Крок 5: Очищуємо форматування
+              cleanCSS = cleanCSS
+                  .split('\n')
+                  .map(line => line.trim())
+                  .filter(line => line.length > 0 && line !== '}')  // Видаляємо порожні рядки та зайві }
+                  .map(line => '  ' + line)  // Додаємо відступ 2 пробіли
+                  .join('\n')
+              
+              // Діагностика: логуємо очищений CSS
+              console.log(`✅ Cleaned CSS for ${className}:`, JSON.stringify(cleanCSS))
+              
+              cssWithClassName = `/* ${commentName} */\n.${className} {\n${cleanCSS}\n}`
+            }
+          }
+          
+          code.textContent = cssWithClassName
+          allCss.push(cssWithClassName)
+
+          block.appendChild(header)
+          block.appendChild(code)
+          container.appendChild(block)
+        })
+        container.dataset.allCss = allCss.join("\n\n")
+      }
+
+      window.copyAllStyles = function() {
+        const container = document.getElementById("stylesContent")
+        copyToClipboard(container?.dataset?.allCss || "")
+      }
+
+      window.copyToClipboard = function(text) {
+        if (!text) return
+        navigator.clipboard.writeText(text).then(
+          () => showStatus(`📋 ${t('copiedToClipboard')}`, "success"),
+          () => showStatus(`❌ ${t('copyFailed')}`, "error")
+        )
+      }
+
+      // Функції вибору
+      window.selectAllCanvas = function() {
+        document.querySelectorAll('#canvasList input[type="checkbox"]').forEach(cb => {
+          if (!cb.checked) {
+            cb.checked = true
+            cb.dispatchEvent(new Event("change"))
+          }
+        })
+      }
+
+      window.clearCanvasSelection = function() {
+        document.querySelectorAll('#canvasList input[type="checkbox"]').forEach(cb => {
+          if (cb.checked) {
+            cb.checked = false
+            cb.dispatchEvent(new Event("change"))
+          }
+        })
+        state.selectedCanvases = []
+        state.selectedCanvasIds = new Set()
+        document.getElementById("layersSection").style.display = "none"
+      }
+
+      // ✅ FIX: Функція для вибору тільки кореневих елементів (без каскадного вибору)
+      window.selectAllLayers = function() {
+        if (!state.allLayers || state.allLayers.length === 0) {
+          showStatus('⚠️ Немає layers для вибору', 'warning')
+          return
+        }
+
+        // Знаходимо тільки кореневі елементи (без parentId)
+        const rootLayers = state.allLayers.filter(layer => !layer.parentId)
+        console.log(`🌳 Selecting ${rootLayers.length} root layers`)
+
+        rootLayers.forEach(layer => {
+          const checkbox = document.querySelector(`#layersList input[data-id="${layer.id}"]`)
+          if (checkbox && !checkbox.checked) {
+            checkbox.checked = true
+            checkbox.dispatchEvent(new Event("change"))
+          }
+        })
+
+        showStatus(`✅ Вибрано ${rootLayers.length} кореневих layers з усіма дочірніми елементами`, 'success')
+      }
+
+      // ✅ FIX: Функція для очищення всіх вибраних layers
+      window.clearLayersSelection = function() {
+        // Очищуємо всі чекбокси
+        document.querySelectorAll('#layersList input[type="checkbox"]').forEach(cb => {
+          if (cb.checked) {
+            cb.checked = false
+            cb.dispatchEvent(new Event("change"))
+          }
+        })
+        
+        // Очищуємо стан
+        state.selectedLayers = []
+        state.selectedLayerIds = new Set()
+        
+        // Очищуємо sidebar і закриваємо його
+        const sidebar = document.getElementById("stylesSidebar")
+        const stylesContent = document.getElementById("stylesContent")
+        if (stylesContent) {
+          stylesContent.innerHTML = `
+            <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+              <div style="font-size: 2rem; margin-bottom: 0.5rem;">📋</div>
+              <div>Виберіть layers щоб побачити стилі</div>
+            </div>
+          `
+        }
+        if (sidebar && sidebar.classList.contains("visible")) {
+          toggleSidebar(false)
+        }
+      }
+
+      // ✅ FIX: Імпорт функції з діалогом вибору форматів
+      window.importImages = function() {
+        console.log('🖼️ importImages function called');
+        console.log('📊 Current state:', state);
+        
+        const { figmaLink, figmaToken, linkOk, tokenOk } = getFigmaCreds()
+        console.log('🔑 Figma credentials:', { linkOk, tokenOk, figmaLink: !!figmaLink, figmaToken: !!figmaToken });
+        
+        if (!linkOk || !tokenOk) { 
+          console.error('❌ Figma credentials not set');
+          showStatus(`❌ ${t('setupFigmaFirst')}`, "error"); 
+          return 
+        }
+        
+        // 🛠️ ✅ FIX: Дозволяємо імпорт для всього Canvas, якщо Layers не вибрано
+        // Якщо немає вибраних шарів — не блокуємо, просто передамо порожній список (бекенд імпортує весь Canvas або вибрані Canvas)
+        if (state.selectedLayers.length === 0) {
+          console.warn('ℹ️ No layers selected — will import for all selected canvases or whole file');
+        }
+        
+        console.log('✅ All checks passed, proceeding with image import');
+
+        // Показуємо діалог вибору форматів
+        const formatDialog = `
+          <div style="background: var(--bg-secondary); padding: 20px; border-radius: 8px; max-width: 400px;">
+            <h3>${t('imageImportTitle')}</h3>
+            <p>${t('selectFormats')}</p>
+            
+            <div style="margin: 15px 0;">
+              <label style="display: block; margin: 8px 0; cursor: pointer;">
+                <input type="checkbox" id="format-png" checked style="margin-right: 8px;">
+                ${t('png')}
+              </label>
+              <label style="display: block; margin: 8px 0; cursor: pointer;">
+                <input type="checkbox" id="format-jpg" style="margin-right: 8px;">
+                ${t('jpg')}
+              </label>
+              <label style="display: block; margin: 8px 0; cursor: pointer;">
+                <input type="checkbox" id="format-svg" style="margin-right: 8px;">
+                ${t('svg')}
+              </label>
+              <label style="display: block; margin: 8px 0; cursor: pointer;">
+                <input type="checkbox" id="format-webp" style="margin-right: 8px;">
+                ${t('webp')}
+              </label>
+            </div>
+
+            <div style="margin: 15px 0;">
+              <h4>${t('fileOrganization')}</h4>
+              <label style="display: block; margin: 8px 0; cursor: pointer;">
+                <input type="checkbox" id="retina-folders" checked style="margin-right: 8px;">
+                ${t('retinaFolders')}
+              </label>
+              <label style="display: block; margin: 8px 0; cursor: pointer;">
+                <input type="checkbox" id="format-folders" checked style="margin-right: 8px;">
+                ${t('formatFolders')}
+              </label>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+              <button class="btn btn-secondary" onclick="closeImageFormatDialog()">${t('cancel')}</button>
+              <button class="btn btn-success" onclick="confirmImageImport()">${t('import')}</button>
+            </div>
+          </div>
+        `
+
+        // Показуємо діалог
+        const existingDialog = document.getElementById('image-format-dialog')
+        if (existingDialog) existingDialog.remove()
+
+        const dialog = document.createElement('div')
+        dialog.id = 'image-format-dialog'
+        dialog.style.cssText = `
+          position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+          background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
+          z-index: 10000;
+        `
+        dialog.innerHTML = formatDialog
+        document.body.appendChild(dialog)
+
+        state.figmaLink = figmaLink
+        state.figmaToken = figmaToken
+      }
+
+      window.closeImageFormatDialog = function() {
+        const dialog = document.getElementById('image-format-dialog')
+        if (dialog) dialog.remove()
+      }
+
+      // Функції для роботи з бібліотекою стилів
+      window.openStyleLibraryDialog = function() {
+        const existingDialog = document.getElementById('style-library-dialog')
+        if (existingDialog) existingDialog.remove()
+
+        const dialog = document.createElement('div')
+        dialog.id = 'style-library-dialog'
+        dialog.style.cssText = `
+          position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+          background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
+          z-index: 10000;
+        `
+        
+        dialog.innerHTML = `
+          <div style="
+            background: var(--bg-color, #1e1e1e); color: var(--text-color, #cccccc);
+            padding: 24px; border-radius: 8px; max-width: 500px; width: 90%;
+            border: 1px solid var(--border-color, #404040);
+          ">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+              <h2 style="margin: 0; color: var(--text-color, #cccccc);">${t('styleLibraryTitle') || '📚 Бібліотека стилів'}</h2>
+              <button onclick="closeStyleLibraryDialog()" style="background: none; border: none; color: var(--text-color, #cccccc); font-size: 24px; cursor: pointer;">×</button>
+            </div>
+            <div style="margin-bottom: 16px;">
+              <label style="display: block; margin-bottom: 8px;">${t('libraryName') || 'Назва бібліотеки:'}</label>
+              <input type="text" id="libraryNameInput" placeholder="${state.cssFileNameTemplate || 'my-styles-library'}" 
+                style="width: 100%; padding: 8px; background: var(--input-bg, #2d2d2d); border: 1px solid var(--border-color, #404040); 
+                       border-radius: 4px; color: var(--text-color, #cccccc); box-sizing: border-box;">
+            </div>
+            <div style="margin-bottom: 16px;">
+              <h3 style="margin: 0 0 12px 0; font-size: 14px;">${t('includeInLibrary') || 'Включити в бібліотеку:'}</h3>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <label style="display: flex; align-items: center;">
+                  <input type="checkbox" id="lib-global" checked style="margin-right: 8px;">
+                  ${t('include_global') || 'Глобальні стилі'}
+                </label>
+                <label style="display: flex; align-items: center;">
+                  <input type="checkbox" id="lib-reset" checked style="margin-right: 8px;">
+                  ${t('include_reset') || 'Reset стилі'}
+                </label>
+                <label style="display: flex; align-items: center;">
+                  <input type="checkbox" id="lib-variables" checked style="margin-right: 8px;">
+                  ${t('include_variables') || 'CSS змінні'}
+                </label>
+                <label style="display: flex; align-items: center;">
+                  <input type="checkbox" id="lib-responsive" checked style="margin-right: 8px;">
+                  ${t('include_responsive') || 'Responsive стилі'}
+                </label>
+                <label style="display: flex; align-items: center;">
+                  <input type="checkbox" id="lib-modern-normalize" style="margin-right: 8px;">
+                  ${t('include_modern_normalize') || 'Modern Normalize'}
+                </label>
+                <label style="display: flex; align-items: center;">
+                  <input type="checkbox" id="lib-custom" checked style="margin-right: 8px;">
+                  ${t('include_custom_styles') || 'Користувацькі стилі'}
+                </label>
+              </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
+              <button onclick="closeStyleLibraryDialog()" style="
+                padding: 8px 16px; background: var(--button-secondary-bg, #404040); 
+                border: 1px solid var(--border-color, #404040); border-radius: 4px; 
+                color: var(--text-color, #cccccc); cursor: pointer;
+              ">${t('cancel') || 'Скасувати'}</button>
+              <button onclick="saveStyleLibrary()" style="
+                padding: 8px 16px; background: var(--button-primary-bg, #0078d4); 
+                border: 1px solid var(--button-primary-bg, #0078d4); border-radius: 4px; 
+                color: white; cursor: pointer;
+              ">${t('save') || 'Зберегти'}</button>
+            </div>
+          </div>
+        `
+        document.body.appendChild(dialog)
+      }
+
+      window.closeStyleLibraryDialog = function() {
+        const dialog = document.getElementById('style-library-dialog')
+        if (dialog) dialog.remove()
+      }
+
+      // Розширене діалогове вікно для вибору бібліотек стилів
+      window.openAdvancedLibraryDialog = function() {
+        const existingDialog = document.getElementById('advanced-library-dialog')
+        if (existingDialog) existingDialog.remove()
+
+        const dialog = document.createElement('div')
+        dialog.id = 'advanced-library-dialog'
+        dialog.style.cssText = `
+          position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+          background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center;
+          z-index: 10000; backdrop-filter: blur(5px);
+        `
+
+        const content = document.createElement('div')
+        content.style.cssText = `
+          background: var(--bg-color, #2d2d2d); border-radius: 8px; padding: 24px; width: 90%;
+          max-width: 600px; max-height: 80vh; overflow-y: auto;
+          border: 2px solid var(--primary, #007acc); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        `
+
+        content.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin: 0; color: var(--text-color, #cccccc);">📚 Розширене вибір бібліотек CSS</h2>
+            <button onclick="closeAdvancedLibraryDialog()" style="background: none; border: none; color: var(--text-color, #cccccc); font-size: 24px; cursor: pointer;">×</button>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+            <!-- Глобальні стилі -->
+            <div style="background: var(--bg-tertiary, #3c3c3c); padding: 16px; border-radius: 6px; border: 1px solid var(--border, #555);">
+              <h3 style="margin: 0 0 12px 0; color: var(--primary, #007acc);">🌐 Глобальні стилі</h3>
+              <label style="display: flex; align-items: center; margin-bottom: 8px;">
+                <input type="checkbox" id="adv-global" checked style="margin-right: 8px;">
+                Глобальні стилі HTML елементів
+              </label>
+              <label style="display: flex; align-items: center; margin-bottom: 8px;">
+                <input type="checkbox" id="adv-reset" checked style="margin-right: 8px;">
+                CSS Reset стилі
+              </label>
+              <label style="display: flex; align-items: center;">
+                <input type="checkbox" id="adv-modern-normalize" style="margin-right: 8px;">
+                🔥 Modern Normalize (CDN)
+              </label>
+            </div>
+            
+            <!-- Responsive стилі -->
+            <div style="background: var(--bg-tertiary, #3c3c3c); padding: 16px; border-radius: 6px; border: 1px solid var(--border, #555);">
+              <h3 style="margin: 0 0 12px 0; color: var(--primary, #007acc);">📱 Responsive</h3>
+              <label style="display: flex; align-items: center; margin-bottom: 8px;">
+                <input type="checkbox" id="adv-responsive" checked style="margin-right: 8px;">
+                Media Queries
+              </label>
+              <label style="display: flex; align-items: center; margin-bottom: 8px;">
+                <input type="checkbox" id="adv-mobile-first" style="margin-right: 8px;">
+                Mobile-First підхід
+              </label>
+              <label style="display: flex; align-items: center;">
+                <input type="checkbox" id="adv-breakpoints" style="margin-right: 8px;">
+                Кастомні breakpoints
+              </label>
+            </div>
+            
+            <!-- CSS змінні -->
+            <div style="background: var(--bg-tertiary, #3c3c3c); padding: 16px; border-radius: 6px; border: 1px solid var(--border, #555);">
+              <h3 style="margin: 0 0 12px 0; color: var(--primary, #007acc);">🎨 CSS змінні</h3>
+              <label style="display: flex; align-items: center; margin-bottom: 8px;">
+                <input type="checkbox" id="adv-variables" checked style="margin-right: 8px;">
+                Основні CSS змінні
+              </label>
+              <label style="display: flex; align-items: center; margin-bottom: 8px;">
+                <input type="checkbox" id="adv-color-palette" style="margin-right: 8px;">
+                Кольорова палітра
+              </label>
+              <label style="display: flex; align-items: center;">
+                <input type="checkbox" id="adv-typography-vars" style="margin-right: 8px;">
+                Типографія змінні
+              </label>
+            </div>
+            
+            <!-- Користувацькі стилі -->
+            <div style="background: var(--bg-tertiary, #3c3c3c); padding: 16px; border-radius: 6px; border: 1px solid var(--border, #555);">
+              <h3 style="margin: 0 0 12px 0; color: var(--primary, #007acc);">✨ Користувацькі</h3>
+              <label style="display: flex; align-items: center; margin-bottom: 8px;">
+                <input type="checkbox" id="adv-custom" checked style="margin-right: 8px;">
+                Кастомні стилі під макет
+              </label>
+              <label style="display: flex; align-items: center; margin-bottom: 8px;">
+                <input type="checkbox" id="adv-animations" style="margin-right: 8px;">
+                CSS анімації
+              </label>
+              <label style="display: flex; align-items: center;">
+                <input type="checkbox" id="adv-utilities" style="margin-right: 8px;">
+                Utility класи
+              </label>
+            </div>
+          </div>
+          
+          <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px;">
+            <button onclick="closeAdvancedLibraryDialog()" style="
+              background: transparent; border: 1px solid var(--border, #555); color: var(--text-color, #cccccc);
+              padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+              Скасувати
+            </button>
+            <button onclick="applyAdvancedLibrarySettings()" style="
+              background: var(--primary, #007acc); border: none; color: white;
+              padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+              ✅ Застосувати
+            </button>
+          </div>
+        `
+
+        dialog.appendChild(content)
+        document.body.appendChild(dialog)
+        
+        // Синхронізуємо поточні налаштування
+        syncAdvancedLibrarySettings()
+      }
+
+      window.closeAdvancedLibraryDialog = function() {
+        const dialog = document.getElementById('advanced-library-dialog')
+        if (dialog) dialog.remove()
+      }
+
+      window.syncAdvancedLibrarySettings = function() {
+        // Синхронізуємо налаштування з основними чек-боксами
+        if (document.getElementById('adv-global')) {
+          document.getElementById('adv-global').checked = document.getElementById('includeGlobal')?.checked || false
+        }
+        if (document.getElementById('adv-reset')) {
+          document.getElementById('adv-reset').checked = document.getElementById('includeReset')?.checked || false
+        }
+        if (document.getElementById('adv-variables')) {
+          document.getElementById('adv-variables').checked = document.getElementById('includeVariables')?.checked || false
+        }
+        if (document.getElementById('adv-responsive')) {
+          document.getElementById('adv-responsive').checked = document.getElementById('includeResponsive')?.checked || false
+        }
+        if (document.getElementById('adv-modern-normalize')) {
+          document.getElementById('adv-modern-normalize').checked = document.getElementById('includeModernNormalize')?.checked || false
+        }
+        if (document.getElementById('adv-custom')) {
+          document.getElementById('adv-custom').checked = document.getElementById('includeCustomStyles')?.checked || false
+        }
+      }
+
+      window.applyAdvancedLibrarySettings = function() {
+        // Застосовуємо налаштування до основних чек-боксів
+        if (document.getElementById('adv-global')) {
+          document.getElementById('includeGlobal').checked = document.getElementById('adv-global').checked
+        }
+        if (document.getElementById('adv-reset')) {
+          document.getElementById('includeReset').checked = document.getElementById('adv-reset').checked
+        }
+        if (document.getElementById('adv-variables')) {
+          document.getElementById('includeVariables').checked = document.getElementById('adv-variables').checked
+        }
+        if (document.getElementById('adv-responsive')) {
+          document.getElementById('includeResponsive').checked = document.getElementById('adv-responsive').checked
+        }
+        if (document.getElementById('adv-modern-normalize')) {
+          document.getElementById('includeModernNormalize').checked = document.getElementById('adv-modern-normalize').checked
+        }
+        if (document.getElementById('adv-custom')) {
+          document.getElementById('includeCustomStyles').checked = document.getElementById('adv-custom').checked
+        }
+        
+        // Додаткові опції можна зберегти в state для подальшого використання
+        state.advancedLibrarySettings = {
+          mobileFirst: document.getElementById('adv-mobile-first')?.checked || false,
+          breakpoints: document.getElementById('adv-breakpoints')?.checked || false,
+          colorPalette: document.getElementById('adv-color-palette')?.checked || false,
+          typographyVars: document.getElementById('adv-typography-vars')?.checked || false,
+          animations: document.getElementById('adv-animations')?.checked || false,
+          utilities: document.getElementById('adv-utilities')?.checked || false
+        }
+        
+        showStatus('✅ Налаштування бібліотек застосовано', 'success')
+        closeAdvancedLibraryDialog()
+      }
+
+      window.saveStyleLibrary = function() {
+        const name = document.getElementById('libraryNameInput')?.value || state.cssFileNameTemplate || 'my-styles-library'
+        
+        const library = {
+          name: name,
+          includeGlobal: document.getElementById('lib-global')?.checked || false,
+          includeReset: document.getElementById('lib-reset')?.checked || false,
+          includeVariables: document.getElementById('lib-variables')?.checked || false,
+          includeResponsive: document.getElementById('lib-responsive')?.checked || false,
+          includeModernNormalize: document.getElementById('lib-modern-normalize')?.checked || false,
+          includeCustomStyles: document.getElementById('lib-custom')?.checked || false,
+          createdAt: new Date().toISOString()
+        }
+
+        closeStyleLibraryDialog()
+        showProgress(`${t('savingLibrary') || 'Збереження бібліотеки'}...`)
+
+        vscode.postMessage({
+          command: 'saveStyleLibrary',
+          payload: library
+        })
+      }
+
+      window.chooseStyleLibrary = function() {
+        vscode.postMessage({
+          command: 'chooseStyleLibrary'
+        })
+      }
+
+      window.saveCurrentAsStyleLibrary = function() {
+        // Отримуємо поточні налаштування з форми
+        const currentSettings = {
+          name: state.cssFileNameTemplate || 'current-styles',
+          includeGlobal: document.getElementById('includeGlobal')?.checked || false,
+          includeReset: document.getElementById('includeReset')?.checked || false,
+          includeVariables: document.getElementById('includeVariables')?.checked || false,
+          includeResponsive: document.getElementById('includeResponsive')?.checked || false,
+          includeModernNormalize: document.getElementById('includeModernNormalize')?.checked || false,
+          includeCustomStyles: document.getElementById('includeCustomStyles')?.checked || false,
+          createdAt: new Date().toISOString()
+        }
+
+        showProgress(`${t('savingLibrary') || 'Збереження поточної бібліотеки'}...`)
+
+        vscode.postMessage({
+          command: 'saveStyleLibrary',
+          payload: currentSettings
+        })
+      }
+
+      window.confirmImageImport = function() {
+        // Збираємо вибрані формати
+        const selectedFormats = []
+        if (document.getElementById('format-png')?.checked) selectedFormats.push('png')
+        if (document.getElementById('format-jpg')?.checked) selectedFormats.push('jpg')
+        if (document.getElementById('format-svg')?.checked) selectedFormats.push('svg')
+        if (document.getElementById('format-webp')?.checked) selectedFormats.push('webp')
+
+        if (selectedFormats.length === 0) {
+          showStatus(`❌ ${t('selectFormat')}`, "error")
+          return
+        }
+
+        const retinaFolders = document.getElementById('retina-folders')?.checked || false
+        const formatFolders = document.getElementById('format-folders')?.checked || false
+
+        closeImageFormatDialog()
+        showProgress(`Імпорт зображень (${selectedFormats.join(', ')})...`)
+
+        const message = {
+          command: "importImages",
+          figmaLink: state.figmaLink,
+          figmaToken: state.figmaToken,
+          selectedLayers: state.selectedLayers.map(l => l.id),
+          selectedCanvasIds: Array.from(state.selectedCanvasIds || []),
+          formats: selectedFormats,
+          options: {
+            retinaFolders,
+            formatFolders
+          }
+        };
+        
+        console.log('📤 Sending message to VS Code:', message);
+        
+        try {
+          vscode.postMessage(message);
+          console.log('✅ Message sent successfully');
+        } catch (error) {
+          console.error('❌ Failed to send message:', error);
+          showStatus(`❌ Помилка відправки повідомлення: ${error.message}`, "error");
+        }
+      }
+
+      window.importFonts = function() {
+        const { figmaLink, figmaToken, linkOk, tokenOk } = getFigmaCreds()
+        if (!linkOk || !tokenOk) { showStatus(`❌ ${t('setupFigmaFirst')}`, "error"); return }
+        state.figmaLink = figmaLink; state.figmaToken = figmaToken
+
+        showProgress("Імпорт шрифтів...")
+
+        // 🛠️ ✅ FIX: Передаємо також selectedCanvasIds, щоб обмежити аналіз шрифтів конкретними Canvas
+        vscode.postMessage({
+          command: "importFonts",
+          figmaLink: figmaLink,
+          figmaToken: figmaToken,
+          selectedLayers: state.selectedLayers.map(l => l.id),
+          selectedCanvasIds: Array.from(state.selectedCanvasIds || [])
+        })
+      }
+
+      // Налаштування
+      window.loadLastSettings = function() {
+        vscode.postMessage({command: "loadLastSettings"})
+        showStatus(`⏳ ${t('loadingSettings')}`, "info")
+      }
+
+      window.saveSettings = function() {
+        const settings = {
+          mode: state.mode,
+          currentHTMLFile: state.currentHTMLFile,
+          figmaLink: document.getElementById("figmaLink").value,
+          figmaToken: document.getElementById("figmaToken").value,
+          includeReset: document.getElementById("includeReset").checked,
+          includeVariables: document.getElementById("includeVariables").checked,
+          includeResponsive: document.getElementById("includeResponsive").checked,
+          includeModernNormalize: document.getElementById("includeModernNormalize").checked,
+          includeGlobal: document.getElementById("includeGlobal").checked,
+          includeCustomStyles: document.getElementById("includeCustomStyles").checked,
+          outputFormat: document.getElementById("outputFormat").value,
+          confidenceThreshold: document.getElementById("confidenceThreshold").value,
+          selectedCanvases: state.selectedCanvases,
+          selectedLayers: state.selectedLayers
+        }
+
+        vscode.postMessage({
+          command: "saveCurrentSettings",
+          settings: settings
+        })
+
+        showStatus(`💾 ${t('savingSettings')}`, "info")
+      }
+
+      window.clearSettings = function() {
+        // Очищення форми
+        document.getElementById("figmaLink").value = ""
+        document.getElementById("figmaToken").value = ""
+        document.getElementById("includeReset").checked = true
+        document.getElementById("includeVariables").checked = true
+        document.getElementById("includeResponsive").checked = true
+        document.getElementById("includeModernNormalize").checked = false
+        document.getElementById("includeGlobal").checked = true
+        document.getElementById("includeCustomStyles").checked = true
+        document.getElementById("outputFormat").value = "expanded"
+        document.getElementById("confidenceThreshold").value = 70
+        document.getElementById("confidenceValue").textContent = "70%"
+
+        // Очищення стану
+        state = {
+          mode: "minimal",
+          currentHTMLFile: state.currentHTMLFile, // Зберігаємо HTML файл
+          figmaLink: "",
+          figmaToken: "",
+          selectedCanvases: [],
+          selectedLayers: [],
+          settings: {}
+        }
+
+        // Очищення візуальних елементів
+        document.querySelectorAll(".mode-card").forEach(card => {
+          card.classList.remove("selected")
+        })
+        document.getElementById("canvasSection").style.display = "none"
+        document.getElementById("layersSection").style.display = "none"
+        const auth = document.getElementById('figmaAuthSection')
+        if (auth) auth.style.display = ''
+
+        showStatus(`✅ ${t('settingsCleared')}`, "success")
+      }
+
+      window.applySettings = function(settings) {
+        if (!settings) return
+
+        if (settings.mode) selectMode(settings.mode)
+        if (settings.figmaLink) document.getElementById("figmaLink").value = settings.figmaLink
+        if (settings.figmaToken) document.getElementById("figmaToken").value = settings.figmaToken
+        if (settings.includeReset !== undefined)
+          document.getElementById("includeReset").checked = settings.includeReset
+        if (settings.includeVariables !== undefined)
+          document.getElementById("includeVariables").checked = settings.includeVariables
+        if (settings.includeResponsive !== undefined)
+          document.getElementById("includeResponsive").checked = settings.includeResponsive
+        if (settings.includeModernNormalize !== undefined)
+          document.getElementById("includeModernNormalize").checked = settings.includeModernNormalize
+        if (settings.includeGlobal !== undefined)
+          document.getElementById("includeGlobal").checked = settings.includeGlobal
+        if (settings.includeCustomStyles !== undefined)
+          document.getElementById("includeCustomStyles").checked = settings.includeCustomStyles
+        if (settings.outputFormat)
+          document.getElementById("outputFormat").value = settings.outputFormat
+        if (settings.confidenceThreshold) {
+          document.getElementById("confidenceThreshold").value = settings.confidenceThreshold
+          document.getElementById("confidenceValue").textContent =
+            settings.confidenceThreshold + "%"
+        }
+        if (settings.selectedCanvases) state.selectedCanvases = settings.selectedCanvases
+        if (settings.selectedLayers) state.selectedLayers = settings.selectedLayers
+      }
+
+      // ✅ STATUS: Покращена функція showStatus з автоприховуванням
+      let statusTimeout = null;
+      
+      window.showStatus = function(message, type = "info") {
+        console.log(`📢 showStatus called: "${message}" (type: ${type})`)
+        const status = document.getElementById("status")
+        const statusText = document.getElementById("status-text")
+        
+        if (!status || !statusText) {
+          console.error('❌ Status elements not found!')
+          return
+        }
+        
+        // Очищаємо попередній таймер
+        if (statusTimeout) {
+          clearTimeout(statusTimeout)
+        }
+        
+        // Показуємо статус
+        status.className = `status status-auto-hide ${type} show`
+        statusText.textContent = message
+        console.log('✅ Status updated:', status.className, statusText.textContent)
+        
+        // Автоприховування через 5 секунд (більше часу для читання)
+        statusTimeout = setTimeout(() => {
+          status.classList.remove("show")
+          statusText.textContent = ""
+          statusTimeout = null
+        }, 5000) // Збільшили час з 3 до 5 секунд
+      }
+
+      window.showProgress = function(message) {
+        const container = document.getElementById("progressContainer")
+        const bar = document.getElementById("progressBar")
+
+        if (container) {
+          container.style.display = "block"
+          bar.style.width = "70%"
+        }
+
+        showStatus(message, "info")
+      }
+
+      window.hideProgress = function() {
+        const container = document.getElementById("progressContainer")
+        if (container) {
+          container.style.display = "none"
+        }
+      }
+
+      // ✅ FIX: Глобальні псевдоніми для HTML onclick функцій
+      const selectHTMLFile = window.selectHTMLFile;
+      const refreshHTMLContext = window.refreshHTMLContext;
+      const selectMode = window.selectMode;
+      const switchTab = window.switchTab;
+      const loadLastSettings = window.loadLastSettings;
+      const saveSettings = window.saveSettings;
+      const clearSettings = window.clearSettings;
+      const generateCSS = window.generateCSS;
+      const loadFigmaCanvases = window.loadFigmaCanvases;
+      const selectAllCanvas = window.selectAllCanvas;
+      const clearCanvasSelection = window.clearCanvasSelection;
+      const requestLayerStyles = window.requestLayerStyles;
+      const importImages = window.importImages;
+      const importFonts = window.importFonts;
+      const clearLayersSearch = window.clearLayersSearch;
+      const selectAllLayers = window.selectAllLayers;
+      const clearLayersSelection = window.clearLayersSelection;
+      const copyAllStyles = window.copyAllStyles;
+      const closeImageFormatDialog = window.closeImageFormatDialog;
+      const confirmImageImport = window.confirmImageImport;
+
+      // ✅ FIX: Початкова ініціалізація - лінія 1290 ✅
+      console.log("✅ CSS Classes Menu v0.0.7 loaded")
+    </script>
+  </body>
+</html>

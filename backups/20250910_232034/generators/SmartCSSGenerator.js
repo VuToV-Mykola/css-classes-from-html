@@ -93,7 +93,7 @@ class SmartCSSGenerator {
       console.log(`✅ Згенеровано CSS для ${selector} (впевненість: ${(confidence * 100).toFixed(1)}%)`);
       
     } catch (error) {
-      console.error(`❌ Помилка генерації CSS для співставлення:`, error);
+      console.error('❌ Помилка генерації CSS для співставлення:', error);
     }
   }
 

@@ -5,12 +5,9 @@
 .vscode/**
 .git/**
 .github/**
-# node_modules/** — коментуємо щоб включити залежності в пакет
-# Виключаємо тільки dev dependencies
-node_modules/@types/**
-node_modules/@vscode/**
-node_modules/eslint/**
-node_modules/typescript/**
+
+# node_modules: залишаємо ВСІ залежності у пакеті (жодних виключень)
+# Це гарантує наявність усіх transitively required модулів у рантаймі
 
 # Dev/Build файли
 *.log
@@ -54,8 +51,12 @@ webpack.config.js
 logs/**
 debugs/**
 backups/**
-*.md
-!README.md
+
+# Великі активи й артефакти
+assets/**
+!assets/icon.png
+figma-data.json
+matching-results.json
 
 # CI/CD
 .travis.yml
