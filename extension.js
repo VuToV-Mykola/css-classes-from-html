@@ -1101,7 +1101,7 @@ async function openMainMenu(context) {
           
           return html;
         }
-      }
+      };
       panel.webview.html = generateWebViewHTML();
     }
 

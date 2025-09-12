@@ -4834,7 +4834,7 @@
             cb.checked = false
             cb.dispatchEvent(new Event("change"))
           }
-        })*/"
+        })*/
         state.selectedLayerIds = new Set()
 
         // Очищуємо sidebar і закриваємо його
@@ -5831,7 +5831,7 @@ p {
       const confirmImageImport = window.confirmImageImport
 
       // Функція для переключення чекбоксів при натисканні на контейнер
-      function toggleCheckbox(checkboxId) {
+      window.toggleCheckbox = function(checkboxId) {
         const checkbox = document.getElementById(checkboxId)
         if (checkbox) {
           checkbox.checked = !checkbox.checked
