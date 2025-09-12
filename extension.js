@@ -1027,7 +1027,7 @@ async function openMainMenu(context) {
       panel.webview.html = htmlContent;
     } else {
       // Якщо файл не знайдено, генеруємо HTML динамічно
-      function generateWebViewHTML() {
+      const generateWebViewHTML = function() {
         const htmlPath = path.join(__dirname, 'frontend', 'css-classes-from-html-menu.html');
         
         if (fs.existsSync(htmlPath)) {

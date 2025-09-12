@@ -38,32 +38,32 @@ class ResponsiveEnhancer {
     const variables = [];
     
     // Fluid typography
-    variables.push(`  /* Fluid Typography - Ultra Responsive */`);
-    variables.push(`  --font-xs: clamp(0.6rem, 2.5vw, 0.75rem);`);
-    variables.push(`  --font-sm: clamp(0.7rem, 3vw, 0.85rem);`);
-    variables.push(`  --font-base: clamp(0.75rem, 3.5vw, 1rem);`);
-    variables.push(`  --font-lg: clamp(0.9rem, 4vw, 1.2rem);`);
-    variables.push(`  --font-xl: clamp(1rem, 4.5vw, 1.5rem);`);
+    variables.push('  /* Fluid Typography - Ultra Responsive */');
+    variables.push('  --font-xs: clamp(0.6rem, 2.5vw, 0.75rem);');
+    variables.push('  --font-sm: clamp(0.7rem, 3vw, 0.85rem);');
+    variables.push('  --font-base: clamp(0.75rem, 3.5vw, 1rem);');
+    variables.push('  --font-lg: clamp(0.9rem, 4vw, 1.2rem);');
+    variables.push('  --font-xl: clamp(1rem, 4.5vw, 1.5rem);');
     
     // Fluid spacing
-    variables.push(`  /* Fluid Spacing */`);
-    variables.push(`  --space-xs: clamp(0.25rem, 1vw, 0.5rem);`);
-    variables.push(`  --space-sm: clamp(0.4rem, 2vw, 0.75rem);`);
-    variables.push(`  --space-md: clamp(0.6rem, 3vw, 1rem);`);
-    variables.push(`  --space-lg: clamp(0.8rem, 4vw, 1.5rem);`);
-    variables.push(`  --space-xl: clamp(1rem, 5vw, 2rem);`);
+    variables.push('  /* Fluid Spacing */');
+    variables.push('  --space-xs: clamp(0.25rem, 1vw, 0.5rem);');
+    variables.push('  --space-sm: clamp(0.4rem, 2vw, 0.75rem);');
+    variables.push('  --space-md: clamp(0.6rem, 3vw, 1rem);');
+    variables.push('  --space-lg: clamp(0.8rem, 4vw, 1.5rem);');
+    variables.push('  --space-xl: clamp(1rem, 5vw, 2rem);');
     
     // Touch targets
-    variables.push(`  /* Touch-Friendly Targets */`);
-    variables.push(`  --touch-min: clamp(32px, 8vw, 44px);`);
-    variables.push(`  --button-h: clamp(36px, 9vw, 48px);`);
-    variables.push(`  --input-h: clamp(32px, 8vw, 40px);`);
+    variables.push('  /* Touch-Friendly Targets */');
+    variables.push('  --touch-min: clamp(32px, 8vw, 44px);');
+    variables.push('  --button-h: clamp(36px, 9vw, 48px);');
+    variables.push('  --input-h: clamp(32px, 8vw, 40px);');
     
     // VSCode specific
-    variables.push(`  /* VSCode Webview Optimized */`);
-    variables.push(`  --sidebar-padding: clamp(0.4rem, 3vw, 1rem);`);
-    variables.push(`  --panel-gap: clamp(0.3rem, 2vw, 0.8rem);`);
-    variables.push(`  --border-radius: clamp(3px, 1vw, 8px);`);
+    variables.push('  /* VSCode Webview Optimized */');
+    variables.push('  --sidebar-padding: clamp(0.4rem, 3vw, 1rem);');
+    variables.push('  --panel-gap: clamp(0.3rem, 2vw, 0.8rem);');
+    variables.push('  --border-radius: clamp(3px, 1vw, 8px);');
     
     return variables.join('\n');
   }
@@ -75,37 +75,37 @@ class ResponsiveEnhancer {
     const mediaQueries = [];
     
     // Ultra-small viewports (280px-320px) - VSCode sidebar
-    mediaQueries.push(`/* Ultra-small viewports - VSCode sidebar */`);
+    mediaQueries.push('/* Ultra-small viewports - VSCode sidebar */');
     mediaQueries.push(`@media (max-width: ${this.breakpoints.sm}px) {`);
-    mediaQueries.push(`  :root {`);
-    mediaQueries.push(`    --font-base: 11px;`);
-    mediaQueries.push(`    --space-base: 0.3rem;`);
-    mediaQueries.push(`    --touch-min: 32px;`);
-    mediaQueries.push(`  }`);
-    mediaQueries.push(`  `);
-    mediaQueries.push(`  .container { padding: var(--space-xs); }`);
-    mediaQueries.push(`  .btn { min-height: var(--touch-min); font-size: var(--font-xs); }`);
-    mediaQueries.push(`  .input { min-height: var(--touch-min); }`);
-    mediaQueries.push(`  .header { padding: var(--space-xs); }`);
-    mediaQueries.push(`}`);
-    mediaQueries.push(``);
+    mediaQueries.push('  :root {');
+    mediaQueries.push('    --font-base: 11px;');
+    mediaQueries.push('    --space-base: 0.3rem;');
+    mediaQueries.push('    --touch-min: 32px;');
+    mediaQueries.push('  }');
+    mediaQueries.push('  ');
+    mediaQueries.push('  .container { padding: var(--space-xs); }');
+    mediaQueries.push('  .btn { min-height: var(--touch-min); font-size: var(--font-xs); }');
+    mediaQueries.push('  .input { min-height: var(--touch-min); }');
+    mediaQueries.push('  .header { padding: var(--space-xs); }');
+    mediaQueries.push('}');
+    mediaQueries.push('');
     
     // Small viewports (321px-480px)
-    mediaQueries.push(`/* Small viewports - Mobile portrait */`);
+    mediaQueries.push('/* Small viewports - Mobile portrait */');
     mediaQueries.push(`@media (min-width: ${this.breakpoints.sm + 1}px) and (max-width: ${this.breakpoints.md}px) {`);
-    mediaQueries.push(`  .grid { grid-template-columns: 1fr; }`);
-    mediaQueries.push(`  .sidebar { position: static; height: auto; }`);
-    mediaQueries.push(`  .controls { flex-direction: column; }`);
-    mediaQueries.push(`}`);
-    mediaQueries.push(``);
+    mediaQueries.push('  .grid { grid-template-columns: 1fr; }');
+    mediaQueries.push('  .sidebar { position: static; height: auto; }');
+    mediaQueries.push('  .controls { flex-direction: column; }');
+    mediaQueries.push('}');
+    mediaQueries.push('');
     
     // Medium viewports (481px-768px)
-    mediaQueries.push(`/* Medium viewports - Mobile landscape / Tablet */`);
+    mediaQueries.push('/* Medium viewports - Mobile landscape / Tablet */');
     mediaQueries.push(`@media (min-width: ${this.breakpoints.md + 1}px) and (max-width: ${this.breakpoints.lg}px) {`);
-    mediaQueries.push(`  .grid { grid-template-columns: 1fr 1fr; }`);
-    mediaQueries.push(`  .sidebar { max-width: 50%; }`);
-    mediaQueries.push(`}`);
-    mediaQueries.push(``);
+    mediaQueries.push('  .grid { grid-template-columns: 1fr 1fr; }');
+    mediaQueries.push('  .sidebar { max-width: 50%; }');
+    mediaQueries.push('}');
+    mediaQueries.push('');
     
     return mediaQueries.join('\n');
   }
@@ -273,27 +273,27 @@ body {
     const parts = [];
     
     // CSS змінні
-    parts.push(`:root {`);
+    parts.push(':root {');
     parts.push(this.generateFluidVariables());
-    parts.push(`}`);
-    parts.push(``);
+    parts.push('}');
+    parts.push('');
     
     // Базовий CSS
     if (baseCSS) {
       parts.push(baseCSS);
-      parts.push(``);
+      parts.push('');
     }
     
     // Touch стилі
     if (this.options.touchOptimized) {
       parts.push(this.generateTouchStyles());
-      parts.push(``);
+      parts.push('');
     }
     
     // VSCode оптимізації
     if (this.options.vscodeOptimized) {
       parts.push(this.generateVSCodeOptimizations());
-      parts.push(``);
+      parts.push('');
     }
     
     // Медіа-запити
