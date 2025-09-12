@@ -66,8 +66,16 @@ class HTMLParser {
     const start = document.body || root;
     walk(start, null, [], 0);
 
+    // Конвертуємо Map в масив елементів для HierarchicalMatchingEngine
+    const elements = Array.from(hierarchy.values());
+    
     // Повертаємо сумісну структуру: contentMap і alias classMap для зворотної сумісності
-    return { hierarchy, contentMap, classMap: contentMap };
+    return { 
+      hierarchy, 
+      contentMap, 
+      classMap: contentMap,
+      elements: elements  // Додаємо масив для нового движка
+    };
   }
 
   determineSemanticRole(el, classes) {

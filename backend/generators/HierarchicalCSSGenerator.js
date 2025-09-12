@@ -529,8 +529,8 @@ class HierarchicalCSSGenerator {
   }
 
   getElementClasses(htmlElement) {
-    if (!htmlElement.classList) return []
-    return Array.from(htmlElement.classList)
+    if (!htmlElement.classes) return []
+    return Array.isArray(htmlElement.classes) ? htmlElement.classes : []
   }
 
   getElementSelector(htmlElement) {

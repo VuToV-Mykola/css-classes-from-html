@@ -42,10 +42,35 @@ class HierarchicalMatchingEngine {
    */
   async match(figmaNodes, htmlElements, figmaData = null) {
     console.log("🎯 Початок ієрархічного співставлення...")
-    console.log(`📊 Figma вузлів: ${figmaNodes.length}`)
-    console.log(`📊 HTML елементів: ${htmlElements.length}`)
+    console.log(`📊 Figma вузлів: ${figmaNodes ? figmaNodes.length : 0}`)
+    console.log(`📊 HTML елементів: ${htmlElements ? htmlElements.length : 0}`)
+    
+    // Зберігаємо посилання на всі елементи для роботи з дочірніми
+    this.allHtmlElements = htmlElements || []
+    this.allFigmaNodes = figmaNodes || []
 
-    if (!figmaNodes.length || !htmlElements.length) {
+    // ДІАГНОСТИКА: Детальний аналіз вхідних даних
+    console.log("🔍 ДІАГНОСТИКА figmaNodes:")
+    if (figmaNodes && figmaNodes.length > 0) {
+      for (let i = 0; i < Math.min(5, figmaNodes.length); i++) {
+        const node = figmaNodes[i]
+        console.log(`  [${i}] ID: ${node.id}, Type: ${node.type}, Name: "${node.name}", Children: ${node.children?.length || 0}`)
+      }
+    } else {
+      console.log("  ❌ figmaNodes порожній або не визначений")
+    }
+
+    console.log("🔍 ДІАГНОСТИКА htmlElements:")
+    if (htmlElements && htmlElements.length > 0) {
+      for (let i = 0; i < Math.min(5, htmlElements.length); i++) {
+        const element = htmlElements[i]
+        console.log(`  [${i}] Tag: ${element.tagName}, Classes: [${element.classes?.join(', ') || ''}], Text: "${element.textContent?.substring(0, 50) || ''}"`)
+      }
+    } else {
+      console.log("  ❌ htmlElements порожній або не визначений")
+    }
+
+    if (!figmaNodes || !figmaNodes.length || !htmlElements || !htmlElements.length) {
       console.warn("⚠️ Порожній набір вузлів або елементів")
       return []
     }
@@ -498,8 +523,13 @@ class HierarchicalMatchingEngine {
   }
 
   getHtmlChildren(htmlElement) {
-    if (!htmlElement.children) return []
-    return Array.from(htmlElement.children)
+    // Для нашого HTMLParser структури, children це масив ID
+    if (!htmlElement.children || !Array.isArray(htmlElement.children)) return []
+    
+    // Знаходимо реальні елементи за ID в масиві всіх елементів
+    return htmlElement.children
+      .map(childId => this.allHtmlElements?.find(el => el.id === childId))
+      .filter(Boolean)
   }
 
   getElementId(htmlElement) {
@@ -511,8 +541,8 @@ class HierarchicalMatchingEngine {
   }
 
   getElementClasses(htmlElement) {
-    if (!htmlElement.classList) return []
-    return Array.from(htmlElement.classList)
+    if (!htmlElement.classes) return []
+    return Array.isArray(htmlElement.classes) ? htmlElement.classes : []
   }
 
   normalizeText(text) {

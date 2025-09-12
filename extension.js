@@ -1,4 +1,4 @@
-// ✅ CSS Classes from HTML Extension v0.0.7 - NEW Hierarchical Matching & CSS Generation
+// ✅ CSS Classes from HTML Extension v0.0.7 - FIXED HTMLParser compatibility & detailed debugging
 // Автоматична генерація CSS класів з HTML файлів з реальною інтеграцією Figma
 // Версія з виправленою проблемою передачі контексту HTML файлу
 
@@ -1559,6 +1559,23 @@ async function handleGenerateCSS(panel, settings) {
           const HTMLParser = require('./backend/core/HTMLParser');
           const htmlParser = new HTMLParser();
           const htmlData = htmlParser.parseToHierarchy(htmlContent);
+
+          // 🔍 ДІАГНОСТИКА: Збереження та логування даних
+          console.log("🔍 ДІАГНОСТИКА: Figma Data Structure:", JSON.stringify(figmaData, null, 2).substring(0, 1000) + "...");
+          console.log("🔍 ДІАГНОСТИКА: HTML Data Structure:", JSON.stringify(htmlData, null, 2).substring(0, 1000) + "...");
+          
+          // Зберігаємо дані для детального аналізу
+          const fs = require('fs').promises;
+          const debugDir = path.join(__dirname, 'debugs');
+          await fs.mkdir(debugDir, { recursive: true });
+          
+          const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+          await fs.writeFile(path.join(debugDir, `figma-data-${timestamp}.json`), JSON.stringify(figmaData, null, 2));
+          await fs.writeFile(path.join(debugDir, `html-data-${timestamp}.json`), JSON.stringify(htmlData, null, 2));
+          
+          outputChannel?.appendLine(`🔍 Debug files saved to debugs/ directory`);
+          outputChannel?.appendLine(`📊 Figma nodes available: ${figmaData?.document?.children?.length || 0}`);
+          outputChannel?.appendLine(`📊 HTML elements parsed: ${htmlData?.elements?.length || 0}`);
 
           // ✅ FIX: Використовуємо HierarchicalMatchingEngine для точного співставлення
           const HierarchicalMatchingEngine = require('./backend/matchers/HierarchicalMatchingEngine');
