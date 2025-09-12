@@ -1,4 +1,4 @@
-// ✅ CSS Classes from HTML Extension v0.0.7 - FIXED UniversalMatchingEngine null safety
+// ✅ CSS Classes from HTML Extension v0.0.7 - NEW Hierarchical Matching & CSS Generation
 // Автоматична генерація CSS класів з HTML файлів з реальною інтеграцією Figma
 // Версія з виправленою проблемою передачі контексту HTML файлу
 
@@ -1487,6 +1487,7 @@ function setupMessageHandlers(panel) {
 // 🚀 ГЕНЕРАЦІЯ CSS
 // =======================================
 
+
 async function handleGenerateCSS(panel, settings) {
   try {
     outputChannel?.appendLine('🚀 Starting CSS generation...');
@@ -1543,7 +1544,7 @@ async function handleGenerateCSS(panel, settings) {
       if (settings.figmaLink && settings.figmaToken) {
         const fileId = integrationEngine.extractFileIdFromFigmaLink(settings.figmaLink);
         if (fileId) {
-          outputChannel?.appendLine('🎯 Using AdvancedMatchingEngine for precise matching...');
+          outputChannel?.appendLine('🎯 Using HierarchicalMatchingEngine for precise matching...');
 
           // ✅ FIX: Отримуємо дані з Figma
           integrationEngine.updateOptions({figmaToken: settings.figmaToken});
@@ -1559,71 +1560,58 @@ async function handleGenerateCSS(panel, settings) {
           const htmlParser = new HTMLParser();
           const htmlData = htmlParser.parseToHierarchy(htmlContent);
 
-          // ✅ FIX: Використовуємо UniversalMatchingEngine для точного співставлення
-          const UniversalMatchingEngine = require('./backend/matchers/UniversalMatchingEngine');
-          const matchingEngine = new UniversalMatchingEngine({
-            thresholds: {
+          // ✅ FIX: Використовуємо HierarchicalMatchingEngine для точного співставлення
+          const HierarchicalMatchingEngine = require('./backend/matchers/HierarchicalMatchingEngine');
+          const matchingEngine = new HierarchicalMatchingEngine({
+            confidence: {
               exact: 1.0,
-              high: 0.9,
-              medium: 0.7,
-              low: 0.5,
-              reject: 0.3
+              hierarchical: 0.9,
+              textual: 0.85,
+              structural: 0.8,
+              semantic: 0.7,
+              minimal: 0.6
             },
-            filters: {
-              canvasIds: [],
-              layerIds: []
-            }
+            strategies: {
+              enableHierarchicalMatching: true,
+              enableTextMatching: true,
+              enableClassNameMatching: true,
+              enableStructuralMatching: true,
+              enableSemanticMatching: true
+            },
+            debug: true
           });
 
-          const matchingResults = await matchingEngine.match(figmaData, htmlData);
+          const matchingResults = await matchingEngine.match(figmaData.document.children, htmlData.elements || []);
 
           outputChannel?.appendLine(
             `📊 Matching results: ${matchingResults.length} elements matched`
           );
 
-          // ✅ FIX: Генеруємо CSS з точними співставленнями
-          // ✅ NEW: Прокидуємо алиаси (перейменування) для пріоритету користувацьких назв
-          if (settings.userRenames && typeof settings.userRenames === 'object') {
-            try {
-              Object.entries(settings.userRenames).forEach(([layerId, newName]) => {
-                if (layerId && newName) {
-                  integrationEngine.setLayerAlias(layerId, newName);
-                }
-              });
-              outputChannel?.appendLine(
-                `✏️ Applied ${Object.keys(settings.userRenames).length} user layer renames`
-              );
-            } catch (e) {
-              outputChannel?.appendLine(`⚠️ Failed to apply user renames: ${e.message}`);
-            }
-          }
-
-          // ✅ NEW: Використовуємо EnhancedCSSGenerator для повної підтримки вимог
-          const cssGenerator = new EnhancedCSSGenerator({
-            // Налаштування з VS Code
-            includeReset: settings.includeReset === true || settings.resetStylesToggle === true,
-            includeVariables: settings.includeVariables === true || settings.cssVariablesToggle === true,
-            includeGlobalStyles: settings.globalStylesToggle === true,
-            includeModernNormalize: settings.includeModernNormalize === true,
-            generateResponsive: settings.includeResponsive === true,
-            
-            // Користувацькі стилі
-            customStyles: customUtilityStyles,
-            userStylesPath: userStylesManager?.userStylesPath,
-            
-            // Режим та алиаси
-            mode: settings.mode,
-            layerAliases: integrationEngine?.getAllAliases ? integrationEngine.getAllAliases() : {}
+          // ✅ FIX: Використовуємо HierarchicalCSSGenerator для генерації CSS
+          const HierarchicalCSSGenerator = require('./backend/generators/HierarchicalCSSGenerator');
+          const cssGenerator = new HierarchicalCSSGenerator({
+            includeResetStyles: false,
+            includeUtilities: true,
+            propertyTransfer: {
+              transferAll: true,
+              transferLayout: true,
+              transferTypography: true,
+              transferBackground: true,
+              transferBorders: true,
+              transferEffects: true
+            },
+            debug: true
           });
 
-          css = await cssGenerator.generateCSS(figmaData, htmlData, matchingResults);
+          css = await cssGenerator.generateCSS(matchingResults, figmaData, htmlData.elements || []);
+
+          outputChannel?.appendLine(`✅ CSS згенеровано з ${matchingResults.length} співставленнями`);
 
           // Додаємо статистику
-          const stats = cssGenerator.statistics;
           outputChannel?.appendLine('📈 CSS Generation Stats:');
-          outputChannel?.appendLine(`   • Matched elements: ${stats.matchedElements}`);
-          outputChannel?.appendLine(`   • Unmatched elements: ${stats.unmatchedElements}`);
-          outputChannel?.appendLine(`   • Total rules: ${stats.totalRules}`);
+          outputChannel?.appendLine(`   • Matched elements: ${matchingResults.length}`);
+          outputChannel?.appendLine(`   • Unmatched elements: ${(htmlData.elements || []).length - matchingResults.length}`);
+          outputChannel?.appendLine(`   • Total rules: ${matchingResults.length}`);
         } else {
           css = generateBasicCSS(htmlContent, {...settings, customUtilityStyles});
         }
@@ -2064,11 +2052,21 @@ async function ensureModernNormalizeInHtml(htmlFilePath) {
       link.href = modernNormalizeCDN;
       link.setAttribute('data-added-by', 'css-classes-from-html');
 
-      // Додаємо коментар перед лінком як маркер
-      const normalizeComment = document.createComment('!!! normalize !!!');
-      head.insertBefore(normalizeComment, head.firstChild);
-      // Додаємо на початок head (перед іншими стилями)
-      head.insertBefore(link, head.firstChild);
+      // Знаходимо title елемент, щоб вставити normalize перед ним
+      const titleElement = head.querySelector('title');
+      
+      if (titleElement) {
+        // Додаємо коментар перед лінком як маркер
+        const normalizeComment = document.createComment('!!! normalize !!!');
+        head.insertBefore(normalizeComment, titleElement);
+        // Додаємо link перед title
+        head.insertBefore(link, titleElement);
+      } else {
+        // Якщо title немає, додаємо на початок head
+        const normalizeComment = document.createComment('!!! normalize !!!');
+        head.insertBefore(normalizeComment, head.firstChild);
+        head.insertBefore(link, head.firstChild);
+      }
 
       // Зберігаємо оновлений HTML
       const updatedHtml = dom.serialize();
