@@ -833,7 +833,14 @@
 
       .controls-group {
         display: flex;
-        gap: 0.4rem;
+        gap: 0.3rem; /* Менший проміжок */
+      }
+
+      /* Компактні кнопки в controls-group */
+      .controls-group .btn {
+        padding: 0.3rem 0.5rem; /* Компактніші падінги */
+        font-size: 0.7rem; /* Менший шрифт */
+        min-height: auto; /* Скидаємо мін. висоту */
       }
 
       .control-with-submenu {
@@ -4371,14 +4378,30 @@
       window.handleChildrenSelection = function (node, isSelected) {
         // Знаходимо всіх нащадків до останнього рівня
         const allChildren = getAllChildren(node.id, state.allLayers || [])
+        const container = document.getElementById("layersList")
 
         if (isSelected) {
+          // Додаємо контейнер якщо не додано
+          if (!state.selectedLayerIds.has(node.id)) {
+            state.selectedLayers.push(node)
+            state.selectedLayerIds.add(node.id)
+          }
+          
           // Додаємо всіх нащадків
           allChildren.forEach(child => {
             if (!state.selectedLayerIds.has(child.id)) {
               state.selectedLayers.push(child)
               state.selectedLayerIds.add(child.id)
             }
+          })
+
+          // Синхронізуємо візуальні чек-бокси
+          const containerCb = container.querySelector(`input[data-id="${node.id}"][data-type="container"]`)
+          if (containerCb) containerCb.checked = true
+
+          allChildren.forEach(child => {
+            const childContainerCb = container.querySelector(`input[data-id="${child.id}"][data-type="container"]`)
+            if (childContainerCb) childContainerCb.checked = true
           })
         } else {
           // Видаляємо всіх нащадків
@@ -4758,10 +4781,25 @@
           return
         }
 
-        // Знаходимо тільки кореневі елементи (без parentId)
-        const rootLayers = state.allLayers.filter(layer => !layer.parentId)
-        console.log(`🌳 Selecting ${rootLayers.length} root layers`)
+        // Вибираємо всі layers
+        state.selectedLayers = [...state.allLayers]
+        state.selectedLayerIds = new Set(state.allLayers.map(l => l.id))
 
+        // Синхронізуємо всі чек-бокси
+        const container = document.getElementById("layersList")
+        if (container) {
+          container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            if (cb.dataset.id && state.selectedLayerIds.has(cb.dataset.id)) {
+              cb.checked = true
+            }
+          })
+        }
+
+        console.log(`🌳 Selected all ${state.allLayers.length} layers`)
+        showStatus(`✅ Вибрано всі layers (${state.allLayers.length})`, "success")
+
+        // Старий код для кореневих елементів (залишаємо як коментар)
+        /*const rootLayers = state.allLayers.filter(layer => !layer.parentId)
         rootLayers.forEach(layer => {
           const checkbox = document.querySelector(`#layersList input[data-id="${layer.id}"]`)
           if (checkbox && !checkbox.checked) {
@@ -4778,16 +4816,25 @@
 
       // ✅ FIX: Функція для очищення всіх вибраних layers
       window.clearLayersSelection = function () {
-        // Очищуємо всі чекбокси
+        // Очищуємо стан
+        state.selectedLayers = []
+        state.selectedLayerIds.clear()
+
+        // Очищуємо всі чекбокси візуально
         document.querySelectorAll('#layersList input[type="checkbox"]').forEach(cb => {
+          cb.checked = false
+        })
+
+        console.log("🧹 Cleared all layer selections")
+        showStatus("🧹 Очищено вибір layers", "info")
+
+        // Старий код з подіями (коментуємо, оскільки це може викликати зайві події)
+        /*document.querySelectorAll('#layersList input[type="checkbox"]').forEach(cb => {
           if (cb.checked) {
             cb.checked = false
             cb.dispatchEvent(new Event("change"))
           }
-        })
-
-        // Очищуємо стан
-        state.selectedLayers = []
+        })*/"
         state.selectedLayerIds = new Set()
 
         // Очищуємо sidebar і закриваємо його
