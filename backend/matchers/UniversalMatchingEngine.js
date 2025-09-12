@@ -227,13 +227,44 @@ class UniversalMatchingEngine {
    * 🔍 Пошук body елемента в HTML
    */
   findBodyElement(htmlElements) {
-    // ✅ FIX: Додано перевірку на існування та тип htmlElements
+    // Перевіряємо вхідні параметри
     if (!htmlElements || !Array.isArray(htmlElements)) {
       console.warn("⚠️ htmlElements не визначено або не є масивом у findBodyElement")
       return null
     }
-    // ✅ FIX: Виправлено змінну - використовуємо параметр htmlElements
-    return htmlElements.find(el => el.tagName === "body" || el.tagName === "BODY")
+    
+    console.log(`🔍 Шукаю body серед ${htmlElements.length} елементів...`)
+    
+    // Спробуємо знайти body елемент за різними варіантами
+    let bodyElement = htmlElements.find(el => 
+      el && 
+      (el.tagName === "body" || 
+       el.tagName === "BODY" ||
+       (el.tagName && el.tagName.toLowerCase() === "body"))
+    )
+    
+    // Якщо body не знайдено, використовуємо перший блоковий елемент
+    if (!bodyElement) {
+      console.log("⚠️ Body елемент не знайдено, шукаю альтернативний контейнер...")
+      bodyElement = htmlElements.find(el => 
+        el && el.tagName && 
+        ['div', 'main', 'section', 'article', 'header'].includes(el.tagName.toLowerCase())
+      )
+    }
+    
+    // Якщо все ще нічого, використовуємо перший елемент
+    if (!bodyElement && htmlElements.length > 0) {
+      console.log("⚠️ Використовую перший доступний елемент як body")
+      bodyElement = htmlElements[0]
+    }
+    
+    if (bodyElement) {
+      console.log(`✅ Знайдено body елемент: ${bodyElement.tagName || 'unknown'}`)
+    } else {
+      console.warn("❌ Не вдалося знайти жодного придатного body елемента")
+    }
+    
+    return bodyElement
   }
 
   /**

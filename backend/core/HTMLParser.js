@@ -37,11 +37,11 @@ class HTMLParser {
       const id = getNodeId(el);
       const classes = Array.from(el.classList || []);
       const textContent = normalizeText(el.textContent || '');
-      const path = [...parentPath, classes[0] || el.tagName.toLowerCase()].join('/');
+      const path = [...parentPath, classes[0] || (el.tagName || 'div').toLowerCase()].join('/');
 
       const node = {
         id,
-        tagName: el.tagName.toLowerCase(),
+        tagName: (el.tagName || 'div').toLowerCase(),
         classes,
         level,
         parent: parentId,
@@ -55,7 +55,7 @@ class HTMLParser {
       if (textContent) contentMap.set(textContent, node);
 
       Array.from(el.children || []).forEach(child => {
-        const childNode = walk(child, id, [...parentPath, classes[0] || el.tagName.toLowerCase()], level + 1);
+        const childNode = walk(child, id, [...parentPath, classes[0] || (el.tagName || 'div').toLowerCase()], level + 1);
         if (childNode) node.children.push(childNode.id);
       });
 

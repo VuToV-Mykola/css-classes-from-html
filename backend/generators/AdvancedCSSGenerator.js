@@ -412,7 +412,7 @@ class AdvancedCSSGenerator {
       const classes = cleanClassName.split(/\s+/).filter(cls => cls && cls !== '.');
       
       if (classes.length === 0) {
-        return htmlElement.tagName.toLowerCase();
+        return (htmlElement.tagName || 'div').toLowerCase();
       }
       
       if (classes.length === 1) {
@@ -441,7 +441,7 @@ class AdvancedCSSGenerator {
     }
     
     // Інакше використовуємо тег
-    return htmlElement.tagName.toLowerCase();
+    return (htmlElement.tagName || 'div').toLowerCase();
   }
 
   /**

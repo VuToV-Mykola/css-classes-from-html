@@ -2305,7 +2305,7 @@ function extractSelectorsWithHierarchy(htmlContent) {
       if (id) return `#${id}`;
       const classList = (el.getAttribute('class') || '').trim().split(/\s+/).filter(Boolean);
       if (classList.length > 0) return `.${classList[0]}`;
-      return el.tagName ? el.tagName.toLowerCase() : '';
+      return (el.tagName || 'div').toLowerCase();
     };
 
     const walk = (el, pathTokens = []) => {
