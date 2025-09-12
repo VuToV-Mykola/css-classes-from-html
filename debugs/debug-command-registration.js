@@ -63,21 +63,21 @@ try {
 // Тест 3: Перевірка backend модулів
 console.log('\n3. Перевірка backend модулів...');
 try {
-  const IntegrationEngine = require('../backend/core/IntegrationEngine');
+  require('../backend/core/IntegrationEngine');
   console.log('✅ IntegrationEngine завантажено');
 } catch (error) {
   console.error('❌ Помилка завантаження IntegrationEngine:', error.message);
 }
 
 try {
-  const FigmaAPIClient = require('../backend/core/FigmaAPIClient');
+  require('../backend/core/FigmaAPIClient');
   console.log('✅ FigmaAPIClient завантажено');
 } catch (error) {
   console.error('❌ Помилка завантаження FigmaAPIClient:', error.message);
 }
 
 try {
-  const HTMLParser = require('../backend/core/HTMLParser');
+  require('../backend/core/HTMLParser');
   console.log('✅ HTMLParser завантажено');
 } catch (error) {
   console.error('❌ Помилка завантаження HTMLParser:', error.message);
@@ -86,7 +86,7 @@ try {
 // Тест 4: Перевірка залежностей
 console.log('\n4. Перевірка залежностей...');
 try {
-  const jsdom = require('jsdom');
+  require('jsdom');
   console.log('✅ jsdom завантажено');
 } catch (error) {
   console.error('❌ Помилка завантаження jsdom:', error.message);

@@ -114,7 +114,7 @@ class FontImporter {
       const fontsUsage = new Map(); // font family -> { weights: Set, styles: Set }
       
       // Рекурсивний обхід для пошуку текстових елементів
-      const walkForFonts = (node, _parentId = null, canvasId = null) => {
+      const walkForFonts = (node, canvasId = null) => {
         if (!node) return;
         
         // Перевіряємо чи треба обробляти цей layer
@@ -150,7 +150,7 @@ class FontImporter {
         // Рекурсивно обходимо дочірні елементи
         if (node.children) {
           node.children.forEach(child => 
-            walkForFonts(child, node.id, canvasId || node.id)
+            walkForFonts(child, canvasId || node.id)
           );
         }
       };
@@ -158,7 +158,7 @@ class FontImporter {
       // Обходимо кожну вибрану сторінку
       targetPages.forEach(page => {
         console.log(`🔍 Сканування шрифтів на canvas: ${page.name} (${page.id})`);
-        walkForFonts(page, null, page.id);
+        walkForFonts(page, page.id);
       });
       
       // Конвертуємо в масив з необхідною структурою

@@ -385,7 +385,7 @@ class StyleMatcher {
   }
 
   getFigmaSemanticRole(element) {
-    const name = element.name.toLowerCase();
+    const name = element.name ? element.name.toLowerCase() : '';
     const type = element.type;
     
     if (type === 'TEXT') {
@@ -448,7 +448,8 @@ class StyleMatcher {
     const level1 = roleHierarchy[role1] || 1;
     const level2 = roleHierarchy[role2] || 1;
     
-    return 1 - Math.abs(level1 - level2) / Math.max(level1, level2);
+    const maxLevel = Math.max(level1, level2);
+    return maxLevel > 0 ? 1 - Math.abs(level1 - level2) / maxLevel : 0;
   }
 
   _compareSizes(figmaPosition, htmlStyles) {
@@ -591,8 +592,10 @@ class StructuralMatching {
   }
   
   structuresMatch(fe, he) {
-    return fe.children?.length === he.children?.length && 
-           fe.path?.split('/').length === he.level;
+    const feChildren = fe.children?.length || 0;
+    const heChildren = he.children?.length || 0;
+    const feDepth = fe.path?.split('/').length || 0;
+    return feChildren === heChildren && feDepth === he.level;
   }
 }
 
@@ -613,7 +616,7 @@ class SemanticMatching {
   }
   
   getFigmaRole(fe) {
-    const name = fe.name.toLowerCase();
+    const name = fe.name ? fe.name.toLowerCase() : '';
     const type = fe.type;
     
     if (type === 'TEXT' && name.includes('title')) return 'heading';
@@ -644,7 +647,9 @@ class PositionalMatching {
     if (!fe.path || !he.path) {
       return false;
     }
-    return fe.path.split('/').length === he.path.split('/').length;
+    const feDepth = fe.path.split('/').length;
+    const heDepth = he.path.split('/').length;
+    return feDepth === heDepth;
   }
 }
 
@@ -653,8 +658,243 @@ class HierarchicalMatching {
   
   findMatches(figmaData, htmlData) {
     const matches = new Map();
-    // Рекурсивне співставлення можна реалізувати пізніше
+    
+    // Рекурсивне співставлення ієрархічних структур
+    this.matchHierarchicalStructures(figmaData, htmlData, matches);
+    
     return matches;
+  }
+  
+  /**
+   * Рекурсивне співставлення ієрархічних структур
+   */
+  matchHierarchicalStructures(figmaData, htmlData, matches) {
+    // Створюємо ієрархічні дерева для більш ефективного пошуку
+    const figmaTree = this.buildTree(figmaData.hierarchy);
+    const htmlTree = this.buildTree(htmlData.hierarchy);
+    
+    // Рекурсивно порівнюємо структури, починаючи з кореневих елементів
+    this.compareTreeNodes(figmaTree.roots, htmlTree.roots, figmaData, htmlData, matches);
+  }
+  
+  /**
+   * Побудова дерева з ієрархії
+   */
+  buildTree(hierarchy) {
+    const nodes = new Map();
+    const roots = [];
+    
+    // Створюємо вузли для кожного елементу
+    hierarchy.forEach((element, id) => {
+      nodes.set(id, {
+        id,
+        element,
+        children: [],
+        parent: null
+      });
+    });
+    
+    // Встановлюємо зв'язки батько-дитина
+    hierarchy.forEach((element, id) => {
+      const node = nodes.get(id);
+      if (element.path && element.path.includes('/')) {
+        // Знаходимо батьківський елемент за шляхом
+        const pathParts = element.path.split('/');
+        if (pathParts.length > 1) {
+          const parentPath = pathParts.slice(0, -1).join('/');
+          const parentNode = Array.from(nodes.values()).find(n => 
+            n.element.path === parentPath
+          );
+          if (parentNode) {
+            parentNode.children.push(node);
+            node.parent = parentNode;
+          }
+        }
+      }
+      
+      // Якщо немає батька, це кореневий елемент
+      if (!node.parent) {
+        roots.push(node);
+      }
+    });
+    
+    return { nodes, roots };
+  }
+  
+  /**
+   * Рекурсивне порівняння вузлів дерев
+   */
+  compareTreeNodes(figmaNodes, htmlNodes, figmaData, htmlData, matches, depth = 0) {
+    if (!figmaNodes || !htmlNodes || figmaNodes.length === 0 || htmlNodes.length === 0) {
+      return;
+    }
+    
+    // Обмежуємо глибину рекурсії для запобігання нескінченним циклам
+    if (depth > 10) {
+      return;
+    }
+    
+    // Порівнюємо кожен вузол Figma з вузлами HTML на тому ж рівні
+    figmaNodes.forEach(figmaNode => {
+      let bestMatch = null;
+      let bestScore = 0;
+      
+      htmlNodes.forEach(htmlNode => {
+        const score = this.calculateHierarchicalSimilarity(figmaNode, htmlNode);
+        
+        // Перевіряємо, чи вузол вже співставлений
+        const alreadyMatched = Array.from(matches.values()).some(match => 
+          match === htmlNode.id || match.htmlElement === htmlNode.id
+        );
+        
+        if (score > bestScore && score > 0.6 && !alreadyMatched) {
+          bestScore = score;
+          bestMatch = htmlNode;
+        }
+      });
+      
+      // Якщо знайшли гарне співпадіння, додаємо його
+      if (bestMatch && bestScore > 0.6) {
+        matches.set(figmaNode.id, bestMatch.id);
+        
+        // Рекурсивно перевіряємо дочірні елементи
+        if (figmaNode.children.length > 0 && bestMatch.children.length > 0) {
+          this.compareTreeNodes(
+            figmaNode.children, 
+            bestMatch.children, 
+            figmaData, 
+            htmlData, 
+            matches, 
+            depth + 1
+          );
+        }
+      }
+    });
+  }
+  
+  /**
+   * Розрахунок ієрархічної схожості між вузлами
+   */
+  calculateHierarchicalSimilarity(figmaNode, htmlNode) {
+    let score = 0;
+    let maxScore = 0;
+    
+    // Порівняння глибини в ієрархії
+    const figmaDepth = this.getNodeDepth(figmaNode);
+    const htmlDepth = this.getNodeDepth(htmlNode);
+    if (figmaDepth === htmlDepth) {
+      score += 0.3;
+    } else {
+      const depthDiff = Math.abs(figmaDepth - htmlDepth);
+      score += Math.max(0, 0.3 - (depthDiff * 0.1));
+    }
+    maxScore += 0.3;
+    
+    // Порівняння кількості дочірніх елементів
+    const figmaChildrenCount = figmaNode.children.length;
+    const htmlChildrenCount = htmlNode.children.length;
+    if (figmaChildrenCount === htmlChildrenCount) {
+      score += 0.25;
+    } else if (figmaChildrenCount > 0 && htmlChildrenCount > 0) {
+      const childrenRatio = Math.min(figmaChildrenCount, htmlChildrenCount) / 
+                           Math.max(figmaChildrenCount, htmlChildrenCount);
+      score += 0.25 * childrenRatio;
+    }
+    maxScore += 0.25;
+    
+    // Порівняння типу/ролі елемента
+    const figmaRole = this.getElementRole(figmaNode.element);
+    const htmlRole = htmlNode.element.semanticRole;
+    if (figmaRole === htmlRole) {
+      score += 0.25;
+    } else if (this.areRolesCompatible(figmaRole, htmlRole)) {
+      score += 0.15;
+    }
+    maxScore += 0.25;
+    
+    // Порівняння контенту (якщо є)
+    if (figmaNode.element.content && htmlNode.element.textContent) {
+      const contentSimilarity = this.calculateContentSimilarity(
+        figmaNode.element.content,
+        htmlNode.element.textContent
+      );
+      score += 0.2 * contentSimilarity;
+    }
+    maxScore += 0.2;
+    
+    return maxScore > 0 ? score / maxScore : 0;
+  }
+  
+  /**
+   * Отримання глибини вузла в дереві
+   */
+  getNodeDepth(node) {
+    let depth = 0;
+    let current = node.parent;
+    while (current) {
+      depth++;
+      current = current.parent;
+    }
+    return depth;
+  }
+  
+  /**
+   * Визначення ролі елемента
+   */
+  getElementRole(element) {
+    if (element.type === 'TEXT') {
+      const name = element.name ? element.name.toLowerCase() : '';
+      if (name.includes('title') || name.includes('heading')) return 'heading';
+      if (name.includes('button') || name.includes('btn')) return 'interactive';
+      return 'text';
+    }
+    
+    if (element.type === 'FRAME') {
+      const name = element.name ? element.name.toLowerCase() : '';
+      if (name.includes('header')) return 'header';
+      if (name.includes('footer')) return 'footer';
+      if (name.includes('nav') || name.includes('menu')) return 'navigation';
+      if (name.includes('card')) return 'content-card';
+      return 'container';
+    }
+    
+    return 'generic';
+  }
+  
+  /**
+   * Перевірка сумісності ролей
+   */
+  areRolesCompatible(role1, role2) {
+    const compatibleRoles = {
+      'container': ['section', 'content-section'],
+      'text': ['generic'],
+      'heading': ['text'],
+      'interactive': ['generic']
+    };
+    
+    return compatibleRoles[role1]?.includes(role2) || 
+           compatibleRoles[role2]?.includes(role1) || false;
+  }
+  
+  /**
+   * Розрахунок схожості контенту
+   */
+  calculateContentSimilarity(content1, content2) {
+    if (!content1 || !content2) return 0;
+    
+    const c1 = content1.toLowerCase().trim();
+    const c2 = content2.toLowerCase().trim();
+    
+    if (c1 === c2) return 1;
+    
+    // Простий алгоритм схожості на основі спільних слів
+    const words1 = c1.split(/\s+/);
+    const words2 = c2.split(/\s+/);
+    
+    const commonWords = words1.filter(word => words2.includes(word));
+    const totalWords = Math.max(words1.length, words2.length);
+    
+    return totalWords > 0 ? commonWords.length / totalWords : 0;
   }
 }
 
@@ -663,8 +903,423 @@ class VisualMatching {
   
   findMatches(figmaData, htmlData) {
     const matches = new Map();
-    // Візуальне співставлення на основі стилів
+    
+    // Візуальне співставлення на основі стилів та зовнішнього вигляду
+    this.performVisualMatching(figmaData, htmlData, matches);
+    
     return matches;
+  }
+  
+  /**
+   * Виконання візуального співставлення елементів
+   */
+  performVisualMatching(figmaData, htmlData, matches) {
+    figmaData.hierarchy.forEach((figmaElement, figmaId) => {
+      // Пропускаємо вже співставлені елементи
+      if (matches.has(figmaId)) return;
+      
+      let bestMatch = null;
+      let bestScore = 0;
+      
+      htmlData.hierarchy.forEach((htmlElement, htmlId) => {
+        // Перевіряємо, чи HTML елемент вже використовується
+        const alreadyUsed = Array.from(matches.values()).some(match => 
+          match === htmlId || (typeof match === 'object' && match.htmlElement === htmlId)
+        );
+        
+        if (!alreadyUsed) {
+          const visualScore = this.calculateVisualSimilarity(figmaElement, htmlElement);
+          
+          if (visualScore > bestScore && visualScore > 0.65) {
+            bestScore = visualScore;
+            bestMatch = htmlId;
+          }
+        }
+      });
+      
+      if (bestMatch && bestScore > 0.65) {
+        matches.set(figmaId, bestMatch);
+      }
+    });
+  }
+  
+  /**
+   * Розрахунок візуальної схожості між елементами
+   */
+  calculateVisualSimilarity(figmaElement, htmlElement) {
+    let score = 0;
+    let maxScore = 0;
+    
+    // Порівняння розмірів та позицій
+    if (figmaElement.styles?.position) {
+      const sizeScore = this.compareSizes(figmaElement.styles.position, htmlElement);
+      score += sizeScore * 0.3;
+      maxScore += 0.3;
+    }
+    
+    // Порівняння кольорів
+    if (figmaElement.styles?.colors) {
+      const colorScore = this.compareColors(figmaElement.styles.colors, htmlElement);
+      score += colorScore * 0.25;
+      maxScore += 0.25;
+    }
+    
+    // Порівняння типографіки
+    if (figmaElement.styles?.typography) {
+      const typographyScore = this.compareTypography(figmaElement.styles.typography, htmlElement);
+      score += typographyScore * 0.2;
+      maxScore += 0.2;
+    }
+    
+    // Порівняння форми та типу елемента
+    const shapeScore = this.compareShape(figmaElement, htmlElement);
+    score += shapeScore * 0.15;
+    maxScore += 0.15;
+    
+    // Порівняння ефектів (тіні, закруглення тощо)
+    if (figmaElement.styles?.effects) {
+      const effectsScore = this.compareEffects(figmaElement.styles.effects, htmlElement);
+      score += effectsScore * 0.1;
+      maxScore += 0.1;
+    }
+    
+    return maxScore > 0 ? score / maxScore : 0;
+  }
+  
+  /**
+   * Порівняння розмірів елементів
+   */
+  compareSizes(figmaPosition, htmlElement) {
+    if (!figmaPosition || !figmaPosition.width || !figmaPosition.height) {
+      return 0.5; // Нейтральна оцінка при відсутності даних
+    }
+    
+    const figmaWidth = figmaPosition.width;
+    const figmaHeight = figmaPosition.height;
+    const figmaAspectRatio = figmaWidth / figmaHeight;
+    
+    // Визначаємо розмірну категорію за Figma
+    const figmaSize = this.getSizeCategory(figmaWidth, figmaHeight);
+    
+    // Для HTML елементів використовуємо теги та класи для визначення розмірів
+    const htmlSize = this.inferHTMLSize(htmlElement);
+    const htmlAspectRatio = this.inferHTMLAspectRatio(htmlElement);
+    
+    let sizeScore = 0;
+    
+    // Порівняння категорій розмірів
+    if (figmaSize === htmlSize) {
+      sizeScore += 0.6;
+    } else if (this.areSizeCategoriesCompatible(figmaSize, htmlSize)) {
+      sizeScore += 0.4;
+    }
+    
+    // Порівняння пропорцій
+    if (htmlAspectRatio > 0 && figmaAspectRatio > 0) {
+      const aspectRatioSimilarity = 1 - Math.abs(figmaAspectRatio - htmlAspectRatio) / 
+                                    Math.max(figmaAspectRatio, htmlAspectRatio);
+      sizeScore += 0.4 * Math.max(0, aspectRatioSimilarity);
+    }
+    
+    return Math.min(sizeScore, 1.0);
+  }
+  
+  /**
+   * Порівняння кольорів
+   */
+  compareColors(figmaColors, htmlElement) {
+    if (!Array.isArray(figmaColors) || figmaColors.length === 0) {
+      return 0.5;
+    }
+    
+    // Отримуємо основний колір з Figma
+    const primaryFigmaColor = figmaColors.find(c => c.type === 'solid' && c.color);
+    if (!primaryFigmaColor) {
+      return 0.5;
+    }
+    
+    // Визначаємо колірну схему HTML елемента
+    const htmlColors = this.inferHTMLColors(htmlElement);
+    
+    let bestMatch = 0;
+    htmlColors.forEach(htmlColor => {
+      const similarity = this.calculateColorSimilarity(primaryFigmaColor.color, htmlColor);
+      bestMatch = Math.max(bestMatch, similarity);
+    });
+    
+    return bestMatch;
+  }
+  
+  /**
+   * Порівняння типографіки
+   */
+  compareTypography(figmaTypography, htmlElement) {
+    if (!figmaTypography) return 0.5;
+    
+    let score = 0;
+    let factors = 0;
+    
+    // Розмір шрифту
+    if (figmaTypography.fontSize) {
+      const htmlFontSize = this.inferHTMLFontSize(htmlElement);
+      if (htmlFontSize > 0) {
+        const sizeSimilarity = 1 - Math.abs(figmaTypography.fontSize - htmlFontSize) / 
+                               Math.max(figmaTypography.fontSize, htmlFontSize);
+        score += sizeSimilarity * 0.4;
+      }
+      factors += 0.4;
+    }
+    
+    // Вага шрифту
+    if (figmaTypography.fontWeight) {
+      const htmlFontWeight = this.inferHTMLFontWeight(htmlElement);
+      if (htmlFontWeight > 0) {
+        const weightSimilarity = 1 - Math.abs(figmaTypography.fontWeight - htmlFontWeight) / 
+                                 Math.max(figmaTypography.fontWeight, htmlFontWeight);
+        score += weightSimilarity * 0.3;
+      }
+      factors += 0.3;
+    }
+    
+    // Висота рядка
+    if (figmaTypography.lineHeight) {
+      score += 0.2; // Бонус за наявність параметра
+      factors += 0.2;
+    }
+    
+    // Назва шрифту
+    if (figmaTypography.fontFamily) {
+      const fontFamilyMatch = this.compareFontFamilies(
+        figmaTypography.fontFamily, 
+        htmlElement.tagName, 
+        htmlElement.classes || []
+      );
+      score += fontFamilyMatch * 0.1;
+      factors += 0.1;
+    }
+    
+    return factors > 0 ? score / factors : 0.5;
+  }
+  
+  /**
+   * Порівняння форми елементів
+   */
+  compareShape(figmaElement, htmlElement) {
+    // Співставлення типів Figma з HTML тегами
+    const figmaType = figmaElement.type;
+    const htmlTag = htmlElement.tagName?.toLowerCase();
+    
+    const shapeMapping = {
+      'TEXT': ['p', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'label'],
+      'RECTANGLE': ['div', 'section', 'article', 'button', 'input'],
+      'FRAME': ['div', 'section', 'article', 'main', 'header', 'footer', 'nav'],
+      'IMAGE': ['img', 'picture', 'figure'],
+      'INSTANCE': ['div', 'section', 'article']
+    };
+    
+    const expectedTags = shapeMapping[figmaType] || [];
+    
+    if (expectedTags.includes(htmlTag)) {
+      return 1.0;
+    }
+    
+    // Часткові співпадіння
+    if (figmaType === 'RECTANGLE' && ['span', 'a'].includes(htmlTag)) {
+      return 0.7;
+    }
+    
+    if (figmaType === 'TEXT' && ['div', 'button'].includes(htmlTag)) {
+      return 0.6;
+    }
+    
+    return 0.3; // Мінімальний бал за невідповідність
+  }
+  
+  /**
+   * Порівняння ефектів
+   */
+  compareEffects(figmaEffects, htmlElement) {
+    if (!Array.isArray(figmaEffects) || figmaEffects.length === 0) {
+      return 0.5;
+    }
+    
+    let score = 0;
+    let effectCount = 0;
+    
+    figmaEffects.forEach(effect => {
+      switch (effect.type) {
+      case 'DROP_SHADOW':
+      case 'INNER_SHADOW':
+        if (this.hasHTMLShadowEffect(htmlElement)) {
+          score += 0.8;
+        } else {
+          score += 0.3;
+        }
+        effectCount++;
+        break;
+          
+      case 'BLUR':
+        if (this.hasHTMLBlurEffect(htmlElement)) {
+          score += 0.9;
+        } else {
+          score += 0.2;
+        }
+        effectCount++;
+        break;
+          
+      default:
+        score += 0.4; // За наявність будь-якого ефекту
+        effectCount++;
+      }
+    });
+    
+    return effectCount > 0 ? score / effectCount : 0.5;
+  }
+  
+  /**
+   * Допоміжні методи для визначення характеристик HTML елементів
+   */
+  getSizeCategory(width, height) {
+    const area = width * height;
+    if (area < 1000) return 'small';
+    if (area < 10000) return 'medium';
+    return 'large';
+  }
+  
+  inferHTMLSize(htmlElement) {
+    const tag = htmlElement.tagName?.toLowerCase();
+    const classes = htmlElement.classes || [];
+    
+    // Малі елементи
+    if (['span', 'i', 'b', 'small', 'sub', 'sup'].includes(tag)) return 'small';
+    if (classes.some(cls => cls.includes('small') || cls.includes('xs'))) return 'small';
+    
+    // Великі елементи
+    if (['section', 'article', 'main', 'header', 'footer'].includes(tag)) return 'large';
+    if (classes.some(cls => cls.includes('large') || cls.includes('xl'))) return 'large';
+    
+    return 'medium';
+  }
+  
+  inferHTMLAspectRatio(htmlElement) {
+    // Спробуємо вивести пропорції з класів або тегів
+    const classes = htmlElement.classes || [];
+    
+    // Квадратні елементи
+    if (classes.some(cls => cls.includes('square') || cls.includes('avatar'))) return 1;
+    
+    // Широкі елементи
+    if (classes.some(cls => cls.includes('wide') || cls.includes('banner'))) return 3;
+    
+    // Високі елементи
+    if (classes.some(cls => cls.includes('tall') || cls.includes('sidebar'))) return 0.5;
+    
+    return 1.5; // Типове співвідношення за замовчуванням
+  }
+  
+  inferHTMLColors(htmlElement) {
+    const colors = [];
+    const classes = htmlElement.classes || [];
+    
+    // Вивід кольорів з класів
+    const colorKeywords = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'gray', 'black', 'white'];
+    colorKeywords.forEach(color => {
+      if (classes.some(cls => cls.includes(color))) {
+        colors.push(color);
+      }
+    });
+    
+    // За замовчуванням
+    if (colors.length === 0) {
+      colors.push('default');
+    }
+    
+    return colors;
+  }
+  
+  inferHTMLFontSize(htmlElement) {
+    const tag = htmlElement.tagName?.toLowerCase();
+    
+    const fontSizes = {
+      'h1': 32, 'h2': 28, 'h3': 24, 'h4': 20, 'h5': 18, 'h6': 16,
+      'p': 16, 'span': 14, 'small': 12, 'button': 16
+    };
+    
+    return fontSizes[tag] || 16;
+  }
+  
+  inferHTMLFontWeight(htmlElement) {
+    const tag = htmlElement.tagName?.toLowerCase();
+    const classes = htmlElement.classes || [];
+    
+    // Жирний шрифт
+    if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'b', 'strong', 'button'].includes(tag)) return 700;
+    if (classes.some(cls => cls.includes('bold') || cls.includes('font-bold'))) return 700;
+    
+    // Легкий шрифт
+    if (classes.some(cls => cls.includes('light') || cls.includes('font-light'))) return 300;
+    
+    return 400; // Звичайна вага
+  }
+  
+  compareFontFamilies(figmaFont, htmlTag, htmlClasses) {
+    // Основні категорії шрифтів
+    const serifFonts = ['times', 'georgia', 'serif'];
+    const sansSerifFonts = ['arial', 'helvetica', 'sans-serif', 'roboto'];
+    const monospaceFonts = ['courier', 'monaco', 'monospace'];
+    
+    const figmaCategory = this.getFontCategory(figmaFont);
+    const htmlCategory = this.inferHTMLFontCategory(htmlTag, htmlClasses);
+    
+    return figmaCategory === htmlCategory ? 1.0 : 0.3;
+  }
+  
+  getFontCategory(fontName) {
+    const font = fontName.toLowerCase();
+    if (font.includes('serif') && !font.includes('sans')) return 'serif';
+    if (font.includes('mono') || font.includes('courier')) return 'monospace';
+    return 'sans-serif';
+  }
+  
+  inferHTMLFontCategory(tag, classes) {
+    if (['code', 'pre', 'kbd', 'samp'].includes(tag)) return 'monospace';
+    
+    if (classes.some(cls => cls.includes('serif'))) return 'serif';
+    if (classes.some(cls => cls.includes('mono'))) return 'monospace';
+    
+    return 'sans-serif';
+  }
+  
+  areSizeCategoriesCompatible(size1, size2) {
+    const compatibility = {
+      'small': ['medium'],
+      'medium': ['small', 'large'],
+      'large': ['medium']
+    };
+    
+    return compatibility[size1]?.includes(size2) || false;
+  }
+  
+  calculateColorSimilarity(color1, color2) {
+    // Спрощений алгоритм порівняння кольорів
+    if (color1 === color2) return 1.0;
+    
+    // Якщо один з кольорів це ключове слово
+    if (typeof color1 === 'string' && typeof color2 === 'string') {
+      return color1.toLowerCase() === color2.toLowerCase() ? 1.0 : 0.2;
+    }
+    
+    return 0.3; // Базова схожість для різних форматів
+  }
+  
+  hasHTMLShadowEffect(htmlElement) {
+    const classes = htmlElement.classes || [];
+    return classes.some(cls => cls.includes('shadow') || cls.includes('drop-shadow'));
+  }
+  
+  hasHTMLBlurEffect(htmlElement) {
+    const classes = htmlElement.classes || [];
+    return classes.some(cls => cls.includes('blur') || cls.includes('backdrop-blur'));
   }
 }
 
@@ -673,8 +1328,520 @@ class ContextualMatching {
   
   findMatches(figmaData, htmlData) {
     const matches = new Map();
-    // Контекстне співставлення на основі оточення
+    
+    // Контекстне співставлення на основі оточення та структурних зв'язків
+    this.performContextualMatching(figmaData, htmlData, matches);
+    
     return matches;
+  }
+  
+  /**
+   * Виконання контекстного співставлення елементів
+   */
+  performContextualMatching(figmaData, htmlData, matches) {
+    // Створюємо карти контексту для швидкого пошуку
+    const figmaContextMap = this.buildContextMap(figmaData.hierarchy);
+    const htmlContextMap = this.buildContextMap(htmlData.hierarchy);
+    
+    // Спочатку знаходимо "якірні" елементи - ті, які мають унікальний контент
+    const anchorMatches = this.findAnchorMatches(figmaData, htmlData);
+    anchorMatches.forEach((htmlId, figmaId) => {
+      matches.set(figmaId, htmlId);
+    });
+    
+    // Використовуємо якірні елементи для поширення співставлень на сусідні елементи
+    this.propagateMatchesFromAnchors(figmaData, htmlData, matches, figmaContextMap, htmlContextMap);
+    
+    // Виконуємо додаткове співставлення на основі групування та послідовності
+    this.matchByGroupContext(figmaData, htmlData, matches, figmaContextMap, htmlContextMap);
+  }
+  
+  /**
+   * Створення карти контексту для елементів
+   */
+  buildContextMap(hierarchy) {
+    const contextMap = new Map();
+    
+    hierarchy.forEach((element, id) => {
+      const context = {
+        siblings: this.findSiblings(element, hierarchy),
+        parent: this.findParent(element, hierarchy),
+        children: this.findChildren(element, hierarchy),
+        position: this.getElementPosition(element),
+        surroundingContent: this.extractSurroundingContent(element, hierarchy)
+      };
+      
+      contextMap.set(id, context);
+    });
+    
+    return contextMap;
+  }
+  
+  /**
+   * Знаходження якірних елементів з унікальним контентом
+   */
+  findAnchorMatches(figmaData, htmlData) {
+    const anchorMatches = new Map();
+    
+    // Шукаємо елементи з унікальним текстовим контентом
+    const figmaUniqueContent = this.extractUniqueContentElements(figmaData.hierarchy);
+    const htmlUniqueContent = this.extractUniqueContentElements(htmlData.hierarchy);
+    
+    figmaUniqueContent.forEach((figmaElement, content) => {
+      if (htmlUniqueContent.has(content)) {
+        const htmlElement = htmlUniqueContent.get(content);
+        const contextScore = this.calculateContextScore(figmaElement, htmlElement, figmaData, htmlData);
+        
+        if (contextScore > 0.7) {
+          anchorMatches.set(figmaElement.id, htmlElement.id);
+        }
+      }
+    });
+    
+    return anchorMatches;
+  }
+  
+  /**
+   * Поширення співставлень від якірних елементів
+   */
+  propagateMatchesFromAnchors(figmaData, htmlData, matches, figmaContextMap, htmlContextMap) {
+    const processedElements = new Set();
+    
+    matches.forEach((htmlId, figmaId) => {
+      this.propagateFromSingleAnchor(
+        figmaId, htmlId, 
+        figmaData, htmlData, 
+        matches, figmaContextMap, htmlContextMap, 
+        processedElements
+      );
+    });
+  }
+  
+  /**
+   * Поширення від одного якірного елемента
+   */
+  propagateFromSingleAnchor(figmaId, htmlId, figmaData, htmlData, matches, figmaContextMap, htmlContextMap, processedElements) {
+    if (processedElements.has(figmaId)) return;
+    processedElements.add(figmaId);
+    
+    const figmaContext = figmaContextMap.get(figmaId);
+    const htmlContext = htmlContextMap.get(htmlId);
+    
+    if (!figmaContext || !htmlContext) return;
+    
+    // Співставляємо дочірні елементи
+    this.matchChildrenInContext(
+      figmaContext.children, htmlContext.children,
+      figmaData, htmlData, matches, figmaContextMap, htmlContextMap
+    );
+    
+    // Співставляємо сусідні елементи
+    this.matchSiblingsInContext(
+      figmaContext.siblings, htmlContext.siblings,
+      figmaData, htmlData, matches, figmaContextMap, htmlContextMap, figmaId, htmlId
+    );
+  }
+  
+  /**
+   * Співставлення дочірніх елементів у контексті
+   */
+  matchChildrenInContext(figmaChildren, htmlChildren, figmaData, htmlData, matches, figmaContextMap, htmlContextMap) {
+    if (!figmaChildren || !htmlChildren || figmaChildren.length === 0 || htmlChildren.length === 0) {
+      return;
+    }
+    
+    // Створюємо матрицю схожості для дочірніх елементів
+    const similarityMatrix = figmaChildren.map((figmaChild, i) => {
+      return htmlChildren.map((htmlChild, j) => {
+        const alreadyMatched = Array.from(matches.values()).includes(htmlChild.id);
+        if (alreadyMatched || matches.has(figmaChild.id)) {
+          return -1; // Вже співставлений
+        }
+        
+        return this.calculateContextualSimilarity(figmaChild, htmlChild, figmaData, htmlData);
+      });
+    });
+    
+    // Знаходимо найкращі співпадіння
+    this.findBestMatches(similarityMatrix, figmaChildren, htmlChildren, matches);
+  }
+  
+  /**
+   * Співставлення сусідніх елементів у контексті
+   */
+  matchSiblingsInContext(figmaSiblings, htmlSiblings, figmaData, htmlData, matches, figmaContextMap, htmlContextMap, anchorFigmaId, anchorHtmlId) {
+    if (!figmaSiblings || !htmlSiblings || figmaSiblings.length === 0 || htmlSiblings.length === 0) {
+      return;
+    }
+    
+    // Знаходимо позицію якірного елемента серед сусідів
+    const figmaAnchorIndex = figmaSiblings.findIndex(s => s.id === anchorFigmaId);
+    const htmlAnchorIndex = htmlSiblings.findIndex(s => s.id === anchorHtmlId);
+    
+    if (figmaAnchorIndex === -1 || htmlAnchorIndex === -1) return;
+    
+    // Співставляємо елементи до та після якірного елемента
+    this.matchSiblingsByPosition(figmaSiblings, htmlSiblings, figmaAnchorIndex, htmlAnchorIndex, figmaData, htmlData, matches);
+  }
+  
+  /**
+   * Співставлення сусідів за позицією
+   */
+  matchSiblingsByPosition(figmaSiblings, htmlSiblings, figmaAnchorIndex, htmlAnchorIndex, figmaData, htmlData, matches) {
+    // Співставляємо елементи ліворуч від якоря
+    for (let offset = 1; offset <= Math.min(figmaAnchorIndex, htmlAnchorIndex); offset++) {
+      const figmaIndex = figmaAnchorIndex - offset;
+      const htmlIndex = htmlAnchorIndex - offset;
+      
+      if (figmaIndex >= 0 && htmlIndex >= 0) {
+        const figmaSibling = figmaSiblings[figmaIndex];
+        const htmlSibling = htmlSiblings[htmlIndex];
+        
+        if (!matches.has(figmaSibling.id) && !Array.from(matches.values()).includes(htmlSibling.id)) {
+          const similarity = this.calculateContextualSimilarity(figmaSibling, htmlSibling, figmaData, htmlData);
+          if (similarity > 0.6) {
+            matches.set(figmaSibling.id, htmlSibling.id);
+          }
+        }
+      }
+    }
+    
+    // Співставляємо елементи праворуч від якоря
+    const maxRightOffset = Math.min(figmaSiblings.length - figmaAnchorIndex - 1, htmlSiblings.length - htmlAnchorIndex - 1);
+    for (let offset = 1; offset <= maxRightOffset; offset++) {
+      const figmaIndex = figmaAnchorIndex + offset;
+      const htmlIndex = htmlAnchorIndex + offset;
+      
+      if (figmaIndex < figmaSiblings.length && htmlIndex < htmlSiblings.length) {
+        const figmaSibling = figmaSiblings[figmaIndex];
+        const htmlSibling = htmlSiblings[htmlIndex];
+        
+        if (!matches.has(figmaSibling.id) && !Array.from(matches.values()).includes(htmlSibling.id)) {
+          const similarity = this.calculateContextualSimilarity(figmaSibling, htmlSibling, figmaData, htmlData);
+          if (similarity > 0.6) {
+            matches.set(figmaSibling.id, htmlSibling.id);
+          }
+        }
+      }
+    }
+  }
+  
+  /**
+   * Співставлення за груповим контекстом
+   */
+  matchByGroupContext(figmaData, htmlData, matches, figmaContextMap, htmlContextMap) {
+    // Знаходимо групи елементів з подібними характеристиками
+    const figmaGroups = this.identifyElementGroups(figmaData.hierarchy, figmaContextMap);
+    const htmlGroups = this.identifyElementGroups(htmlData.hierarchy, htmlContextMap);
+    
+    // Співставляємо групи за схожістю
+    figmaGroups.forEach(figmaGroup => {
+      const bestMatchingGroup = this.findBestMatchingGroup(figmaGroup, htmlGroups);
+      if (bestMatchingGroup) {
+        this.matchElementsInGroups(figmaGroup, bestMatchingGroup, matches, figmaData, htmlData);
+      }
+    });
+  }
+  
+  /**
+   * Розрахунок контекстної схожості
+   */
+  calculateContextualSimilarity(figmaElement, htmlElement, figmaData, htmlData) {
+    let score = 0;
+    let maxScore = 0;
+    
+    // Схожість контенту
+    if (figmaElement.content && htmlElement.textContent) {
+      const contentSim = this.calculateContentSimilarity(figmaElement.content, htmlElement.textContent);
+      score += contentSim * 0.4;
+      maxScore += 0.4;
+    }
+    
+    // Схожість типу елемента
+    const typeSim = this.calculateTypeSimilarity(figmaElement, htmlElement);
+    score += typeSim * 0.3;
+    maxScore += 0.3;
+    
+    // Позиційна схожість у контексті батьківського елемента
+    const positionSim = this.calculateRelativePositionSimilarity(figmaElement, htmlElement);
+    score += positionSim * 0.2;
+    maxScore += 0.2;
+    
+    // Схожість оточуючого контексту
+    const contextSim = this.calculateSurroundingContextSimilarity(figmaElement, htmlElement, figmaData, htmlData);
+    score += contextSim * 0.1;
+    maxScore += 0.1;
+    
+    return maxScore > 0 ? score / maxScore : 0;
+  }
+  
+  /**
+   * Допоміжні методи
+   */
+  findSiblings(element, hierarchy) {
+    if (!element.path) return [];
+    
+    const pathParts = element.path.split('/');
+    if (pathParts.length < 2) return [];
+    
+    const parentPath = pathParts.slice(0, -1).join('/');
+    const siblings = [];
+    
+    hierarchy.forEach((el, id) => {
+      if (el.path && el.path !== element.path) {
+        const elPathParts = el.path.split('/');
+        if (elPathParts.length === pathParts.length) {
+          const elParentPath = elPathParts.slice(0, -1).join('/');
+          if (elParentPath === parentPath) {
+            siblings.push({...el, id});
+          }
+        }
+      }
+    });
+    
+    return siblings;
+  }
+  
+  findParent(element, hierarchy) {
+    if (!element.path || !element.path.includes('/')) return null;
+    
+    const pathParts = element.path.split('/');
+    if (pathParts.length < 2) return null;
+    
+    const parentPath = pathParts.slice(0, -1).join('/');
+    
+    for (const [id, el] of hierarchy) {
+      if (el.path === parentPath) {
+        return {...el, id};
+      }
+    }
+    
+    return null;
+  }
+  
+  findChildren(element, hierarchy) {
+    if (!element.path) return [];
+    
+    const children = [];
+    const targetDepth = element.path.split('/').length + 1;
+    
+    hierarchy.forEach((el, id) => {
+      if (el.path && el.path.startsWith(element.path + '/')) {
+        const elDepth = el.path.split('/').length;
+        if (elDepth === targetDepth) {
+          children.push({...el, id});
+        }
+      }
+    });
+    
+    return children;
+  }
+  
+  getElementPosition(element) {
+    if (!element.path) return 0;
+    
+    const pathParts = element.path.split('/');
+    const lastPart = pathParts[pathParts.length - 1];
+    
+    // Спробуємо витягти числову позицію з кінця шляху
+    const match = lastPart.match(/(\d+)$/);
+    return match ? parseInt(match[1]) : 0;
+  }
+  
+  extractSurroundingContent(element, hierarchy) {
+    const siblings = this.findSiblings(element, hierarchy);
+    return siblings.map(sibling => sibling.content || sibling.name || '').filter(Boolean).join(' ');
+  }
+  
+  extractUniqueContentElements(hierarchy) {
+    const contentMap = new Map();
+    const uniqueContent = new Map();
+    
+    // Підраховуємо частоту контенту
+    hierarchy.forEach((element, id) => {
+      const content = this.normalizeContent(element.content || element.name || '');
+      if (content && content.length > 2) {
+        const count = contentMap.get(content) || 0;
+        contentMap.set(content, count + 1);
+      }
+    });
+    
+    // Залишаємо тільки унікальний контент
+    hierarchy.forEach((element, id) => {
+      const content = this.normalizeContent(element.content || element.name || '');
+      if (content && contentMap.get(content) === 1) {
+        uniqueContent.set(content, {...element, id});
+      }
+    });
+    
+    return uniqueContent;
+  }
+  
+  normalizeContent(content) {
+    return content.toLowerCase().replace(/\s+/g, ' ').trim();
+  }
+  
+  calculateContextScore(figmaElement, htmlElement, figmaData, htmlData) {
+    // Базовий розрахунок схожості для якірних елементів
+    return this.calculateContextualSimilarity(figmaElement, htmlElement, figmaData, htmlData);
+  }
+  
+  calculateContentSimilarity(content1, content2) {
+    const c1 = this.normalizeContent(content1);
+    const c2 = this.normalizeContent(content2);
+    
+    if (c1 === c2) return 1;
+    if (!c1 || !c2) return 0;
+    
+    const words1 = c1.split(' ');
+    const words2 = c2.split(' ');
+    
+    const commonWords = words1.filter(word => words2.includes(word));
+    const totalWords = Math.max(words1.length, words2.length);
+    
+    return totalWords > 0 ? commonWords.length / totalWords : 0;
+  }
+  
+  calculateTypeSimilarity(figmaElement, htmlElement) {
+    const figmaType = figmaElement.type;
+    const htmlTag = htmlElement.tagName?.toLowerCase();
+    
+    // Основні співставлення типів
+    const typeMapping = {
+      'TEXT': 0.8,
+      'FRAME': 0.7,
+      'RECTANGLE': 0.6,
+      'IMAGE': 0.9
+    };
+    
+    if (figmaType === 'TEXT' && ['p', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(htmlTag)) return 1.0;
+    if (figmaType === 'IMAGE' && ['img', 'picture'].includes(htmlTag)) return 1.0;
+    if (figmaType === 'FRAME' && ['div', 'section', 'article'].includes(htmlTag)) return 0.9;
+    
+    return typeMapping[figmaType] || 0.5;
+  }
+  
+  calculateRelativePositionSimilarity(figmaElement, htmlElement) {
+    const figmaPos = this.getElementPosition(figmaElement);
+    const htmlPos = this.getElementPosition(htmlElement);
+    
+    if (figmaPos === htmlPos) return 1.0;
+    if (Math.abs(figmaPos - htmlPos) <= 1) return 0.8;
+    if (Math.abs(figmaPos - htmlPos) <= 2) return 0.6;
+    
+    return 0.3;
+  }
+  
+  calculateSurroundingContextSimilarity(figmaElement, htmlElement, figmaData, htmlData) {
+    // Спрощена оцінка схожості оточуючого контексту
+    const figmaSurrounding = this.extractSurroundingContent(figmaElement, figmaData.hierarchy);
+    const htmlSurrounding = this.extractSurroundingContent(htmlElement, htmlData.hierarchy);
+    
+    if (!figmaSurrounding && !htmlSurrounding) return 0.5;
+    if (!figmaSurrounding || !htmlSurrounding) return 0.2;
+    
+    return this.calculateContentSimilarity(figmaSurrounding, htmlSurrounding);
+  }
+  
+  findBestMatches(similarityMatrix, figmaElements, htmlElements, matches) {
+    // Жадібний алгоритм для знаходження найкращих співпадінь
+    const usedHtml = new Set();
+    const usedFigma = new Set();
+    
+    // Сортуємо всі можливі співпадіння за схожістю
+    const allMatches = [];
+    for (let i = 0; i < similarityMatrix.length; i++) {
+      for (let j = 0; j < similarityMatrix[i].length; j++) {
+        if (similarityMatrix[i][j] > 0.6) {
+          allMatches.push({
+            figmaIndex: i,
+            htmlIndex: j,
+            similarity: similarityMatrix[i][j]
+          });
+        }
+      }
+    }
+    
+    allMatches.sort((a, b) => b.similarity - a.similarity);
+    
+    // Обираємо найкращі не конфліктні співпадіння
+    allMatches.forEach(match => {
+      if (!usedFigma.has(match.figmaIndex) && !usedHtml.has(match.htmlIndex)) {
+        const figmaElement = figmaElements[match.figmaIndex];
+        const htmlElement = htmlElements[match.htmlIndex];
+        
+        matches.set(figmaElement.id, htmlElement.id);
+        usedFigma.add(match.figmaIndex);
+        usedHtml.add(match.htmlIndex);
+      }
+    });
+  }
+  
+  identifyElementGroups(hierarchy, contextMap) {
+    // Спрощена ідентифікація груп - групуємо за типом та батьківським елементом
+    const groups = new Map();
+    
+    hierarchy.forEach((element, id) => {
+      const context = contextMap.get(id);
+      const parentId = context?.parent?.id || 'root';
+      const groupKey = `${parentId}_${element.type || 'unknown'}`;
+      
+      if (!groups.has(groupKey)) {
+        groups.set(groupKey, []);
+      }
+      
+      groups.get(groupKey).push({...element, id});
+    });
+    
+    // Повертаємо тільки групи з більш ніж одним елементом
+    return Array.from(groups.values()).filter(group => group.length > 1);
+  }
+  
+  findBestMatchingGroup(figmaGroup, htmlGroups) {
+    let bestMatch = null;
+    let bestScore = 0;
+    
+    htmlGroups.forEach(htmlGroup => {
+      const score = this.calculateGroupSimilarity(figmaGroup, htmlGroup);
+      if (score > bestScore && score > 0.6) {
+        bestScore = score;
+        bestMatch = htmlGroup;
+      }
+    });
+    
+    return bestMatch;
+  }
+  
+  calculateGroupSimilarity(group1, group2) {
+    if (group1.length !== group2.length) {
+      const sizeSimilarity = Math.min(group1.length, group2.length) / Math.max(group1.length, group2.length);
+      if (sizeSimilarity < 0.5) return 0;
+    }
+    
+    // Порівняння типів елементів у групах
+    const types1 = group1.map(el => el.type).sort();
+    const types2 = group2.map(el => el.tagName?.toLowerCase() || 'unknown').sort();
+    
+    const commonTypes = types1.filter(type => types2.includes(type)).length;
+    const totalTypes = Math.max(types1.length, types2.length);
+    
+    return totalTypes > 0 ? commonTypes / totalTypes : 0;
+  }
+  
+  matchElementsInGroups(figmaGroup, htmlGroup, matches, figmaData, htmlData) {
+    const minLength = Math.min(figmaGroup.length, htmlGroup.length);
+    
+    for (let i = 0; i < minLength; i++) {
+      const figmaElement = figmaGroup[i];
+      const htmlElement = htmlGroup[i];
+      
+      if (!matches.has(figmaElement.id) && !Array.from(matches.values()).includes(htmlElement.id)) {
+        const similarity = this.calculateContextualSimilarity(figmaElement, htmlElement, figmaData, htmlData);
+        if (similarity > 0.6) {
+          matches.set(figmaElement.id, htmlElement.id);
+        }
+      }
+    }
   }
 }
 

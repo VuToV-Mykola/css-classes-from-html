@@ -4,1616 +4,1121 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CSS Classes from HTML v0.0.7</title>
-    <style>
-      /* ✅ FIX: Компактний адаптивний інтерфейс - лінія 8-600 ✅ */
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      :root {
-        --primary: #007acc;
-        --primary-dark: #005a9e;
-        --success: #4caf50;
-        --warning: #ff9800;
-        --danger: #f44336;
-        --info: #2196f3;
-        --bg: #1e1e1e;
-        --bg-secondary: #252526;
-        --bg-tertiary: #2d2d30;
-        --text: #cccccc;
-        --text-secondary: #8c8c8c;
-        --border: #3c3c3c;
-        --shadow: rgba(0, 0, 0, 0.3);
-
-        /* Mobile-first fluid variables */
-        --footer-h: clamp(48px, 8vh, 64px);
-        --hover-min-h: clamp(100px, 15vh, 140px);
-        --base-spacing: clamp(0.25rem, 2vw, 1rem);
-        --content-padding: clamp(0.5rem, 3vw, 1rem);
-        --border-radius: clamp(4px, 1vw, 8px);
-
-        /* Fluid typography */
-        --font-size-xs: clamp(0.65rem, 2.5vw, 0.75rem);
-        --font-size-sm: clamp(0.75rem, 3vw, 0.85rem);
-        --font-size-base: clamp(0.85rem, 3.5vw, 1rem);
-        --font-size-lg: clamp(1rem, 4vw, 1.2rem);
-
-        /* Ultra-responsive status container */
-        --status-width-offset: clamp(120px, 25vw, 180px);
-        --status-margin-right: clamp(2px, 1vw, 4px);
-        --status-min-width: clamp(150px, 40vw, 200px);
-        --status-height: clamp(28px, 6vh, 32px);
-
-        /* Touch-friendly sizes */
-        --touch-target: clamp(32px, 8vw, 44px);
-        --button-padding-v: clamp(0.4rem, 2vw, 0.6rem);
-        --button-padding-h: clamp(0.6rem, 3vw, 1rem);
-
-        /* Dynamic runtime variables (updated by JS) */
-        --dynamic-scale: 1;
-        --runtime-font-scale: 1;
-        --container-width: 100vw;
-        --available-height: 100vh;
-
-        /* Container query fallbacks */
-        --component-min-width: 280px;
-        --component-max-width: 100%;
-        --grid-columns: 1;
-        --sidebar-display: block;
-      }
-
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        background: var(--bg);
-        color: var(--text);
-        height: 100vh; /* Фіксована висота вьюпорта */
-        overflow: hidden; /* Забороняємо скрол на body */
-        font-size: calc(var(--font-size-sm) * var(--runtime-font-scale));
-        line-height: 1.4;
-        /* Enhanced touch scrolling */
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior: contain;
-        /* Prevent zoom on double-tap */
-        touch-action: manipulation;
-        /* Apply dynamic scaling */
-        transform: scale(var(--dynamic-scale));
-        transform-origin: top left;
-      }
-
-      /* ✅ FIX: Контекстна панель HTML файлу - лінія 40-85 ✅ */
-      .html-context-bar {
-        background-image: linear-gradient(to right, #03a9f4, #212121);
-        color: white;
-        padding: 0.75rem; /* Рівний падінг на всіх екранах */
-        min-height: 60px; /* Фіксована мінімальна висота header */
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow:
-          0 2px 1px rgb(46 47 66 / 8%),
-          0 1px 1px rgb(46 47 66 / 16%),
-          0 1px 6px rgb(46 47 66 / 8%);
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-      }
-
-      .html-context-left {
-        display: flex;
-        flex-direction: column;
-        gap: 0.2rem;
-      }
-
-      .html-context-title {
-        font-size: 1rem;
-        font-weight: 600;
-        line-height: 1.2;
-      }
-
-      .html-context-subtitle {
-        font-size: 0.75rem;
-        opacity: 0.9;
-        line-height: 1.2;
-      }
-
-      .html-context-right {
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
-      }
-
-      .html-context-info {
-        display: flex;
-        align-items: center;
-        gap: 0.6rem;
-      }
-
-      .html-context-icon {
-        font-size: 1.2rem;
-      }
-
-      .html-context-details {
-        display: flex;
-        flex-direction: column;
-      }
-
-      .html-context-label {
-        font-size: 0.75rem;
-        opacity: 0.9;
-      }
-
-      .html-context-filename {
-        font-size: 0.9rem;
-        font-weight: 600;
-      }
-
-      .html-context-actions {
-        display: flex;
-        gap: 0.35rem;
-      }
-
-      /* Індикатори валідації Figma */
-      .indicator {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        display: inline-block;
-        border: 1.5px solid rgba(255, 255, 255, 0.6);
-        margin-right: 0.3rem;
-      }
-      .indicator.red {
-        background: #c0392b;
-        border-color: #e74c3c;
-      }
-      .indicator.green {
-        background: #2ecc71;
-        border-color: #27ae60;
-      }
-      .indicator.yellow {
-        background: #f1c40f;
-        border-color: #f39c12;
-      }
-
-      .btn-context {
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        padding: 0.3rem 0.6rem; /* компактніше */
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 0.7rem; /* компактніше */
-        transition: all 0.2s ease;
-      }
-
-      .btn-context:hover {
-        background: rgba(255, 255, 255, 0.3);
-        transform: translateY(-1px);
-      }
-
-      /* Заголовок */
-      .header {
-        position: relative;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 8px 16px;
-        margin: 0;
-        min-height: 48px;
-        background: var(--bg-secondary);
-        border-bottom: 1px solid var(--border);
-      }
-
-      .header h1 {
-        font-size: 1.2rem;
-        color: var(--primary);
-        margin: 0;
-        flex: 1;
-      }
-
-      .header p {
-        color: var(--text-secondary);
-        font-size: 0.75rem;
-        margin: 0;
-      }
-
-      /* Контейнер мов в header праворуч */
-      .header-language-container {
-        position: absolute;
-        top: 50%;
-        right: 8px;
-        transform: translateY(-50%);
-        display: flex !important;
-        align-items: center;
-        gap: 6px;
-        z-index: 200;
-        padding: 4px 8px;
-        background: rgba(0, 0, 0, 0.6);
-        border-radius: 6px;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(5px);
-      }
-
-      .main-container {
-        padding: 1rem 1rem 1rem; /* Зменшений padding зверху і знизу */
-        max-width: 1200px;
-        margin: 0 auto;
-        /* Висота між html-context-bar та actions-panel з відступом */
-        height: calc(100vh - 110px); /* html-context-bar (~60px) + actions-panel (~50px) */
-        overflow-y: auto; /* Дозволяємо вертикальний скрол */
-        overflow-x: hidden;
-        /* Enhanced touch scrolling */
-        -webkit-overflow-scrolling: touch;
-        /* Стилізація скролбара */
-        scrollbar-width: thin;
-        scrollbar-color: var(--border) var(--bg-secondary);
-        box-sizing: border-box;
-        /* Додатковий відступ знизу для комфортного скролу */
-        padding-bottom: 1.5rem; /* Відступ від actions-panel */
-      }
-
-      /* Sidebar для стилів вибраних шарів */
-      .layout-with-sidebar {
-        display: grid;
-        grid-template-columns: 1fr 340px;
-        gap: 1rem;
-      }
-
-      .styles-sidebar {
-        background: var(--bg-secondary);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 0.8rem 0.8rem 2rem; /* Збільшений нижній падінг для sidebar */
-        position: sticky;
-        top: 64px;
-        height: calc(100vh - 120px); /* Збільшена висота sidebar */
-        overflow-y: auto; /* Додаємо скрол до sidebar */
-        overflow-x: hidden;
-        display: none;
-        flex-direction: column;
-        /* Стилізація скролбара для sidebar */
-        scrollbar-width: thin;
-        scrollbar-color: var(--border) var(--bg-tertiary);
-      }
-
-      .styles-sidebar.visible {
-        display: flex;
-      }
-
-      .styles-sidebar-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 0.6rem;
-      }
-
-      .styles-sidebar-title {
-        font-weight: 600;
-        color: var(--primary);
-      }
-
-      .styles-sidebar-content {
-        overflow-y: auto;
-        border-top: 1px solid var(--border);
-        padding-top: 0.6rem;
-        padding-bottom: calc(var(--footer-h) + 16px); /* відступ від фіксованого футера */
-      }
-
-      .style-block {
-        background: var(--bg-tertiary);
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        padding: 0.6rem;
-        margin-bottom: 0.6rem;
-      }
-
-      .style-block-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 0.4rem;
-        font-size: 0.85rem;
-      }
-
-      .code {
-        background: #111315;
-        border: 1px solid #2a2d2e;
-        color: #e6e6e6;
-        padding: 0.6rem;
-        border-radius: 4px;
-        font-family:
-          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-        font-size: 12px;
-        white-space: pre;
-        overflow-x: auto;
-      }
-
-      /* ✅ FIX: Вибір режиму - лінія 125-180 ✅ */
-      .mode-selector {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 0.8rem;
-        margin-bottom: 1.5rem;
-      }
-
-      .mode-card {
-        background: var(--bg-secondary);
-        border: 2px solid var(--border);
-        border-radius: 6px; /* Менший радіус */
-        padding: 0.4rem; /* Компактніший падінг */
-        cursor: pointer;
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 0.75rem;
-        height: auto;
-        min-height: 60px;
-      }
-
-      .mode-card::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 0;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, var(--primary), transparent);
-        transition: width 0.3s ease;
-        opacity: 0.1;
-      }
-
-      .mode-card:hover::before {
-        width: 100%;
-      }
-
-      .mode-card:hover {
-        border-color: var(--primary);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px var(--shadow);
-      }
-
-      .mode-card.selected {
-        border-color: var(--success);
-        background: var(--bg-tertiary);
-      }
-
-      .mode-card.selected::after {
-        content: "✓";
-        position: absolute;
-        top: 0.5rem;
-        right: 0.5rem;
-        background: var(--success);
-        color: white;
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 12px;
-      }
-
-      .mode-icon {
-        font-size: 1.5rem;
-        flex-shrink: 0;
-        width: 32px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .mode-content {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 0.2rem;
-      }
-
-      .mode-title {
-        font-weight: 600;
-        font-size: 0.9rem;
-        margin: 0;
-        color: var(--text);
-        line-height: 1.2;
-      }
-
-      .mode-description {
-        font-size: 0.75rem;
-        color: var(--text-secondary);
-        margin: 0;
-        line-height: 1.3;
-      }
-
-      /* Секції */
-      .section {
-        background: var(--bg-secondary);
-        border-radius: 8px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        border: 1px solid var(--border);
-        transition: all 0.3s ease;
-      }
-
-      .section:hover {
-        box-shadow: 0 2px 8px var(--shadow);
-      }
-
-      .section-title {
-        color: var(--primary);
-        margin-bottom: 0.5rem; /* Компактніший відступ */
-        font-size: 0.9rem; /* Менший шрифт */
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 0.4rem; /* Менший проміжок */
-      }
-
-      .input-group {
-        margin-bottom: 0.6rem; /* Компактніший відступ */
-      }
-
-      .input-group label {
-        display: block;
-        margin-bottom: 0.4rem;
-        color: var(--text-secondary);
-        font-size: 0.8rem;
-      }
-
-      .input-group input,
-      .input-group select {
-        width: 100%;
-        padding: 0.5rem; /* Компактніший падінг */
-        background: var(--bg-tertiary);
-        border: 1px solid var(--border);
-        color: var(--text);
-        border-radius: 4px;
-        font-size: 0.85rem;
-        transition: all 0.2s ease;
-      }
-
-      .input-group input:focus,
-      .input-group select:focus {
-        outline: none;
-        border-color: var(--primary);
-        box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.2);
-      }
-
-      /* ✅ FIX: Списки Canvas та Layers - лінія 260-310 ✅ */
-      .list-container {
-        background: var(--bg-tertiary);
-        border-radius: 6px;
-        padding: 0.5rem;
-        max-height: 300px;
-        overflow-y: auto;
-        margin-bottom: 0.8rem;
-        padding-bottom: calc(var(--footer-h) + 16px); /* уніфікований нижній відступ */
-      }
-
-      /* Layers список на всю висоту вьюпорта мінус хедер і футер */
-      #layersList {
-        max-height: calc(
-          100vh - var(--footer-h) - 200px
-        ) !important; /* 200px для хедера та відступів */
-      }
-
-      /* ✅ FIX: Покращена Tree view як на макеті */
-      .tree-item {
-        display: flex;
-        align-items: center;
-        padding: 0.5rem 0.8rem;
-        border-radius: 6px;
-        transition: all 0.2s ease;
-        margin: 1px 0;
-        cursor: pointer;
-        border: 1px solid transparent;
-      }
-      .tree-item:hover {
-        background: var(--bg-secondary);
-        border-color: var(--border);
-        transform: translateX(2px);
-      }
-      .tree-item:active {
-        background: var(--bg-tertiary);
-        transform: translateX(1px);
-      }
-
-      /* Іконки для різних типів елементів */
-      .layer-icon {
-        font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", monospace;
-        font-size: 12px;
-        font-weight: bold;
-        min-width: 16px;
-        text-align: center;
-        border-radius: 3px;
-        padding: 2px 4px;
-        background: rgba(255, 255, 255, 0.1);
-      }
-
-      /* Перемикачі згортання */
-      .tree-toggle {
-        font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", monospace;
-        font-size: 12px;
-        font-weight: bold;
-        min-width: 16px;
-        text-align: center;
-        cursor: pointer;
-        user-select: none;
-        transition: all 0.2s ease;
-        border-radius: 3px;
-        padding: 2px;
-      }
-      .tree-toggle:hover {
-        background: rgba(255, 255, 255, 0.1);
-        transform: scale(1.1);
-      }
-      .tree-toggle.hidden {
-        visibility: hidden;
-        width: 16px;
-      }
-
-      .list-item {
-        display: flex;
-        align-items: center;
-        padding: 0.6rem;
-        margin-bottom: 0.3rem;
-        background: var(--bg-secondary);
-        border-radius: 4px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-      }
-
-      .list-item:hover {
-        background: var(--bg);
-        transform: translateX(2px);
-      }
-
-      .list-item.selected {
-        background: var(--bg);
-        border-left: 3px solid var(--success);
-      }
-
-      .list-item input[type="checkbox"] {
-        margin-right: 0.8rem;
-        cursor: pointer;
-      }
-
-      .list-item-info {
-        flex: 1;
-      }
-
-      .list-item-name {
-        font-weight: 500;
-        color: var(--text);
-        font-size: 0.85rem;
-      }
-
-      .list-item-meta {
-        font-size: 0.7rem;
-        color: var(--text-secondary);
-        margin-top: 0.2rem;
-      }
-
-      /* Кнопки */
-      .btn {
-        padding: 0.4rem 0.75rem; /* Компактніші падінги */
-        border: none;
-        border-radius: 4px;
-        font-size: 0.8rem; /* Менший шрифт */
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-      }
-
-      .btn:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 2px 8px var(--shadow);
-      }
-
-      .btn:active {
-        transform: translateY(0);
-      }
-
-      .btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        transform: none;
-      }
-
-      .btn-primary {
-        background: var(--primary);
-        color: white;
-      }
-
-      .btn-primary:hover:not(:disabled) {
-        background: var(--primary-dark);
-      }
-
-      .btn-success {
-        background: var(--success);
-        color: white;
-      }
-
-      .btn-warning {
-        background: var(--warning);
-        color: white;
-      }
-
-      .btn-danger {
-        background: var(--danger);
-        color: white;
-      }
-
-      .btn-secondary {
-        background: var(--bg-tertiary);
-        color: var(--text);
-        border: 1px solid var(--border);
-      }
-
-      .btn-secondary:hover:not(:disabled) {
-        background: var(--bg);
-        border-color: var(--primary);
-      }
-
-      /* ✅ FIX: Статус повідомлення - лінія 375-420 ✅ */
-      .status {
-        /* Адаптивна ширина - майже впритул до мовного контейнера */
-        width: calc(100% - var(--status-width-offset)); /* Використовуємо CSS змінну */
-        height: var(--status-height); /* Використовуємо CSS змінну */
-        max-width: calc(
-          100vw - calc(var(--status-width-offset) + 20px)
-        ); /* Адаптивна максимальна ширина */
-        min-width: var(--status-min-width); /* Використовуємо CSS змінну */
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-        padding: 8px 12px;
-        margin-top: 0;
-        margin-right: var(--status-margin-right); /* Використовуємо CSS змінну */
-        border-radius: 6px;
-        background: transparent; /* Прозорий фон за замовчуванням */
-        border: 1px solid transparent; /* Прозорий border за замовчуванням */
-        transition: all 0.3s ease;
-        font-size: 13px;
-        line-height: 1.4;
-        position: relative;
-        z-index: 10;
-        align-self: center;
-        opacity: 0;
-        color: transparent;
-        box-sizing: border-box; /* Включаємо padding в загальну висоту */
-      }
-
-      @keyframes slideIn {
-        from {
-          opacity: 0;
-          /* Видаляємо transform, щоб не було скачків */
-        }
-        to {
-          opacity: 1;
-          /* Видаляємо transform, щоб не було скачків */
-        }
-      }
-
-      .status.show {
-        opacity: 1; /* Показуємо тільки через opacity */
-        animation: slideIn 0.3s ease;
-        /* Не змінюємо висоту або інші розміри */
-      }
-
-      .status.success {
-        background: rgba(76, 175, 80, 0.1) !important;
-        border: 1px solid var(--success) !important;
-        color: var(--success) !important;
-      }
-
-      .status.error {
-        background: rgba(244, 67, 54, 0.1) !important;
-        border: 1px solid var(--danger) !important;
-        color: var(--danger) !important;
-      }
-
-      .status.warning {
-        background: rgba(255, 152, 0, 0.1) !important;
-        border: 1px solid var(--warning) !important;
-        color: var(--warning) !important;
-      }
-
-      .status.info {
-        background: rgba(33, 150, 243, 0.1) !important;
-        border: 1px solid var(--info) !important;
-        color: var(--info) !important;
-      }
-
-      /* ✅ Мінімізована панель дій - завжди внизу viewport ✅ */
-      .actions-panel {
-        background: rgba(37, 37, 38, 0.95);
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 0.4rem 0.8rem; /* Мінімізований padding */
-        position: fixed;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        display: flex;
-        gap: 0.4rem; /* Менший gap */
-        justify-content: center;
-        align-items: center;
-        flex-wrap: nowrap; /* Без переносу рядків */
-        z-index: 1001;
-        transition: all 0.3s ease;
-        box-shadow: 0 -1px 8px rgba(0, 0, 0, 0.15);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        height: auto; /* Автовисота */
-        min-height: 48px; /* Мінімальна висота */
-        max-height: 60px; /* Максимальна висота для мінімізації */
-      }
-
-      /* Мінімізовані кнопки для actions-panel */
-      .actions-panel .btn {
-        flex: 0 1 auto; /* Не розтягуються автоматично */
-        min-width: 60px; /* Мінімальна ширина */
-        white-space: nowrap;
-        text-align: center;
-        height: 32px; /* Фіксована компактна висота */
-        max-width: 140px; /* Менша максимальна ширина */
-        padding: 0.3rem 0.5rem; /* Дуже компактні падінги */
-        font-size: 0.7rem; /* Менший шрифт */
-        line-height: 1.2; /* Компактна висота рядка */
-        border-radius: 4px; /* Менший радіус */
-      }
-
-      /* Адаптивність для різних розмірів */
-      @media (max-width: 768px) {
-        .actions-panel {
-          padding: 0.3rem 0.5rem; /* Ще більш мінімізований на мобільних */
-          gap: 0.3rem;
-          min-height: 44px; /* Менша висота на мобільних */
-          flex-wrap: wrap; /* Дозволяємо переніс на мобільних якщо потрібно */
-        }
-
-        .actions-panel .btn {
-          flex: 0 1 auto;
-          min-width: 50px; /* Менша мінімальна ширина на мобільних */
-          max-width: 100px; /* Менша максимальна ширина */
-          height: 28px; /* Менша висота на мобільних */
-          font-size: 0.65rem; /* Ще менший шрифт */
-          padding: 0.2rem 0.4rem; /* Мінімальні падінги */
-        }
-
-        .main-container {
-          height: calc(100vh - 100px); /* Менше відрахування для мобільних */
-          padding: 0.8rem 0.8rem 1.2rem; /* Менші paddings на мобільних */
-        }
-      }
-
-      @media (max-width: 480px) {
-        .actions-panel .btn {
-          flex: 1 1 100%;
-          max-width: 100%;
-        }
-      }
-
-      /* Стилізація скролбара для WebKit браузерів */
-      .main-container::-webkit-scrollbar {
-        width: 8px;
-      }
-
-      .main-container::-webkit-scrollbar-track {
-        background: var(--bg-secondary);
-        border-radius: var(--border-radius);
-      }
-
-      .main-container::-webkit-scrollbar-thumb {
-        background: var(--border);
-        border-radius: var(--border-radius);
-        min-height: 40px;
-      }
-
-      .main-container::-webkit-scrollbar-thumb:hover {
-        background: var(--text-secondary);
-      }
-
-      /* Адаптивна поведінка для малих вьюпортів */
-      @media (max-width: 480px) {
-        .actions-content {
-          grid-template-columns: 1fr 1fr;
-          gap: 0.25rem;
-        }
-
-        .actions-panel {
-          padding: clamp(0.25rem, 1.5vw, 0.5rem);
-        }
-      }
-
-      @media (max-width: 320px) {
-        .actions-content {
-          grid-template-columns: 1fr 1fr;
-          gap: 0.2rem;
-        }
-
-        .actions-content .btn {
-          font-size: clamp(0.7rem, 2.5vw, 0.8rem);
-          padding: clamp(0.3rem, 1.5vw, 0.5rem) clamp(0.4rem, 2vw, 0.6rem);
-        }
-      }
-
-      /* Контрольні групи */
-      .controls-row {
-        display: flex;
-        gap: 0.5rem;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.8rem;
-        flex-wrap: wrap;
-      }
-
-      .controls-group {
-        display: flex;
-        gap: 0.3rem; /* Менший проміжок */
-      }
-
-      /* Компактні кнопки в controls-group */
-      .controls-group .btn {
-        padding: 0.3rem 0.5rem; /* Компактніші падінги */
-        font-size: 0.7rem; /* Менший шрифт */
-        min-height: auto; /* Скидаємо мін. висоту */
-      }
-
-      .control-with-submenu {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        margin-bottom: 0.5rem;
-      }
-
-      .submenu-button {
-        background: var(--primary);
-        color: white;
-        border: none;
-        padding: 8px 12px;
-        border-radius: var(--radius);
-        cursor: pointer;
-        font-size: 14px;
-        text-align: left;
-        transition: all 0.2s ease;
-        width: 100%;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .submenu-button:hover {
-        background: var(--primary-hover);
-        transform: translateY(-1px);
-      }
-
-      .submenu {
-        background: var(--bg-secondary);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        padding: 12px;
-        margin-top: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s ease;
-      }
-
-      .submenu.hidden {
-        display: none;
-      }
-
-      .submenu h4 {
-        margin: 0 0 10px 0;
-        color: var(--text);
-        font-size: 13px;
-        font-weight: 600;
-      }
-
-      .files-list {
-        max-height: 150px;
-        overflow-y: auto;
-        margin-bottom: 10px;
-        padding: 5px;
-        background: var(--bg);
-        border: 1px solid var(--border);
-        border-radius: 4px;
-      }
-
-      .file-item {
-        padding: 6px 8px;
-        margin: 2px 0;
-        background: var(--bg-secondary);
-        border-radius: 3px;
-        cursor: pointer;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        transition: background 0.2s ease;
-      }
-
-      .file-item:hover {
-        background: var(--primary);
-        color: white;
-      }
-
-      .file-item.selected {
-        background: var(--primary);
-        color: white;
-      }
-
-      .btn-small {
-        font-size: 12px;
-        padding: 4px 8px;
-        min-height: auto;
-      }
-
-      /* Loading індикатор */
-      .loading {
-        display: inline-block;
-        width: 14px;
-        height: 14px;
-        border: 2px solid var(--text-secondary);
-        border-radius: 50%;
-        border-top-color: var(--primary);
-        animation: spin 1s linear infinite;
-      }
-
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
-
-      /* Container-based responsive design fallback */
-      .container {
-        container-type: inline-size;
-        width: var(--container-width);
-      }
-
-      /* Container queries with @media fallback */
-      @container (max-width: 320px) {
-        .mode-selector {
-          grid-template-columns: 1fr;
-        }
-
-        .controls-row {
-          flex-direction: column;
-          gap: var(--base-spacing);
-        }
-
-        .btn {
-          width: 100%;
-          min-height: calc(var(--touch-target) * var(--dynamic-scale));
-        }
-      }
-
-      /* Ultra-small viewports (280px-320px) - VSCode sidebar minimum */
-      @media (max-width: 320px) {
-        :root {
-          --footer-h: 44px;
-          --base-spacing: 0.25rem;
-          --content-padding: 0.4rem;
-          --font-size-xs: 0.6rem;
-          --font-size-sm: 0.7rem;
-          --font-size-base: 0.75rem;
-          --touch-target: 36px;
-          --status-width-offset: 80px;
-          --status-min-width: 120px;
-        }
-
-        body {
-          font-size: 11px;
-        }
-
-        .html-context-bar {
-          padding: 0.75rem; /* Рівний з десктопом */
-          min-height: 60px; /* Рівна висота на всіх екранах */
-        }
-
-        .html-context-title {
-          font-size: 0.8rem;
-        }
-
-        .html-context-subtitle {
-          font-size: 0.65rem;
-        }
-
-        .btn-context {
-          padding: 0.2rem 0.4rem;
-          font-size: 0.6rem;
-        }
-
-        .header {
-          padding: 4px 8px;
-          min-height: 36px;
-        }
-
-        .header h1 {
-          font-size: 0.9rem;
-        }
-
-        .main-container {
-          padding: 0.8rem 0.4rem 1.2rem; /* Оптимізований padding для малих екранів */
-          height: calc(100vh - 95px); /* Висота з урахуванням мінімізованих панелей */
-        }
-
-        .mode-card {
-          min-height: 40px;
-          padding: 0.3rem;
-          gap: 0.4rem;
-        }
-
-        .mode-icon {
-          font-size: 1.2rem;
-          width: 24px;
-          height: 24px;
-        }
-
-        .btn {
-          padding: var(--button-padding-v) var(--button-padding-h);
-          font-size: calc(0.7rem * var(--runtime-font-scale));
-          min-height: calc(var(--touch-target) * var(--dynamic-scale));
-        }
-
-        /* Accessibility improvements for small viewports */
-        .btn:focus {
-          outline: 3px solid var(--primary);
-          outline-offset: 2px;
-        }
-
-        .input:focus {
-          outline: 2px solid var(--primary);
-          outline-offset: 1px;
-        }
-
-        .actions-panel {
-          padding: 0.4rem;
-          min-height: 44px;
-        }
-
-        .actions-content {
-          grid-template-columns: repeat(2, 1fr);
-          gap: 0.3rem;
-        }
-
-        .list-item {
-          padding: 0.4rem;
-        }
-
-        .tree-item {
-          padding: 0.3rem 0.5rem;
-        }
-      }
-
-      /* Small viewports (321px-480px) */
-      @media (min-width: 321px) and (max-width: 480px) {
-        :root {
-          --footer-h: 52px;
-          --base-spacing: 0.4rem;
-          --content-padding: 0.6rem;
-        }
-
-        .html-context-bar {
-          padding: 0.75rem; /* Рівний з десктопом */
-          min-height: 60px; /* Рівна висота на всіх екранах */
-        }
-
-        .main-container {
-          padding: 0.9rem 0.6rem 1.3rem; /* Оптимізований padding для середніх екранів */
-          height: calc(100vh - 105px); /* Висота з урахуванням мінімізованих панелей */
-        }
-      }
-
-      /* Medium viewports (481px-768px) */
-      @media (min-width: 481px) and (max-width: 768px) {
-        .html-context-bar {
-          flex-direction: column;
-          gap: 0.5rem;
-          text-align: center;
-          padding: 0.75rem; /* Рівний падінг */
-          min-height: 60px; /* Рівна висота */
-        }
-
-        .mode-selector {
-          grid-template-columns: 1fr;
-        }
-
-        .controls-row {
-          flex-direction: column;
-        }
-
-        .actions-content {
-          grid-template-columns: repeat(2, 1fr);
-          gap: 0.4rem;
-        }
-
-        .btn {
-          width: 100%;
-          justify-content: center;
-        }
-
-        /* Адаптивні стилі для різних розмірів екрану */
-        @media (max-width: 1200px) {
-          :root {
-            --status-width-offset: 160px; /* Зменшуємо відступ для менших екранів */
-          }
-        }
-
-        @media (max-width: 992px) {
-          :root {
-            --status-width-offset: 140px; /* Ще менший відступ */
-          }
-        }
-
-        @media (max-width: 480px) {
-          .status {
-            padding: 6px 8px; /* Зменшуємо padding на дуже малих екранах */
-            font-size: 12px;
-          }
-        }
-
-        /* Мобільні стилі для header */
-        .header {
-          flex-direction: column;
-          align-items: stretch;
-          gap: 8px;
-          min-height: auto;
-        }
-
-        .header-language-container {
-          position: static;
-          transform: none;
-          align-self: flex-end;
-          margin-bottom: 8px;
-        }
-
-        .status {
-          width: 100%;
-          height: 32px; /* Фіксована висота і на мобільних */
-          max-width: none;
-          min-width: auto; /* Скидаємо мінімальну ширину на мобільних */
-          margin-right: 0;
-          align-self: stretch;
-        }
-      }
-
-      /* Скролинг тепер керується через main-container */
-
-      /* ✅ Покращені адаптивні стилі для контролів ✅ */
-      @media (max-width: 992px) {
-        .controls-row {
-          flex-direction: column;
-          align-items: stretch;
-          gap: 0.8rem;
-        }
-
-        .btn {
-          width: 100%;
-          justify-content: flex-start;
-          text-align: left;
-        }
-
-        .submenu-button {
-          width: 100%;
-          justify-content: flex-start;
-        }
-
-        .control-with-submenu {
-          width: 100%;
-        }
-
-        /* Інпути на всю ширину */
-        .input-group input,
-        .input-group select {
-          width: 100%;
-        }
-      }
-
-      @media (max-width: 640px) {
-        .mode-selector {
-          grid-template-columns: 1fr;
-          gap: 0.6rem;
-        }
-
-        .mode-card {
-          min-height: 50px;
-          padding: 0.4rem;
-          gap: 0.5rem;
-        }
-
-        .btn {
-          font-size: 14px;
-          padding: 10px 16px;
-        }
-
-        .submenu {
-          padding: 8px;
-          margin-top: 6px;
-        }
-
-        .files-list {
-          max-height: 120px;
-        }
-      }
-
-      /* Accessibility enhancements for small screens */
-      @media (max-width: 480px) and (prefers-reduced-motion: no-preference) {
-        .btn,
-        .mode-card {
-          transition:
-            transform 0.2s ease,
-            background-color 0.2s ease;
-        }
-      }
-
-      @media (max-width: 480px) and (prefers-reduced-motion: reduce) {
-        .btn,
-        .mode-card {
-          transition: none;
-        }
-      }
-
-      /* High contrast mode support */
-      @media (prefers-contrast: high) {
-        :root {
-          --border: #ffffff;
-          --text-secondary: #ffffff;
-        }
-
-        .btn {
-          border: 2px solid currentColor;
-        }
-      }
-
-      /* VSCode webview optimizations */
-      @media (max-width: 480px) {
-        .main-container {
-          padding: 0.7rem var(--content-padding) 1.1rem; /* Оптимізований padding для VSCode webview */
-          height: calc(100vh - 90px); /* Висота з урахуванням мінімізованих панелей */
-          overflow-y: auto;
-          overflow-x: hidden;
-        }
-
-        .header {
-          padding: var(--content-padding);
-          gap: var(--base-spacing);
-          position: sticky;
-          top: 0;
-          background: var(--bg);
-          z-index: 100;
-          border-bottom: 1px solid var(--border);
-        }
-
-        .controls-row {
-          gap: var(--base-spacing);
-        }
-
-        .btn {
-          font-size: var(--font-size-sm);
-          padding: var(--button-padding-v) var(--button-padding-h);
-          gap: var(--base-spacing);
-          min-height: var(--touch-target);
-          /* Improve touch targets */
-          min-width: var(--touch-target);
-        }
-
-        .tabs {
-          flex-wrap: wrap;
-          gap: var(--base-spacing);
-        }
-
-        .tooltiptext {
-          font-size: var(--font-size-xs);
-          max-width: 80vw;
-        }
-
-        .input-group label {
-          font-size: var(--font-size-sm);
-        }
-
-        .input-group input,
-        .input-group select {
-          font-size: var(--font-size-base);
-          padding: var(--button-padding-v);
-          min-height: var(--touch-target);
-        }
-
-        /* Enhanced scrollbar for touch devices */
-        .main-container::-webkit-scrollbar {
-          width: 8px;
-        }
-
-        .main-container::-webkit-scrollbar-track {
-          background: var(--bg-secondary);
-          border-radius: var(--border-radius);
-        }
-
-        .main-container::-webkit-scrollbar-thumb {
-          background: var(--border);
-          border-radius: var(--border-radius);
-          min-height: 40px;
-        }
-
-        .main-container::-webkit-scrollbar-thumb:hover {
-          background: var(--text-secondary);
-        }
-
-        /* Improve touch interaction */
-        .list-item,
-        .tree-item,
-        .mode-card {
-          min-height: var(--touch-target);
-        }
-
-        /* Optimize for VSCode sidebar */
-        .layout-with-sidebar {
-          grid-template-columns: var(--grid-columns, 1fr);
-        }
-
-        .styles-sidebar {
-          position: static;
-          height: auto;
-          max-height: 50vh;
-          display: var(--sidebar-display, block);
-        }
-
-        /* Component-specific responsive behavior */
-        .mode-selector {
-          grid-template-columns: repeat(auto-fit, minmax(var(--component-min-width), 1fr));
-        }
-
-        .tree-item,
-        .list-item {
-          min-height: calc(var(--touch-target) * var(--dynamic-scale));
-          padding: calc(var(--base-spacing) * var(--dynamic-scale));
-        }
-      }
-
-      @media (orientation: landscape) and (max-height: 600px) {
-        /* Горизонтальна орієнтація на мобільних */
-        .container {
-          max-height: none;
-          overflow-y: auto;
-        }
-
-        .actions-panel {
-          position: relative;
-          margin-top: 1rem;
-          border-top: none;
-          border: 1px solid var(--border);
-          border-radius: var(--radius);
-        }
-
-        .actions-content {
-          grid-template-columns: 1fr;
-          gap: 0.5rem;
-        }
-      }
-
-      /* Tabs для секцій */
-      .tabs {
-        display: flex;
-        gap: 0.5rem;
-        margin-bottom: 1rem;
-        border-bottom: 2px solid var(--border);
-      }
-
-      .tab {
-        padding: 0.6rem 1rem;
-        background: transparent;
-        border: none;
-        color: var(--text-secondary);
-        cursor: pointer;
-        border-bottom: 2px solid transparent;
-        transition: all 0.2s ease;
-        font-size: 0.85rem;
-      }
-
-      .tab:hover {
-        color: var(--text);
-      }
-
-      .tab.active {
-        color: var(--primary);
-        border-bottom-color: var(--primary);
-      }
-
-      .tab-content {
-        display: none;
-      }
-
-      .tab-content.active {
-        display: block;
-      }
-
-      /* Progress bar */
-      .progress {
-        height: 4px;
-        background: var(--bg-tertiary);
-        border-radius: 2px;
-        overflow: hidden;
-        margin: 1rem 0;
-      }
-
-      .progress-bar {
-        height: 100%;
-        background-color: var(--primary);
-        width: 0;
-        transition: width 0.3s ease;
-        /* animation removed due to gradient lint */
-      }
-
-      @keyframes shimmer {
-        0% {
-          background-position: 0% 50%;
-        }
-        100% {
-          background-position: 100% 50%;
-        }
-      }
-
-      /* Tooltip */
-      .tooltip {
-        position: relative;
-        display: inline-block;
-      }
-
-      .tooltip .tooltiptext {
-        visibility: hidden;
-        background-color: var(--bg-tertiary);
-        color: var(--text);
-        text-align: center;
-        border-radius: 4px;
-        padding: 0.4rem 0.6rem;
-        position: absolute;
-        z-index: 1;
-        bottom: 125%;
-        left: 50%;
-        margin-left: -60px;
-        opacity: 0;
-        transition: opacity 0.3s;
-        font-size: 0.75rem;
-        white-space: nowrap;
-      }
-
-      .tooltip:hover .tooltiptext {
-        visibility: visible;
-        opacity: 1;
-      }
-
-      .language-label {
-        font-size: 11px;
-        color: rgba(255, 255, 255, 0.7);
-        font-weight: 500;
-        margin-right: 4px;
-        white-space: nowrap;
-      }
-
-      .language-buttons {
-        display: flex !important;
-        gap: 2px;
-        align-items: center;
-      }
-
-      /* Кнопки прапорів */
-      .lang-flag-btn {
-        display: inline-flex !important;
-        align-items: center;
-        justify-content: center;
-        width: 28px;
-        height: 24px;
-        padding: 0;
-        margin: 0;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 4px;
-        background: rgba(255, 255, 255, 0.1);
-        cursor: pointer;
-        font-size: 14px;
-        line-height: 1;
-        transition: all 0.2s ease;
-        font-family:
-          "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Twemoji", sans-serif;
-        -webkit-font-feature-settings: "liga" off;
-        font-feature-settings: "liga" off;
-        opacity: 1 !important;
-        visibility: visible !important;
-        position: relative;
-        overflow: visible;
-      }
-
-      .lang-flag-btn:hover {
-        background: rgba(255, 255, 255, 0.2) !important;
-        border-color: rgba(255, 255, 255, 0.5) !important;
-        transform: translateY(-1px) scale(1.05);
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-        z-index: 10;
-      }
-
-      .lang-flag-btn.btn-primary {
-        background: var(--primary) !important;
-        border-color: var(--primary) !important;
-        box-shadow: 0 0 8px rgba(0, 123, 255, 0.6) !important;
-        transform: scale(1.1);
-      }
-
-      .lang-flag-btn:active {
-        transform: translateY(0) scale(0.95);
-      }
-
-      /* Для темної теми */
-      @media (prefers-color-scheme: dark) {
-        .header-language-container {
-          background: rgba(255, 255, 255, 0.08);
-          border-color: rgba(255, 255, 255, 0.12);
-        }
-
-        .lang-flag-btn {
-          background: rgba(255, 255, 255, 0.08);
-          border-color: rgba(255, 255, 255, 0.2);
-        }
-      }
-
-      .status-auto-hide {
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
-        /* Не змінюємо transform, щоб не було скачків */
-        transition:
-          opacity 0.3s ease,
-          visibility 0.3s ease;
-      }
-
-      .status-auto-hide.show {
-        opacity: 1 !important;
-        visibility: visible !important;
-        pointer-events: auto;
-        /* Не змінюємо transform, щоб не було скачків */
-      }
-
-      /* Типи статусів */
-      .status.success {
-        background: rgba(40, 167, 69, 0.1);
-        border-color: rgba(40, 167, 69, 0.3);
-        color: #28a745;
-      }
-
-      .status.error {
-        background: rgba(220, 53, 69, 0.1);
-        border-color: rgba(220, 53, 69, 0.3);
-        color: #dc3545;
-      }
-
-      .status.info {
-        background: rgba(23, 162, 184, 0.1);
-        border-color: rgba(23, 162, 184, 0.3);
-        color: #17a2b8;
-      }
-
-      .status.warning {
-        background: rgba(255, 193, 7, 0.1);
-        border-color: rgba(255, 193, 7, 0.3);
-        color: #ffc107;
-      }
-      .page-container {
-        min-height: 100vh;
-
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-      }
-
-      .main-container {
-        flex-grow: 1;
-        padding: 12px 8px 16px; /* Консистентні падінги для всіх розмірів */
-      }
-    </style>
+<style>
+  /* ==========================================================================
+     CSS Variables
+     ========================================================================== */
+  :root {
+    /* Colors */
+    --primary: #007acc;
+    --primary-dark: #005a9e;
+    --success: #4caf50;
+    --warning: #ff9800;
+    --danger: #f44336;
+    --info: #2196f3;
+    --bg: #1e1e1e;
+    --bg-secondary: #252526;
+    --bg-tertiary: #2d2d30;
+    --text: #cccccc;
+    --text-secondary: #8c8c8c;
+    --border: #3c3c3c;
+    --shadow: rgba(0, 0, 0, 0.3);
+
+    /* Sizes */
+    --actions-panel-height: 60px;
+  }
+
+  /* ==========================================================================
+     Base Styles
+     ========================================================================== */
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: calc(var(--font-size-sm) * var(--runtime-font-scale));
+    height: 100vh;
+    line-height: 1.4;
+    /* overflow: hidden; */
+    overscroll-behavior: contain;
+    transform: scale(var(--dynamic-scale));
+    transform-origin: top left;
+    touch-action: manipulation;
+  }
+
+  /* ==========================================================================
+     Layout Components
+     ========================================================================== */
+ 
+
+  .main-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    padding-bottom: calc(var(--actions-panel-height) + 1rem);
+  }
+
+  /* Контент прижатий до верху */
+  .main-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    justify-content: flex-start;
+  }
+
+  /* ==========================================================================
+     Context Bar
+     ========================================================================== */
+  .html-context-bar {
+    align-items: center;
+    background-image: linear-gradient(to right, #03a9f4, #212121);
+    box-shadow: 0 2px 1px rgb(46 47 66 / 8%),
+                0 1px 1px rgb(46 47 66 / 16%),
+                0 1px 6px rgb(46 47 66 / 8%);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    min-height: 60px;
+    padding: 0.75rem;
+    position: sticky;
+    top: 0;
+    z-index: 500;
+  }
+
+  .html-context-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+
+  .html-context-title {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .html-context-subtitle {
+    font-size: 0.75rem;
+    line-height: 1.2;
+    opacity: 0.9;
+  }
+
+  .html-context-right {
+    align-items: center;
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  .html-context-info {
+    align-items: center;
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  .html-context-icon {
+    font-size: 1.2rem;
+  }
+
+  .html-context-details {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .html-context-label {
+    font-size: 0.75rem;
+    opacity: 0.9;
+  }
+
+  .html-context-filename {
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .html-context-actions {
+    display: flex;
+    gap: 0.35rem;
+  }
+
+  /* ==========================================================================
+     Header
+     ========================================================================== */
+  .header {
+    align-items: center;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    margin: 0;
+    min-height: 48px;
+    padding: 8px 16px;
+    position: relative;
+  }
+
+  .header h1 {
+    color: var(--primary);
+    flex: 1;
+    font-size: 1.2rem;
+    margin: 0;
+  }
+
+  .header p {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    margin: 0;
+  }
+
+  .header-language-container {
+    align-items: center;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    display: flex;
+    gap: 6px;
+    padding: 4px 8px;
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 200;
+  }
+
+  /* ==========================================================================
+     Sidebar
+     ========================================================================== */
+  .layout-with-sidebar {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: 1fr 40%;
+  }
+
+  .styles-sidebar {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: none;
+    flex-direction: column;
+    height: calc(100vh - 120px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 0.8rem 0.8rem 2rem;
+    position: sticky;
+    scrollbar-color: var(--border) var(--bg-tertiary);
+    scrollbar-width: thin;
+    top: 64px;
+  }
+
+  .styles-sidebar.visible {
+    display: flex;
+  }
+
+  .styles-sidebar-header {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.6rem;
+  }
+
+  .styles-sidebar-title {
+    color: var(--primary);
+    font-weight: 600;
+  }
+
+  .styles-sidebar-content {
+    border-top: 1px solid var(--border);
+    overflow-y: auto;
+    padding-top: 0.6rem;
+  }
+
+  .style-block {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 0.6rem;
+    padding: 0.6rem;
+  }
+
+  .style-block-header {
+    align-items: center;
+    display: flex;
+    font-size: 0.85rem;
+    justify-content: space-between;
+    margin-bottom: 0.4rem;
+  }
+
+  /* ==========================================================================
+     Mode Selector
+     ========================================================================== */
+  .mode-selector {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 0;
+  }
+
+  .mode-card {
+    align-items: center;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: row;
+    height: auto;
+    max-height: 50px;
+    overflow: hidden;
+    padding: 0.4rem;
+    position: relative;
+    transition: all 0.3s ease;
+  }
+
+  .mode-card::before {
+    background: linear-gradient(90deg, transparent, var(--primary), transparent);
+    content: "";
+    height: 100%;
+    left: 0;
+    opacity: 0.1;
+    position: absolute;
+    top: 0;
+    transition: width 0.3s ease;
+    width: 0;
+  }
+
+  .mode-card:hover::before {
+    width: 100%;
+  }
+
+  .mode-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px var(--shadow);
+    transform: translateY(-2px);
+  }
+
+  .mode-card.selected {
+    background: var(--bg-tertiary);
+    border-color: var(--success);
+  }
+
+  .mode-card.selected::after {
+    align-items: center;
+    background: var(--success);
+    border-radius: 50%;
+    color: white;
+    content: "✓";
+    display: flex;
+    font-size: 12px;
+    height: 20px;
+    justify-content: center;
+    position: absolute;
+    right: 0.5rem;
+    top: 0.5rem;
+    width: 20px;
+  }
+
+  .mode-icon {
+    align-items: center;
+    display: flex;
+    flex-shrink: 0;
+    font-size: 1.5rem;
+    height: 32px;
+    justify-content: center;
+    width: 32px;
+  }
+
+  .mode-content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .mode-title {
+    color: var(--text);
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.2;
+    margin: 0;
+  }
+
+  .mode-description {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    line-height: 1.3;
+    margin: 0;
+  }
+
+  /* ==========================================================================
+     Sections and Forms
+     ========================================================================== */
+  .section {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    overscroll-behavior: contain;
+    border-radius: 8px;
+    margin-bottom: 0;
+    padding: 0.2rem;
+    transition: all 0.3s ease;
+  }
+
+  .section:hover {
+    box-shadow: 0 2px 8px var(--shadow);
+  }
+
+  .section-title {
+    align-items: center;
+    color: var(--primary);
+    display: flex;
+    font-size: 0.9rem;
+    font-weight: 600;
+    gap: 0.4rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .input-group {
+    margin-bottom: 0.4rem;
+  }
+
+  .input-group label {
+    color: var(--text-secondary);
+    display: block;
+    font-size: 0.8rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .input-group input,
+  .input-group select {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-size: 0.85rem;
+    padding: 0.5rem;
+    transition: all 0.2s ease;
+    width: 100%;
+  }
+
+  .input-group input:focus,
+  .input-group select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.2);
+    outline: none;
+  }
+
+  /* ==========================================================================
+     Lists and Tree View
+     ========================================================================== */
+  .list-container {
+    background: var(--bg-tertiary);
+    border-radius: 6px;
+    margin-bottom: 0.6rem;
+    overflow-y: auto;
+    padding: 0.5rem;
+  }
+
+  .tree-item {
+    align-items: center;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    margin: 1px 0;
+    padding: 0.5rem 0.8rem;
+    transition: all 0.2s ease;
+  }
+
+  .tree-item:hover {
+    background: var(--bg-secondary);
+    border-color: var(--border);
+    transform: translateX(2px);
+  }
+
+  .tree-item:active {
+    background: var(--bg-tertiary);
+    transform: translateX(1px);
+  }
+
+  .layer-icon {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", monospace;
+    font-size: 12px;
+    font-weight: bold;
+    min-width: 16px;
+    padding: 2px 4px;
+    text-align: center;
+  }
+
+  .tree-toggle {
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", monospace;
+    font-size: 12px;
+    font-weight: bold;
+    min-width: 16px;
+    padding: 2px;
+    text-align: center;
+    transition: all 0.2s ease;
+    user-select: none;
+  }
+
+  .tree-toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+  }
+
+  .tree-toggle.hidden {
+    visibility: hidden;
+    width: 16px;
+  }
+
+  .list-item {
+    align-items: center;
+    background: var(--bg-secondary);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    margin-bottom: 0.3rem;
+    padding: 0.6rem;
+    transition: all 0.2s ease;
+  }
+
+  .list-item:hover {
+    background: var(--bg);
+    transform: translateX(2px);
+  }
+
+  .list-item.selected {
+    background: var(--bg);
+    border-left: 3px solid var(--success);
+  }
+
+  .list-item input[type="checkbox"] {
+    cursor: pointer;
+    margin-right: 0.8rem;
+  }
+
+  .list-item-info {
+    flex: 1;
+  }
+
+  .list-item-name {
+    color: var(--text);
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  .list-item-meta {
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    margin-top: 0.2rem;
+  }
+
+  /* ==========================================================================
+     Buttons
+     ========================================================================== */
+  .btn {
+    align-items: center;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 0.8rem;
+    font-weight: 500;
+    gap: 0.4rem;
+    padding: 0.4rem 0.75rem;
+    transition: all 0.2s ease;
+  }
+
+  .btn:hover {
+    box-shadow: 0 2px 8px var(--shadow);
+    transform: translateY(-1px);
+  }
+
+  .btn:active {
+    transform: translateY(0);
+  }
+
+  .btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    transform: none;
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background: var(--primary-dark);
+  }
+
+  .btn-success {
+    background: var(--success);
+    color: white;
+  }
+
+  .btn-warning {
+    background: var(--warning);
+    color: white;
+  }
+
+  .btn-danger {
+    background: var(--danger);
+    color: white;
+  }
+
+  .btn-secondary {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  .btn-secondary:hover:not(:disabled) {
+    background: var(--bg);
+    border-color: var(--primary);
+  }
+
+  .btn-context {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    font-size: 0.7rem;
+    padding: 0.3rem 0.6rem;
+    transition: all 0.2s ease;
+  }
+
+  .btn-context:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+  }
+
+  .btn-small {
+    font-size: 12px;
+    min-height: auto;
+    padding: 4px 8px;
+  }
+
+  /* ==========================================================================
+     Status Messages
+     ========================================================================== */
+  .status {
+    align-items: center;
+    align-self: center;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    box-sizing: border-box;
+    color: transparent;
+    display: flex;
+    font-size: 13px;
+    height: 32px;
+    justify-content: flex-start;
+    line-height: 1.4;
+    margin-right: 4px;
+    margin-top: 0;
+    max-width: calc(100vw - 140px);
+    min-width: 150px;
+    opacity: 0;
+    padding: 8px 12px;
+    position: relative;
+    transition: all 0.3s ease;
+    width: calc(100% - 120px);
+    z-index: 10;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .status.show {
+    animation: slideIn 0.5s ease;
+    opacity: 1;
+  }
+
+  .status.success {
+    background: rgba(76, 175, 80, 0.1) !important;
+    border: 1px solid var(--success) !important;
+    color: var(--success) !important;
+  }
+
+  .status.error {
+    background: rgba(244, 67, 54, 0.1) !important;
+    border: 1px solid var(--danger) !important;
+    color: var(--danger) !important;
+  }
+
+  .status.warning {
+    background: rgba(255, 152, 0, 0.1) !important;
+    border: 1px solid var(--warning) !important;
+    color: var(--warning) !important;
+  }
+
+  .status.info {
+    background: rgba(33, 150, 243, 0.1) !important;
+    border: 1px solid var(--info) !important;
+    color: var(--info) !important;
+  }
+
+  .status-auto-hide {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    visibility: hidden;
+  }
+
+  .status-auto-hide.show {
+    opacity: 1 !important;
+    pointer-events: auto;
+    visibility: visible !important;
+  }
+
+  /* ==========================================================================
+     Actions Panel (FIXED)
+     ========================================================================== */
+  .actions-panel {
+    align-items: center;
+    background: rgba(37, 37, 38, 0.95);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    bottom: 0;
+    box-shadow: 0 -1px 8px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    height: var(--actions-panel-height);
+    justify-content: center;
+    left: 0;
+    padding: 0.4rem 0.8rem;
+    position: fixed;
+    right: 0;
+    transition: all 0.3s ease;
+    z-index: 1001;
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .actions-panel .btn {
+    border-radius: 4px;
+    flex: 0 1 auto;
+    font-size: 0.7rem;
+    height: 32px;
+    line-height: 1.2;
+    max-width: 180px;
+    min-width: 60px;
+    padding: 0.3rem 0.5rem;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  /* ==========================================================================
+     Code and Content
+     ========================================================================== */
+  .code {
+    background: #111315;
+    border: 1px solid #2a2d2e;
+    border-radius: 4px;
+    color: #e6e6e6;
+    flex-wrap: wrap;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 12px;
+    overflow-x: auto;
+    padding: 0.6rem;
+    white-space: pre;
+  }
+
+  /* ==========================================================================
+     Controls
+     ========================================================================== */
+  .controls-row {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: space-between;
+    margin-bottom: 0.6rem;
+  }
+
+  .controls-group {
+    display: flex;
+    gap: 0.3rem;
+  }
+
+  .controls-group .btn {
+    font-size: 0.7rem;
+    min-height: auto;
+    padding: 0.3rem 0.5rem;
+  }
+
+  .control-with-submenu {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0.5rem;
+    position: relative;
+  }
+
+  .submenu-button {
+    align-items: center;
+    background: var(--primary);
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    font-size: 14px;
+    gap: 8px;
+    padding: 8px 12px;
+    text-align: left;
+    transition: all 0.2s ease;
+    width: 100%;
+  }
+
+  .submenu-button:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+  }
+
+  .submenu {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-top: 8px;
+    padding: 12px;
+    transition: all 0.3s ease;
+  }
+
+  .submenu.hidden {
+    display: none;
+  }
+
+  .submenu h4 {
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+    margin: 0 0 10px 0;
+  }
+
+  .files-list {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 10px;
+    max-height: 150px;
+    overflow-y: auto;
+    padding: 5px;
+  }
+
+  .file-item {
+    align-items: center;
+    background: var(--bg-secondary);
+    border-radius: 3px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    margin: 2px 0;
+    padding: 6px 8px;
+    transition: background 0.2s ease;
+  }
+
+  .file-item:hover {
+    background: var(--primary);
+    color: white;
+  }
+
+  .file-item.selected {
+    background: var(--primary);
+    color: white;
+  }
+
+  /* ==========================================================================
+     Indicators and Icons
+     ========================================================================== */
+  .indicator {
+    border: 1.5px solid rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    display: inline-block;
+    height: 8px;
+    margin-right: 0.3rem;
+    width: 8px;
+  }
+
+  .indicator.red {
+    background: #c0392b;
+    border-color: #e74c3c;
+  }
+
+  .indicator.green {
+    background: #2ecc71;
+    border-color: #27ae60;
+  }
+
+  .indicator.yellow {
+    background: #f1c40f;
+    border-color: #f39c12;
+  }
+
+  /* ==========================================================================
+     Loading
+     ========================================================================== */
+  .loading {
+    animation: spin 1s linear infinite;
+    border: 2px solid var(--text-secondary);
+    border-radius: 50%;
+    border-top-color: var(--primary);
+    display: inline-block;
+    height: 14px;
+    width: 14px;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* ==========================================================================
+     Tabs
+     ========================================================================== */
+  .tabs {
+    border-bottom: 2px solid var(--border);
+    gap: 0.5rem;
+    margin-bottom: 0;
+  }
+
+  .tab {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 0.6rem 0.5rem;
+    transition: all 0.2s ease;
+  }
+
+  .tab:hover {
+    color: var(--text);
+  }
+
+  .tab.active {
+    border-bottom-color: var(--primary);
+    color: var(--primary);
+  }
+
+  .tab-content {
+    display: none;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  /* ==========================================================================
+     Progress Bar
+     ========================================================================== */
+  .progress {
+    background: var(--bg-tertiary);
+    border-radius: 2px;
+    height: 4px;
+    margin: 1rem 0;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    background-color: var(--primary);
+    height: 100%;
+    transition: width 0.3s ease;
+    width: 0;
+  }
+
+  /* ==========================================================================
+     Tooltip
+     ========================================================================== */
+  .tooltip {
+    display: inline-block;
+    position: relative;
+  }
+
+  .tooltip .tooltiptext {
+    background-color: var(--bg-tertiary);
+    border-radius: 4px;
+    bottom: 125%;
+    color: var(--text);
+    font-size: 0.75rem;
+    left: 50%;
+    margin-left: -60px;
+    opacity: 0;
+    padding: 0.4rem 0.6rem;
+    position: absolute;
+    text-align: center;
+    transition: opacity 0.3s;
+    visibility: hidden;
+    white-space: nowrap;
+    z-index: 1;
+  }
+
+  .tooltip:hover .tooltiptext {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* ==========================================================================
+     Language Selector
+     ========================================================================== */
+  .language-label {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 11px;
+    font-weight: 500;
+    margin-right: 4px;
+    white-space: nowrap;
+  }
+
+  .language-buttons {
+    align-items: center;
+    display: flex;
+    gap: 0.3rem;
+  }
+
+  .lang-flag-btn {
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Twemoji", sans-serif;
+    font-size: 14px;
+    font-feature-settings: "liga" off;
+    height: 24px;
+    justify-content: center;
+    line-height: 1;
+    margin: 0;
+    padding: 0;
+    transition: all 0.2s ease;
+    width: 28px;
+    -webkit-font-feature-settings: "liga" off;
+  }
+
+  .lang-flag-btn:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    transform: translateY(-1px) scale(1.05);
+    z-index: 10;
+  }
+
+  .lang-flag-btn.btn-primary {
+    background: var(--primary) !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.6) !important;
+    transform: scale(1.1);
+  }
+
+  .lang-flag-btn:active {
+    transform: translateY(0) scale(0.95);
+  }
+
+  /* ==========================================================================
+     Scrollbar
+     ========================================================================== */
+  .main-container::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .main-container::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+    border-radius: 4px;
+  }
+
+  .main-container::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+    min-height: 40px;
+  }
+
+  .main-container::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+  }
+
+  /* ==========================================================================
+     Media Queries
+     ========================================================================== */
+  @media (max-width: 768px) {
+    .html-context-bar {
+      flex-direction: column;
+      gap: 0.1rem;
+      padding: 0.4rem;
+      text-align: center;
+    }
+
+    .main-container {
+      padding: 0.8rem 0.4rem 1.2rem;
+    }
+
+    .mode-selector {
+      grid-template-columns: 1fr;
+    }
+
+    .controls-row {
+      flex-direction: column;
+    }
+
+    .actions-panel {
+      gap: 0.4rem;
+      padding: 0.3rem 0.5rem;
+    }
+
+    .actions-panel .btn {
+      font-size: 0.65rem;
+      height: 28px;
+      min-width: 50px;
+      padding: 0.2rem 0.4rem;
+    }
+
+    .btn {
+      justify-content: center;
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .main-container {
+      padding: 0.9rem 0.6rem 1.3rem;
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .header-language-container {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .lang-flag-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+  }
+
+  @media (prefers-contrast: high) {
+    :root {
+      --border: #ffffff;
+      --text-secondary: #ffffff;
+    }
+
+    .btn {
+      border: 2px solid currentColor;
+    }
+  }
+</style>
   </head>
   <body>
     <div class="page-container">
@@ -1653,13 +1158,20 @@
               onclick="refreshHTMLContext()"
               data-i18n="refresh"
               title="Оновити"
-              >🔄</button
+              >🔄 Оновити</button
             >
           </div>
         </div>
       </div>
-
+      <div class="progress" id="progressContainer" style="display: none">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
       <div class="header">
+        <!-- Progress bar -->
+        <!-- Status повідомлення з автоприховуванням -->
+        <div id="status" class="status status-auto-hide">
+          <span id="status-text"></span>
+        </div>
         <!-- ✅ MULTILINGUAL: Контейнер мов в header праворуч -->
         <div class="header-language-container">
           <div class="language-label" data-i18n="language_label">Мова:</div>
@@ -1676,18 +1188,7 @@
             >
           </div>
         </div>
-
-        <!-- Status повідомлення з автоприховуванням -->
-        <div id="status" class="status status-auto-hide">
-          <span id="status-text"></span>
-        </div>
-
-        <!-- Progress bar -->
-        <div class="progress" id="progressContainer" style="display: none">
-          <div class="progress-bar" id="progressBar"></div>
-        </div>
       </div>
-
       <div class="main-container layout-with-sidebar">
         <!-- Вибір режиму -->
         <div class="mode-selector" id="modeSelector">
@@ -1721,7 +1222,6 @@
             </div>
           </div>
         </div>
-
         <!-- Tabs навігація -->
         <div class="tabs">
           <button class="tab active" onclick="switchTab('basic')" data-i18n="basic_tab"
@@ -1732,7 +1232,6 @@
             >🔧 Розширені</button
           >
         </div>
-
         <!-- Tab: Основні налаштування -->
         <div class="tab-content active" id="basicTab">
           <div class="section">
@@ -1750,12 +1249,12 @@
                 data-i18n="css_file_name_placeholder">
             </div>
 
-            <div class="controls-row">
+            <div class="controls-row" style="display: flex; flex-wrap: wrap; gap: 0.3rem; align-items: flex-start;">
               <!-- 1) CSS змінні -->
               <button
                 class="btn btn-secondary"
                 onclick="toggleCheckbox('includeVariables')"
-                style="display: flex; align-items: center; gap: 8px">
+                style="display: flex; align-items: center; gap: 6px; padding: 0.4rem 0.6rem; font-size: 0.8rem;">
                 <input type="checkbox" id="includeVariables" checked style="margin: 0">
                 <span data-i18n="include_variables">CSS змінні</span>
                 <span class="tooltiptext" data-i18n="include_variables_tooltip"
@@ -1764,104 +1263,93 @@
               </button>
 
               <!-- 2) Глобальні стилі -->
-              <div
-                class="control-with-submenu"
-                onclick="toggleCheckbox('globalStylesToggle'); toggleGlobalStylesSubmenu();">
-                <button class="submenu-button" style="display: flex; align-items: center; gap: 8px">
-                  <input
-                    type="checkbox"
-                    id="globalStylesToggle"
-                    style="margin: 0"
-                    onclick="event.stopPropagation();">
-                  <span data-i18n="include_global">🌐 Включити Глобальні стилі</span>
-                </button>
-                <div id="globalStylesSubmenu" class="submenu hidden">
-                  <h4 data-i18n="global_styles_submenu">Оберіть існуючий або створіть новий:</h4>
-                  <div id="globalFilesList" class="files-list"></div>
-                  <button
-                    class="btn btn-small"
-                    onclick="createNewGlobalFile()"
-                    data-i18n="create_new_global"
-                    >➕ Створити новий global.css</button
-                  >
-                </div>
-              </div>
+              <button
+                class="btn btn-primary"
+                onclick="toggleCheckbox('globalStylesToggle'); toggleGlobalStylesSubmenu();"
+                style="display: flex; align-items: center; gap: 6px; padding: 0.4rem 0.6rem; font-size: 0.8rem;">
+                <input
+                  type="checkbox"
+                  id="globalStylesToggle"
+                  style="margin: 0"
+                  onclick="event.stopPropagation();">
+                <span data-i18n="include_global">Глобальні стилі</span>
+              </button>
 
               <!-- 3) Reset стилі -->
-              <div
-                class="control-with-submenu"
-                onclick="toggleCheckbox('resetStylesToggle'); toggleResetStylesSubmenu();">
-                <button class="submenu-button" style="display: flex; align-items: center; gap: 8px">
-                  <input
-                    type="checkbox"
-                    id="resetStylesToggle"
-                    style="margin: 0"
-                    onclick="event.stopPropagation();">
-                  <span data-i18n="include_reset">📋 Включити Reset стилі</span>
-                </button>
-                <div id="resetStylesSubmenu" class="submenu hidden">
-                  <h4 data-i18n="reset_styles_submenu">Оберіть існуючий або створіть новий:</h4>
-                  <div id="resetFilesList" class="files-list"></div>
-                  <button
-                    class="btn btn-small"
-                    onclick="createNewResetFile()"
-                    data-i18n="create_new_reset"
-                    >➕ Створити новий reset.css</button
-                  >
-                </div>
-              </div>
-
-              <!-- 4) Normalize стилі -->
               <button
-                class="btn btn-secondary"
-                onclick="toggleCheckbox('includeModernNormalize')"
-                style="display: flex; align-items: center; gap: 8px">
+                class="btn btn-primary"
+                onclick="toggleCheckbox('resetStylesToggle'); toggleResetStylesSubmenu();"
+                style="display: flex; align-items: center; gap: 6px; padding: 0.4rem 0.6rem; font-size: 0.8rem;">
+                <input
+                  type="checkbox"
+                  id="resetStylesToggle"
+                  style="margin: 0"
+                  onclick="event.stopPropagation();">
+                <span data-i18n="include_reset">Включити Reset стилі</span>
+              </button>
+
+              <!-- 4) Користувацькі стилі -->
+              <button
+                class="btn btn-primary"
+                onclick="toggleCheckbox('includeUserStyles'); toggleUserStylesSubmenu();"
+                style="display: flex; align-items: center; gap: 6px; padding: 0.4rem 0.6rem; font-size: 0.8rem;">
+                <input
+                  type="checkbox"
+                  id="includeUserStyles"
+                  style="margin: 0"
+                  onclick="event.stopPropagation();">
+                <span data-i18n="user_styles">Користувацькі стилі</span>
+              </button>
+
+              <!-- 5) Normalize стилі -->
+              <div style="display: flex; align-items: center; gap: 6px; padding: 0.4rem 0.6rem; background: var(--bg-tertiary); border-radius: 4px; font-size: 0.8rem;">
                 <input type="checkbox" id="includeModernNormalize" style="margin: 0">
                 <span data-i18n="normalize_styles">Normalize стилі</span>
-                <span class="tooltiptext" data-i18n="normalize_styles_tooltip"
-                  >Підключити modern-normalize з CDN в head HTML файлу</span
-                >
-              </button>
-
-              <!-- 5) Користувацькі стилі -->
-
-              <!-- 6) Користувацькі стилі -->
-              <div
-                class="control-with-submenu"
-                onclick="toggleCheckbox('includeUserStyles'); toggleUserStylesSubmenu();">
-                <button class="submenu-button" style="display: flex; align-items: center; gap: 8px">
-                  <input
-                    type="checkbox"
-                    id="includeUserStyles"
-                    style="margin: 0"
-                    onclick="event.stopPropagation();">
-                  <span data-i18n="user_styles">👤 Користувацькі стилі</span>
-                </button>
-                <div id="userStylesSubmenu" class="submenu hidden">
-                  <h4 data-i18n="user_styles_submenu">Збережені стилі з Figma:</h4>
-                  <div id="userStylesList" class="files-list">
-                    <div class="loading">Завантаження...</div>
-                  </div>
-                  <button
-                    class="btn btn-small"
-                    onclick="createNewUserStyle()"
-                    data-i18n="create_new_user_style"
-                    >➕ Створити</button
-                  >
-                </div>
+                <span style="font-size: 0.7rem; opacity: 0.7;" data-i18n="normalize_styles_tooltip">Підключити modern-normalize з CDN</span>
               </div>
 
-              <!-- 7) Responsive стилі -->
-              <button
-                class="btn btn-secondary"
-                onclick="toggleCheckbox('includeResponsive')"
-                style="display: flex; align-items: center; gap: 8px">
+              <!-- 6) Responsive стилі -->
+              <div style="display: flex; align-items: center; gap: 6px; padding: 0.4rem 0.6rem; background: var(--bg-tertiary); border-radius: 4px; font-size: 0.8rem;">
                 <input type="checkbox" id="includeResponsive" checked style="margin: 0">
                 <span data-i18n="include_responsive">Responsive стилі</span>
-                <span class="tooltiptext" data-i18n="include_responsive_tooltip"
-                  >Додає media queries</span
-                >
-              </button>
+                <span style="font-size: 0.7rem; opacity: 0.7;" data-i18n="include_responsive_tooltip">Додає media queries</span>
+              </div>
+            </div>
+
+            <!-- Прихованні підменю -->
+            <div id="globalStylesSubmenu" class="submenu hidden">
+              <h4 data-i18n="global_styles_submenu">Оберіть існуючий або створіть новий:</h4>
+              <div id="globalFilesList" class="files-list"></div>
+              <button
+                class="btn btn-small"
+                onclick="createNewGlobalFile()"
+                data-i18n="create_new_global"
+                >➕ Створити новий global.css</button
+              >
+            </div>
+
+            <div id="resetStylesSubmenu" class="submenu hidden">
+              <h4 data-i18n="reset_styles_submenu">Оберіть існуючий або створіть новий:</h4>
+              <div id="resetFilesList" class="files-list"></div>
+              <button
+                class="btn btn-small"
+                onclick="createNewResetFile()"
+                data-i18n="create_new_reset"
+                >➕ Створити новий reset.css</button
+              >
+            </div>
+
+            <div id="userStylesSubmenu" class="submenu hidden">
+              <h4 data-i18n="user_styles_submenu">Збережені стилі з Figma:</h4>
+              <div id="userStylesList" class="files-list">
+                <div class="loading">Завантаження...</div>
+              </div>
+              <button
+                class="btn btn-small"
+                onclick="createNewUserStyle()"
+                data-i18n="create_new_user_style"
+                >➕ Створити</button
+              >
             </div>
           </div>
         </div>
@@ -2051,22 +1539,46 @@
 
       <!-- ✅ Статична панель дій - основні функції ✅ -->
       <div id="actionsPanel" class="actions-panel">
-        <button class="btn btn-primary" onclick="processHTML()" data-i18n="generate_css" title="Генерувати CSS класи">
+        <button
+          class="btn btn-primary"
+          onclick="processHTML()"
+          data-i18n="generate_css"
+          title="Генерувати CSS класи">
           🎨 CSS
         </button>
-        <button class="btn btn-secondary" onclick="selectHTMLFile()" data-i18n="select_file" title="Вибрати HTML файл">
+        <button
+          class="btn btn-secondary"
+          onclick="selectHTMLFile()"
+          data-i18n="select_file"
+          title="Вибрати HTML файл">
           📁 Файл
         </button>
-        <button class="btn btn-success" onclick="copyToClipboard()" data-i18n="copy_css" title="Копіювати CSS">
+        <button
+          class="btn btn-success"
+          onclick="copyToClipboard()"
+          data-i18n="copy_css"
+          title="Копіювати CSS">
           📋 Копія
         </button>
-        <button class="btn btn-info" onclick="refreshHTMLContext()" data-i18n="refresh" title="Оновити контекст">
+        <button
+          class="btn btn-info"
+          onclick="refreshHTMLContext()"
+          data-i18n="refresh"
+          title="Оновити контекст">
           🔄 Оновити
         </button>
-        <button class="btn btn-warning" onclick="clearAll()" data-i18n="clear_all" title="Очистити все">
+        <button
+          class="btn btn-warning"
+          onclick="clearAll()"
+          data-i18n="clear_all"
+          title="Очистити все">
           🗑️ Очистити
         </button>
-        <button class="btn btn-secondary" onclick="saveUserStyles()" data-i18n="save_styles" title="Зберегти в користувацькі стилі">
+        <button
+          class="btn btn-secondary"
+          onclick="saveUserStyles()"
+          data-i18n="save_styles"
+          title="Зберегти в користувацькі стилі">
           💾 Зберегти
         </button>
       </div>
@@ -2337,7 +1849,14 @@
           selectedLayersStyles: "Стилі вибраних Layers",
           close: "Закрити",
           loadSettings: "Завантажити",
-          clearSettings: "Очистити"
+          clearSettings: "Очистити",
+
+          // Action panel buttons
+          noHTMLSelected: "HTML файл не вибрано",
+          generatingCSS: "Генерую CSS...",
+          allCleared: "Все очищено",
+          noStylesToSave: "Немає стилів для збереження",
+          stylesSaved: "Стилі збережено успішно"
         },
 
         en: {
@@ -2586,7 +2105,14 @@
           selectFileAndMode: "Select HTML file and generation mode",
           enterFigmaCredentials: "Enter Figma URL and API Token",
           setupFigmaFirst: "First setup Figma integration",
-          selectLayersFirst: "First select at least one Layer"
+          selectLayersFirst: "First select at least one Layer",
+
+          // Action panel buttons
+          noHTMLSelected: "No HTML file selected",
+          generatingCSS: "Generating CSS...",
+          allCleared: "All cleared",
+          noStylesToSave: "No styles to save",
+          stylesSaved: "Styles saved successfully"
         },
 
         de: {
@@ -2836,7 +2362,14 @@
           selectFileAndMode: "HTML-Datei und Generierungsmodus auswählen",
           enterFigmaCredentials: "Figma URL und API Token eingeben",
           setupFigmaFirst: "Zuerst Figma-Integration einrichten",
-          selectLayersFirst: "Zuerst mindestens einen Layer auswählen"
+          selectLayersFirst: "Zuerst mindestens einen Layer auswählen",
+
+          // Action panel buttons
+          noHTMLSelected: "Keine HTML-Datei ausgewählt",
+          generatingCSS: "CSS wird generiert...",
+          allCleared: "Alles gelöscht",
+          noStylesToSave: "Keine Styles zum Speichern",
+          stylesSaved: "Styles erfolgreich gespeichert"
         }
       }
 
@@ -3394,6 +2927,33 @@
               showStatus(`❌ Помилка збереження: ${message.error}`, "error")
             }
             break
+
+          case "clearResults":
+            // Обробка очищення всіх результатів
+            const resultsContainer = document.getElementById("results")
+            if (resultsContainer) {
+              resultsContainer.innerHTML = ""
+            }
+
+            const stylesContent = document.getElementById("stylesContent")
+            if (stylesContent) {
+              stylesContent.innerHTML = ""
+            }
+
+            // Очищуємо стан
+            state.figmaCanvas = []
+            state.figmaLayers = []
+
+            console.log("🗑️ All content cleared")
+            if (message.message) {
+              showStatus(message.message, "success")
+            }
+            break
+
+          case "showStatus":
+            // Відображення статусу з extension.js
+            showStatus(message.message, message.type || "info")
+            break
         }
       }
 
@@ -3502,17 +3062,17 @@
         if (resultsContainer) {
           resultsContainer.innerHTML = ""
         }
-        
+
         // Очищуємо sidebar
         const stylesContent = document.getElementById("stylesContent")
         if (stylesContent) {
           stylesContent.innerHTML = ""
         }
-        
+
         // Очищуємо стан
         state.figmaCanvas = []
         state.figmaLayers = []
-        
+
         showStatus(`🗑️ ${t("allCleared")}`, "success")
       }
 
@@ -3523,7 +3083,7 @@
           showStatus(`❌ ${t("noStylesToSave")}`, "error")
           return
         }
-        
+
         vscode.postMessage({
           command: "saveUserStyles",
           css: resultsContainer.textContent
@@ -4476,7 +4036,7 @@
             state.selectedLayers.push(node)
             state.selectedLayerIds.add(node.id)
           }
-          
+
           // Додаємо всіх нащадків
           allChildren.forEach(child => {
             if (!state.selectedLayerIds.has(child.id)) {
@@ -4486,11 +4046,15 @@
           })
 
           // Синхронізуємо візуальні чек-бокси
-          const containerCb = container.querySelector(`input[data-id="${node.id}"][data-type="container"]`)
+          const containerCb = container.querySelector(
+            `input[data-id="${node.id}"][data-type="container"]`
+          )
           if (containerCb) containerCb.checked = true
 
           allChildren.forEach(child => {
-            const childContainerCb = container.querySelector(`input[data-id="${child.id}"][data-type="container"]`)
+            const childContainerCb = container.querySelector(
+              `input[data-id="${child.id}"][data-type="container"]`
+            )
             if (childContainerCb) childContainerCb.checked = true
           })
         } else {
@@ -5925,7 +5489,7 @@ p {
       const confirmImageImport = window.confirmImageImport
 
       // Функція для переключення чекбоксів при натисканні на контейнер
-      window.toggleCheckbox = function(checkboxId) {
+      window.toggleCheckbox = function (checkboxId) {
         const checkbox = document.getElementById(checkboxId)
         if (checkbox) {
           checkbox.checked = !checkbox.checked

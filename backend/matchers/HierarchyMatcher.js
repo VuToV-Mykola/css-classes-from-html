@@ -290,8 +290,7 @@ class HierarchyMatcher {
     if (figmaRole === htmlRole) return 1;
     
     // Часткове співпадіння
-    const roleSimilarity = this.calculateRoleSimilarity(figmaRole, htmlRole);
-    return roleSimilarity;
+    return this.calculateRoleSimilarity(figmaRole, htmlRole);
   }
 
   /**
@@ -443,7 +442,7 @@ class HierarchyMatcher {
     let positionMatches = 0;
     let totalMatches = 0;
     
-    this.matches.forEach((match, figmaId) => {
+    this.matches.forEach(() => {
       // Тут має бути логіка для перевірки точності
       // Це залежить від структури даних
       totalMatches++;
@@ -484,7 +483,7 @@ class HierarchyMatcher {
   }
 
   getFigmaSemanticRole(element) {
-    const name = element.name.toLowerCase();
+    const name = element.name ? element.name.toLowerCase() : '';
     const type = element.type;
     
     if (type === 'TEXT') {
@@ -526,7 +525,8 @@ class HierarchyMatcher {
     const level1 = roleHierarchy[role1] || 1;
     const level2 = roleHierarchy[role2] || 1;
     
-    return 1 - Math.abs(level1 - level2) / Math.max(level1, level2);
+    const maxLevel = Math.max(level1, level2);
+    return maxLevel > 0 ? 1 - Math.abs(level1 - level2) / maxLevel : 0;
   }
 
   /**

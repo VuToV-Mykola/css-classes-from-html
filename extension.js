@@ -1,4 +1,4 @@
-// ✅ CSS Classes from HTML Extension v0.0.7 - FIXED WITH CONTEXT
+// ✅ CSS Classes from HTML Extension v0.0.8 - FIXED UniversalMatchingEngine htmlElement errors
 // Автоматична генерація CSS класів з HTML файлів з реальною інтеграцією Figma
 // Версія з виправленою проблемою передачі контексту HTML файлу
 
@@ -77,15 +77,8 @@ setTimeout(() => __persistRequiredModulesSnapshot('T+1s after bootstrap'), 1000)
 process.on('exit', () => __persistRequiredModulesSnapshot('on process exit'));
 process.on('beforeExit', () => __persistRequiredModulesSnapshot('on beforeExit'));
 
-// ✅ FIX: Імпорт UniversalMatchingEngine для точного співставлення
-const UniversalMatchingEngine = require('./backend/matchers/UniversalMatchingEngine');
-
 // ✅ FIX: Імпорт нових розширених модулів
-const AdvancedHTMLParser = require('./backend/core/AdvancedHTMLParser');
-const AdvancedCSSGenerator = require('./backend/generators/AdvancedCSSGenerator');
 const EnhancedCSSGenerator = require('./backend/generators/EnhancedCSSGenerator');
-const ResponsiveEnhancer = require('./backend/generators/ResponsiveEnhancer');
-const AdvancedMatchingEngine = require('./backend/matchers/AdvancedMatchingEngine');
 
 // ✅ FIX: Інтернаціоналізація для extension.js
 const extensionTranslations = {
@@ -128,7 +121,10 @@ const extensionTranslations = {
     htmlFileEmpty: 'HTML файл порожній',
     cssGeneratedFor: 'CSS згенеровано для',
     selectFile: 'Вибрати файл',
-    cancel: 'Скасувати'
+    cancel: 'Скасувати',
+    allCleared: 'Все очищено',
+    noStylesToSave: 'Немає стилів для збереження',
+    stylesSaved: 'Стилі збережено успішно'
   },
   en: {
     extensionStarting: 'Extension starting...',
@@ -172,7 +168,10 @@ const extensionTranslations = {
     htmlFileEmpty: 'HTML file is empty',
     cssGeneratedFor: 'CSS generated for',
     selectFile: 'Select file',
-    cancel: 'Cancel'
+    cancel: 'Cancel',
+    allCleared: 'All cleared',
+    noStylesToSave: 'No styles to save',
+    stylesSaved: 'Styles saved successfully'
   },
   de: {
     extensionStarting: 'Erweiterung startet...',
@@ -216,7 +215,10 @@ const extensionTranslations = {
     htmlFileEmpty: 'HTML-Datei ist leer',
     cssGeneratedFor: 'CSS generiert für',
     selectFile: 'Datei auswählen',
-    cancel: 'Abbrechen'
+    cancel: 'Abbrechen',
+    allCleared: 'Alles gelöscht',
+    noStylesToSave: 'Keine Styles zum Speichern',
+    stylesSaved: 'Styles erfolgreich gespeichert'
   }
 };
 
@@ -746,8 +748,9 @@ function activate(context) {
       });
     }
 
-    // ✅ FIX: Ініціалізація UniversalMatchingEngine для точного співставлення
+    // ✅ FIX: Ініціалізація універсального двигуна співставлення
     try {
+      const UniversalMatchingEngine = require('./backend/matchers/UniversalMatchingEngine');
       universalMatchingEngine = new UniversalMatchingEngine({
         thresholds: {
           high: 0.9, // 100% перенос властивостей
@@ -1198,8 +1201,60 @@ function setupMessageHandlers(panel) {
       // ✅ FIX: Генерація CSS з контекстом - лінія 499-501 ✅
       case 'generateCSS':
         outputChannel?.appendLine(`🎨 ${getExtensionTranslation('cssGenerationStarted')}`);
-        await generateResponsiveCSSFromHTML(message.htmlFile, message.settings, panel);
+        await handleGenerateCSS(panel, message.settings);
         break;
+
+      // ✅ Обробка очищення всього контенту ✅
+      case 'clearAll': {
+        outputChannel?.appendLine('🗑️ Clearing all content');
+        panel.webview.postMessage({
+          command: 'clearResults',
+          message: getExtensionTranslation('allCleared')
+        });
+        break;
+      }
+
+      // ✅ Обробка збереження користувацьких стилів ✅
+      case 'saveUserStyles': {
+        try {
+          const cssContent = message.css;
+          if (!cssContent) {
+            panel.webview.postMessage({
+              command: 'showStatus',
+              message: getExtensionTranslation('noStylesToSave'),
+              type: 'error'
+            });
+            return;
+          }
+
+          const options = {
+            defaultUri: vscode.Uri.file('user-styles.css'),
+            filters: {
+              'CSS Files': ['css'],
+              'All Files': ['*']
+            }
+          };
+
+          const uri = await vscode.window.showSaveDialog(options);
+          if (uri) {
+            await vscode.workspace.fs.writeFile(uri, Buffer.from(cssContent));
+            outputChannel?.appendLine(`💾 Styles saved to: ${uri.fsPath}`);
+            panel.webview.postMessage({
+              command: 'showStatus',
+              message: getExtensionTranslation('stylesSaved'),
+              type: 'success'
+            });
+          }
+        } catch (error) {
+          outputChannel?.appendLine(`❌ Error saving styles: ${error.message}`);
+          panel.webview.postMessage({
+            command: 'showStatus',
+            message: `Error: ${error.message}`,
+            type: 'error'
+          });
+        }
+        break;
+      }
 
       case 'quickGenerate':
         await quickGenerateCSS();
@@ -1499,12 +1554,14 @@ async function handleGenerateCSS(panel, settings) {
 
           let figmaData = await integrationEngine.figmaClient.getFile(fileId);
 
-          // ✅ FIX: Використовуємо AdvancedHTMLParser для правильного парсингу HTML
-          const htmlParser = new AdvancedHTMLParser();
-          const htmlData = htmlParser.parseHTML(htmlContent);
+          // ✅ FIX: Використовуємо HTMLParser для правильного парсингу HTML
+          const HTMLParser = require('./backend/core/HTMLParser');
+          const htmlParser = new HTMLParser();
+          const htmlData = htmlParser.parseToHierarchy(htmlContent);
 
-          // ✅ FIX: Використовуємо AdvancedMatchingEngine для точного співставлення
-          const advancedMatchingEngine = new AdvancedMatchingEngine({
+          // ✅ FIX: Використовуємо UniversalMatchingEngine для точного співставлення
+          const UniversalMatchingEngine = require('./backend/matchers/UniversalMatchingEngine');
+          const matchingEngine = new UniversalMatchingEngine({
             thresholds: {
               exact: 1.0,
               high: 0.9,
@@ -1518,7 +1575,7 @@ async function handleGenerateCSS(panel, settings) {
             }
           });
 
-          const matchingResults = await advancedMatchingEngine.match(figmaData, htmlData);
+          const matchingResults = await matchingEngine.match(figmaData, htmlData);
 
           outputChannel?.appendLine(
             `📊 Matching results: ${matchingResults.length} elements matched`

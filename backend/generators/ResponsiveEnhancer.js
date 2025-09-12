@@ -71,7 +71,7 @@ class ResponsiveEnhancer {
   /**
    * Генерує медіа-запити для різних вьюпортів
    */
-  generateMediaQueries(cssRules) {
+  generateMediaQueries() {
     const mediaQueries = [];
     
     // Ultra-small viewports (280px-320px) - VSCode sidebar

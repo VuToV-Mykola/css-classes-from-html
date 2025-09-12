@@ -76,7 +76,7 @@ class EnhancedCSSGenerator {
     css += await this.generateCustomStyles(htmlData);
     
     // 6. Підстановка стилів Figma для пустих блоків
-    css += await this.fillEmptyBlocks(figmaData, htmlData, matchingResults);
+    css += await this.fillEmptyBlocks();
     
     // Оновлюємо статистику
     this.updateStatistics();
@@ -96,21 +96,21 @@ class EnhancedCSSGenerator {
     let css = '/* 🎨 CSS Custom Properties (змінні) з Figma */\n:root {\n';
     
     // Витягуємо кольори з Figma
-    const colors = this.extractColorsFromFigma(figmaData);
+    const colors = this.extractColorsFromFigma();
     colors.forEach((color, name) => {
       css += `  --color-${name}: ${color};\n`;
       this.variables.set(`color-${name}`, color);
     });
     
     // Витягуємо шрифти з Figma
-    const fonts = this.extractFontsFromFigma(figmaData);
+    const fonts = this.extractFontsFromFigma();
     fonts.forEach((font, name) => {
       css += `  --font-${name}: ${font};\n`;
       this.variables.set(`font-${name}`, font);
     });
     
     // Витягуємо розміри з Figma
-    const sizes = this.extractSizesFromFigma(figmaData);
+    const sizes = this.extractSizesFromFigma();
     sizes.forEach((size, name) => {
       css += `  --size-${name}: ${size};\n`;
       this.variables.set(`size-${name}`, size);
@@ -251,7 +251,7 @@ table {
     const sortedMatches = this.sortMatchesByHierarchy(matchingResults, htmlData);
     
     for (const match of sortedMatches) {
-      const { figma, html, confidence, type, metadata } = match;
+      const { figma, html, type } = match;
       
       // Перевіряємо особливі випадки для 100% переносу властивостей
       const shouldUseFullTransfer = this.shouldUseFullPropertyTransfer(match);
@@ -262,7 +262,7 @@ table {
       }
       
       // Генеруємо CSS для елемента
-      const elementCSS = await this.generateElementCSS(figma, html, shouldUseFullTransfer, metadata);
+      const elementCSS = await this.generateElementCSS(figma, html);
       
       if (elementCSS) {
         css += elementCSS;
@@ -281,7 +281,7 @@ table {
    * 🎯 Перевірка чи потрібен 100% перенос властивостей
    */
   shouldUseFullPropertyTransfer(match) {
-    const { figma, html, confidence, type, metadata } = match;
+    const { html, confidence, type, metadata } = match;
     
     // 1. Головний вузол Figma = 100% відповідність класу Body
     if (metadata && metadata.isMainNode && html.tagName === 'body') {
@@ -313,7 +313,7 @@ table {
   /**
    * 🎨 Генерація CSS для конкретного елемента
    */
-  async generateElementCSS(figmaNode, htmlElement, fullTransfer, metadata) {
+  async generateElementCSS(figmaNode, htmlElement) {
     const selector = this.generateSelector(htmlElement);
     const figmaStyles = this.extractFigmaStyles(figmaNode);
     
@@ -493,7 +493,7 @@ table {
     return property.replace(/([A-Z])/g, '-$1').toLowerCase();
   }
   
-  sortMatchesByHierarchy(matchingResults, htmlData) {
+  sortMatchesByHierarchy(matchingResults) {
     return matchingResults.sort((a, b) => {
       const aDepth = a.html.level || 0;
       const bDepth = b.html.level || 0;
@@ -506,24 +506,24 @@ table {
     return this.options.customStyles || {};
   }
   
-  async fillEmptyBlocks(figmaData, htmlData, matchingResults) {
+  async fillEmptyBlocks() {
     // Підстановка стилів Figma для класів з пустими блоками
     return '/* 🔧 Підстановка стилів для пустих блоків буде додана в наступній версії */\n';
   }
   
-  extractColorsFromFigma(figmaData) {
+  extractColorsFromFigma() {
     const colors = new Map();
     // Логіка витягування кольорів з Figma
     return colors;
   }
   
-  extractFontsFromFigma(figmaData) {
+  extractFontsFromFigma() {
     const fonts = new Map();
     // Логіка витягування шрифтів з Figma
     return fonts;
   }
   
-  extractSizesFromFigma(figmaData) {
+  extractSizesFromFigma() {
     const sizes = new Map();
     // Логіка витягування розмірів з Figma
     return sizes;

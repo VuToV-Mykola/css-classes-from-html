@@ -617,7 +617,7 @@ class SmartCSSGenerator {
     }
 
     // ✅ FIX: Генерація CSS змінних
-    this.generateVariables(figmaData);
+    this.generateVariables();
 
     // ✅ FIX: Обробка співставлених елементів
     matches.forEach((htmlElementId, figmaElementId) => {
@@ -634,7 +634,7 @@ class SmartCSSGenerator {
 
     // ✅ FIX: Генерація адаптивних стилів
     if (this.options.generateResponsive) {
-      this.generateResponsiveStyles(figmaData, htmlData);
+      this.generateResponsiveStyles();
     }
 
     // ✅ FIX: Розрахунок статистики
@@ -801,7 +801,6 @@ class SmartCSSGenerator {
    */
   calculateNameSimilarity(figmaElement, htmlElement) {
     const figmaName = this.normalizeText(figmaElement.name || '');
-    const htmlClasses = (htmlElement.classes || []).join(' ');
     const htmlTag = htmlElement.tagName || '';
 
     if (!figmaName) return 0;
@@ -1237,7 +1236,7 @@ class SmartCSSGenerator {
     this.statistics.totalRules += 4;
   }
 
-  generateVariables(figmaData) {
+  generateVariables() {
     // ✅ FIX: Базові змінні
     this.variables.set('--primary-color', '#007ACC');
     this.variables.set('--secondary-color', '#6c757d');
@@ -1260,7 +1259,7 @@ class SmartCSSGenerator {
     this.variables.set('--breakpoint-xl', '1200px');
   }
 
-  generateResponsiveStyles(figmaData, htmlData) {
+  generateResponsiveStyles() {
     const mediaQueries = [
       '@media (max-width: 768px)',
       '@media (min-width: 769px) and (max-width: 1024px)',

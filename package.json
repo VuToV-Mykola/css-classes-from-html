@@ -1,8 +1,8 @@
 {
   "name": "css-classes-from-html",
-  "displayName": "CSS Classes from HTML v0.0.7",
+  "displayName": "CSS Classes from HTML v0.0.8",
   "description": "Автоматична генерація CSS класів з HTML файлів з реальною інтеграцією Figma",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "publisher": "vutov-mykola",
   "author": {
     "name": "VuToV-Mykola",
@@ -238,7 +238,7 @@
     "lint": "eslint . --ext .js,.ts --fix",
     "test": "bash scripts/tests.sh",
     "deploy": "bash scripts/deploy.sh",
-    "validate": "node -e \"console.log('✅ Validation stub (VS Code API not loadable in Node)')\"",
+    "validate": "node scripts/validate.js",
     "clean": "rm -rf builds/* logs/deploy/*.log node_modules/.cache",
     "prepackage": "npm run validate",
     "postpackage": "echo \"📦 Package created successfully\"",
@@ -251,6 +251,7 @@
     "release": "bash scripts/release.sh"
   },
   "dependencies": {
+    "@lancedb/vectordb-darwin-arm64": "^0.21.2",
     "axios": "^1.6.0",
     "https": "^1.0.0",
     "jsdom": "^23.2.0",
