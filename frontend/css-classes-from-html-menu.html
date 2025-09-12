@@ -90,7 +90,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        box-shadow: 
+        box-shadow:
           0 2px 1px rgb(46 47 66 / 8%),
           0 1px 1px rgb(46 47 66 / 16%),
           0 1px 6px rgb(46 47 66 / 8%);
@@ -235,11 +235,10 @@
       }
 
       .main-container {
-        padding: 1rem;
+        padding: 1.5rem 1rem 2rem; /* Верхній та нижній падінг для кращого UX */
         max-width: 1200px;
         margin: 0 auto;
-        margin-bottom: 90px; /* Відступ від actions-panel */
-        height: calc(100vh - 80px); /* Висота мінус actions-panel */
+        height: calc(100vh - 140px); /* Висота мінус header + actions-panel з буферами */
         overflow-y: auto; /* Дозволяємо вертикальний скрол */
         overflow-x: hidden;
         /* Enhanced touch scrolling */
@@ -247,6 +246,8 @@
         /* Стилізація скролбара */
         scrollbar-width: thin;
         scrollbar-color: var(--border) var(--bg-secondary);
+        /* Додатковий простір внизу для плавного скролингу */
+        box-sizing: border-box;
       }
 
       /* Sidebar для стилів вибраних шарів */
@@ -332,8 +333,8 @@
       .mode-card {
         background: var(--bg-secondary);
         border: 2px solid var(--border);
-        border-radius: 8px;
-        padding: 0.5rem;
+        border-radius: 6px; /* Менший радіус */
+        padding: 0.4rem; /* Компактніший падінг */
         cursor: pointer;
         transition: all 0.3s ease;
         position: relative;
@@ -437,16 +438,16 @@
 
       .section-title {
         color: var(--primary);
-        margin-bottom: 0.8rem;
-        font-size: 1rem;
+        margin-bottom: 0.5rem; /* Компактніший відступ */
+        font-size: 0.9rem; /* Менший шрифт */
         font-weight: 600;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.4rem; /* Менший проміжок */
       }
 
       .input-group {
-        margin-bottom: 0.8rem;
+        margin-bottom: 0.6rem; /* Компактніший відступ */
       }
 
       .input-group label {
@@ -459,7 +460,7 @@
       .input-group input,
       .input-group select {
         width: 100%;
-        padding: 0.6rem;
+        padding: 0.5rem; /* Компактніший падінг */
         background: var(--bg-tertiary);
         border: 1px solid var(--border);
         color: var(--text);
@@ -592,10 +593,10 @@
 
       /* Кнопки */
       .btn {
-        padding: 0.6rem 1rem;
+        padding: 0.4rem 0.75rem; /* Компактніші падінги */
         border: none;
         border-radius: 4px;
-        font-size: 0.85rem;
+        font-size: 0.8rem; /* Менший шрифт */
         font-weight: 500;
         cursor: pointer;
         transition: all 0.2s ease;
@@ -751,8 +752,10 @@
         min-width: 0;
         white-space: nowrap;
         text-align: center;
-        min-height: 44px;
-        max-width: 200px;
+        min-height: 36px; /* Компактніша висота */
+        max-width: 180px; /* Менша максимальна ширина */
+        padding: 0.5rem 0.6rem; /* Компактні падінги */
+        font-size: 0.75rem; /* Менший шрифт */
       }
 
       /* Адаптивність для різних розмірів */
@@ -1006,8 +1009,8 @@
         }
 
         .main-container {
-          padding: 0.4rem;
-          height: calc(100vh - 60px); /* Зменшена висота actions-panel на малих екранах */
+          padding: 1rem 0.4rem 1.5rem; /* Адаптивний падінг для малих екранів */
+          height: calc(100vh - 120px); /* Оптимізована висота для малих екранів */
         }
 
         .mode-card {
@@ -1071,8 +1074,8 @@
         }
 
         .main-container {
-          padding: 0.6rem;
-          height: calc(100vh - 70px); /* Адаптивна висота для середніх екранів */
+          padding: 1.2rem 0.6rem 1.8rem; /* Адаптивний падінг для середніх екранів */
+          height: calc(100vh - 130px); /* Оптимізована висота для середніх екранів */
         }
       }
 
@@ -1238,8 +1241,8 @@
       /* VSCode webview optimizations */
       @media (max-width: 480px) {
         .main-container {
-          padding: var(--content-padding);
-          height: calc(100vh - 60px); /* Мобільна висота з урахуванням actions-panel */
+          padding: 0.8rem var(--content-padding) 1.2rem; /* Мобільні падінги з буферами */
+          height: calc(100vh - 110px); /* Мобільна висота з урахуванням actions-panel */
           overflow-y: auto;
           overflow-x: hidden;
         }
@@ -1566,7 +1569,7 @@
       }
       .page-container {
         min-height: 100vh;
-        min-height: 100vh;
+
         display: flex;
         flex-direction: column;
         gap: 16px;
@@ -1574,7 +1577,7 @@
 
       .main-container {
         flex-grow: 1;
-        padding: 8px;
+        padding: 12px 8px 16px; /* Консистентні падінги для всіх розмірів */
       }
     </style>
   </head>
