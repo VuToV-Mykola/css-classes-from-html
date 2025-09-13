@@ -124,6 +124,13 @@ class FontImporter {
       // Фільтруємо сторінки за вибраними canvas
       const targetPages =
         selectedCanvasIds.length > 0 ? pages.filter(p => selectedCanvasIds.includes(p.id)) : pages
+      
+      logger.debug(`Вибрані сторінки для аналізу: ${targetPages.length} з ${pages.length}`)
+      if (selectedCanvasIds.length > 0) {
+        logger.debug(`Фільтруємо по canvas IDs: ${selectedCanvasIds.join(', ')}`)
+      } else {
+        logger.debug('Аналізуємо всі canvas (selectedCanvasIds порожній)')
+      }
 
       logger.info(`Аналізуємо шрифти з ${targetPages.length} canvas(ів)`)
 
@@ -184,6 +191,9 @@ class FontImporter {
 
         // Рекурсивно обходимо дочірні елементи
         if (node.children) {
+          if (totalNodesProcessed <= 10) {
+            logger.debug(`  -> Рекурсивно обходимо ${node.children.length} дочірніх елементів`)
+          }
           node.children.forEach(child => walkForFonts(child, canvasId || node.id))
         }
       }
