@@ -1,3 +1,4 @@
+const { logger } = require('../utils/Logger');
 // FigmaAPIClient — клієнт реального Figma API без хардкоду
 const https = require('https');
 const axios = require('axios');
@@ -44,7 +45,7 @@ class FigmaAPIClient {
         fullFileName: `${sanitizedFileName}#${sanitizedCanvasName}.css`
       };
     } catch (error) {
-      console.error('❌ Помилка отримання імені файлу та canvas:', error.message);
+      logger.error('❌ Помилка отримання імені файлу та canvas:', error.message);
       return {
         fileName: 'Untitled',
         canvasName: canvasName || 'Canvas',
@@ -92,7 +93,7 @@ class FigmaAPIClient {
   // ✅ FIX: Отримання всіх зображень з файлу
   async getAllImages(fileKey) {
     try {
-      console.log('🖼️ Getting all images from Figma file:', fileKey);
+      logger.info('🖼️ Getting all images from Figma file:', fileKey);
       const file = await this.getFile(fileKey);
       const imageNodes = [];
       
@@ -142,15 +143,15 @@ class FigmaAPIClient {
       };
       
       walk(file.document);
-      console.log(`📸 Found ${imageNodes.length} image nodes`);
+      logger.info(`📸 Found ${imageNodes.length} image nodes`);
       
       // Якщо є зображення, отримуємо їх URL
       if (imageNodes.length > 0) {
         const imageIds = imageNodes.map(img => img.id);
-        console.log('🔄 Getting image URLs for:', imageIds);
+        logger.info('🔄 Getting image URLs for:', imageIds);
         
         const imagesResponse = await this.getImages(fileKey, imageIds);
-        console.log('📸 Images response:', imagesResponse);
+        logger.info('📸 Images response:', imagesResponse);
         
         return imageNodes.map(node => ({
           ...node,
@@ -158,10 +159,10 @@ class FigmaAPIClient {
         }));
       }
       
-      console.log('⚠️ No images found in the file');
+      logger.info('⚠️ No images found in the file');
       return [];
     } catch (error) {
-      console.error('❌ Error getting all images:', error);
+      logger.error('❌ Error getting all images:', error);
       return [];
     }
   }

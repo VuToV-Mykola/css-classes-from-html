@@ -1,3 +1,4 @@
+const { logger } = require('../utils/Logger');
 /**
  * Детальний аналізатор Figma макету
  * Аналізує ієрархію, стилі та семантику елементів
@@ -41,7 +42,7 @@ class FigmaAnalyzer {
     }
     
     try {
-      console.log('🎯 Початок точного співставлення Figma з HTML...');
+      logger.info('🎯 Початок точного співставлення Figma з HTML...');
       
       // Використовуємо UniversalMatchingEngine для співставлення
       const matches = await this.matchingEngine.match(figmaData, htmlData);
@@ -50,12 +51,12 @@ class FigmaAnalyzer {
       this.analysis.matches = matches;
       this.analysis.matchingStats = this.matchingEngine.getStatistics();
       
-      console.log(`✅ Співставлення завершено: ${matches.length} елементів`);
-      console.log(`📊 Статистика: ${JSON.stringify(this.analysis.matchingStats, null, 2)}`);
+      logger.info(`✅ Співставлення завершено: ${matches.length} елементів`);
+      logger.info(`📊 Статистика: ${JSON.stringify(this.analysis.matchingStats, null, 2)}`);
       
       return matches;
     } catch (error) {
-      console.error('❌ Помилка при співставленні:', error);
+      logger.error('❌ Помилка при співставленні:', error);
       throw error;
     }
   }

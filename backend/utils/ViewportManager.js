@@ -1,3 +1,4 @@
+const { logger } = require('./Logger');
 /**
  * ✅ Viewport Manager для оптимізації продуктивності та управління станом
  * Забезпечує ефективне відстеження змін вьюпорта та управління компонентами
@@ -213,7 +214,7 @@ class ViewportManager {
       try {
         callback(this.currentViewport, this.previousViewport);
       } catch (error) {
-        console.warn('ViewportManager observer error:', error);
+        logger.warn('ViewportManager observer error:', error);
       }
     });
   }
@@ -297,7 +298,7 @@ class ViewportManager {
       const now = Date.now();
       const timeDiff = now - this.performanceMetrics.lastUpdate;
       
-      console.log('ViewportManager Performance:', {
+      logger.info('ViewportManager Performance:', {
         resizeEventsPerSecond: (this.performanceMetrics.resizeEvents / timeDiff * 1000).toFixed(2),
         stateChangesPerSecond: (this.performanceMetrics.stateChanges / timeDiff * 1000).toFixed(2),
         currentViewport: this.currentViewport?.category,

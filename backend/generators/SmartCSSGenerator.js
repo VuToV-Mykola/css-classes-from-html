@@ -1,3 +1,4 @@
+const { logger } = require('../utils/Logger');
 /**
  * ✅ FIX: Розумний CSS генератор з реальним співставленням Figma-HTML
  * Без хардкодінгу - справжнє співставлення елементів за ієрархією, контентом та семантикою
@@ -45,11 +46,11 @@ class SmartCSSGenerator {
   generateCSSWithMatching(figmaData, htmlData, matchingResults) {
     this.reset();
 
-    console.log('🎯 Початок генерації CSS з точним співставленням...');
+    logger.info('🎯 Початок генерації CSS з точним співставленням...');
 
     // Використовуємо результати точного співставлення
     if (matchingResults && matchingResults.length > 0) {
-      console.log(`📊 Використовуємо ${matchingResults.length} точних співставлень`);
+      logger.info(`📊 Використовуємо ${matchingResults.length} точних співставлень`);
       
       for (const match of matchingResults) {
         if (match.confidence >= this.options.matchingThreshold) {
@@ -73,11 +74,11 @@ class SmartCSSGenerator {
     const { figma, html, confidence, type, metadata } = match;
     
     try {
-      console.log('🔍 ДІАГНОСТИКА СПІВСТАВЛЕННЯ:');
-      console.log('   Figma вузол:', figma);
-      console.log('   HTML елемент:', html);
-      console.log(`   Confidence: ${confidence}`);
-      console.log(`   Type: ${type}`);
+      logger.info('🔍 ДІАГНОСТИКА СПІВСТАВЛЕННЯ:');
+      logger.info('   Figma вузол:', figma);
+      logger.info('   HTML елемент:', html);
+      logger.info(`   Confidence: ${confidence}`);
+      logger.info(`   Type: ${type}`);
       
       // ✅ FIX: 100% перенос властивостей для точних співпадінь тексту
       const isExactTextMatch = metadata && metadata.isExactMatch === true;
@@ -87,35 +88,35 @@ class SmartCSSGenerator {
       const isMainNodeMatch = metadata && metadata.isMainNode === true;
       
       if (isExactTextMatch) {
-        console.log('🎯 100% ТОЧНЕ СПІВПАДІННЯ ТЕКСТУ - ПОВНИЙ ПЕРЕНОС ВЛАСТИВОСТЕЙ!');
-        console.log(`   Figma текст: "${metadata.figmaText}"`);
-        console.log(`   HTML текст: "${metadata.htmlText}"`);
-        console.log(`   HTML елемент: ${html.tagName}.${html.className || 'no-class'}`);
+        logger.info('🎯 100% ТОЧНЕ СПІВПАДІННЯ ТЕКСТУ - ПОВНИЙ ПЕРЕНОС ВЛАСТИВОСТЕЙ!');
+        logger.info(`   Figma текст: "${metadata.figmaText}"`);
+        logger.info(`   HTML текст: "${metadata.htmlText}"`);
+        logger.info(`   HTML елемент: ${html.tagName}.${html.className || 'no-class'}`);
       }
       
       if (isHierarchicalMatch) {
-        console.log('🌳 ІЄРАРХІЧНЕ СПІВСТАВЛЕННЯ - ПОВНИЙ ПЕРЕНОС ВЛАСТИВОСТЕЙ!');
-        console.log(`   Figma вузол: ${figma.name || figma.type}`);
-        console.log(`   HTML елемент: ${html.tagName}.${html.className || 'no-class'}`);
-        console.log(`   Алгоритм: ${metadata.algorithm || 'hierarchical'}`);
+        logger.info('🌳 ІЄРАРХІЧНЕ СПІВСТАВЛЕННЯ - ПОВНИЙ ПЕРЕНОС ВЛАСТИВОСТЕЙ!');
+        logger.info(`   Figma вузол: ${figma.name || figma.type}`);
+        logger.info(`   HTML елемент: ${html.tagName}.${html.className || 'no-class'}`);
+        logger.info(`   Алгоритм: ${metadata.algorithm || 'hierarchical'}`);
         
         if (isMainNodeMatch) {
-          console.log('🎯 ГОЛОВНИЙ ВУЗОЛ FIGMA ↔ BODY (100%)');
+          logger.info('🎯 ГОЛОВНИЙ ВУЗОЛ FIGMA ↔ BODY (100%)');
         }
       }
       
       // Витягуємо стилі з Figma елемента
       const figmaStyles = this.extractFigmaStyles(figma);
-      console.log('📊 Figma стилі:', figmaStyles);
+      logger.info('📊 Figma стилі:', figmaStyles);
       
       // Генеруємо CSS селектор для HTML елемента
       const selector = this.generateSelector(html);
-      console.log(`🎯 Згенерований селектор: ${selector}`);
+      logger.info(`🎯 Згенерований селектор: ${selector}`);
       
       // ✅ FIX: Для точних співпадінь використовуємо 100% властивостей
       const shouldUseFullTransfer = isExactTextMatch || (isHierarchicalMatch && confidence >= 0.8);
       const cssRules = this.convertFigmaStylesToCSS(figmaStyles, shouldUseFullTransfer ? 1.0 : confidence);
-      console.log('📊 CSS правила:', cssRules);
+      logger.info('📊 CSS правила:', cssRules);
       
       // ✅ FIX: Додаємо правила тільки якщо є реальні стилі з Figma
       if (Object.keys(cssRules).length > 0) {
@@ -134,23 +135,23 @@ class SmartCSSGenerator {
         });
         
         if (shouldUseFullTransfer) {
-          console.log(`🎯 100% ВЛАСТИВОСТЕЙ ПЕРЕНЕСЕНО для ${selector}`);
-          console.log(`   Кількість CSS правил: ${Object.keys(cssRules).length}`);
-          console.log(`   Тип співставлення: ${isExactTextMatch ? 'text-exact' : 'hierarchical'}`);
-          console.log('   Джерело стилів: Figma');
+          logger.info(`🎯 100% ВЛАСТИВОСТЕЙ ПЕРЕНЕСЕНО для ${selector}`);
+          logger.info(`   Кількість CSS правил: ${Object.keys(cssRules).length}`);
+          logger.info(`   Тип співставлення: ${isExactTextMatch ? 'text-exact' : 'hierarchical'}`);
+          logger.info('   Джерело стилів: Figma');
         } else {
-          console.log(`✅ Згенеровано CSS для ${selector} (впевненість: ${(confidence * 100).toFixed(1)}%)`);
-          console.log(`   Кількість CSS правил: ${Object.keys(cssRules).length}`);
-          console.log('   Джерело стилів: Figma');
+          logger.info(`✅ Згенеровано CSS для ${selector} (впевненість: ${(confidence * 100).toFixed(1)}%)`);
+          logger.info(`   Кількість CSS правил: ${Object.keys(cssRules).length}`);
+          logger.info('   Джерело стилів: Figma');
         }
       } else {
-        console.log(`⚠️ Немає Figma стилів для ${selector} - пропускаємо`);
-        console.log(`   Figma вузол має стилі: ${Object.keys(figmaStyles).length > 0 ? 'ТАК' : 'НІ'}`);
-        console.log('   Figma стилі:', figmaStyles);
+        logger.info(`⚠️ Немає Figma стилів для ${selector} - пропускаємо`);
+        logger.info(`   Figma вузол має стилі: ${Object.keys(figmaStyles).length > 0 ? 'ТАК' : 'НІ'}`);
+        logger.info('   Figma стилі:', figmaStyles);
       }
       
     } catch (error) {
-      console.error('❌ Помилка генерації CSS для співставлення:', error);
+      logger.error('❌ Помилка генерації CSS для співставлення:', error);
     }
   }
 
@@ -160,15 +161,15 @@ class SmartCSSGenerator {
   extractFigmaStyles(figmaNode) {
     const styles = {};
     
-    console.log(`🔍 Витягуємо стилі з Figma вузла: ${figmaNode.name || figmaNode.type}`);
-    console.log('📊 Структура вузла:', Object.keys(figmaNode));
+    logger.info(`🔍 Витягуємо стилі з Figma вузла: ${figmaNode.name || figmaNode.type}`);
+    logger.info('📊 Структура вузла:', Object.keys(figmaNode));
     
     // ✅ FIX: Кольори - розширений аналіз
     if (figmaNode.fills && figmaNode.fills.length > 0) {
       const fill = figmaNode.fills[0];
       if (fill.type === 'SOLID' && fill.color) {
         styles.color = this.rgbToHex(fill.color);
-        console.log(`   ✅ color: ${styles.color}`);
+        logger.info(`   ✅ color: ${styles.color}`);
       }
     }
     
@@ -177,7 +178,7 @@ class SmartCSSGenerator {
       const fill = figmaNode.fills[0];
       if (fill.type === 'SOLID' && fill.color) {
         styles.backgroundColor = this.rgbToHex(fill.color);
-        console.log(`   ✅ background-color: ${styles.backgroundColor}`);
+        logger.info(`   ✅ background-color: ${styles.backgroundColor}`);
       }
     }
     
@@ -185,27 +186,27 @@ class SmartCSSGenerator {
     if (figmaNode.style) {
       if (figmaNode.style.fontSize) {
         styles.fontSize = figmaNode.style.fontSize;
-        console.log(`   ✅ font-size: ${styles.fontSize}px`);
+        logger.info(`   ✅ font-size: ${styles.fontSize}px`);
       }
       if (figmaNode.style.fontFamily) {
         styles.fontFamily = figmaNode.style.fontFamily;
-        console.log(`   ✅ font-family: ${styles.fontFamily}`);
+        logger.info(`   ✅ font-family: ${styles.fontFamily}`);
       }
       if (figmaNode.style.fontWeight) {
         styles.fontWeight = figmaNode.style.fontWeight;
-        console.log(`   ✅ font-weight: ${styles.fontWeight}`);
+        logger.info(`   ✅ font-weight: ${styles.fontWeight}`);
       }
       if (figmaNode.style.lineHeightPx) {
         styles.lineHeight = figmaNode.style.lineHeightPx;
-        console.log(`   ✅ line-height: ${styles.lineHeight}px`);
+        logger.info(`   ✅ line-height: ${styles.lineHeight}px`);
       }
       if (figmaNode.style.letterSpacing) {
         styles.letterSpacing = figmaNode.style.letterSpacing;
-        console.log(`   ✅ letter-spacing: ${styles.letterSpacing}px`);
+        logger.info(`   ✅ letter-spacing: ${styles.letterSpacing}px`);
       }
       if (figmaNode.style.textAlignHorizontal) {
         styles.textAlign = figmaNode.style.textAlignHorizontal.toLowerCase();
-        console.log(`   ✅ text-align: ${styles.textAlign}`);
+        logger.info(`   ✅ text-align: ${styles.textAlign}`);
       }
     }
     
@@ -213,49 +214,49 @@ class SmartCSSGenerator {
     if (figmaNode.absoluteBoundingBox) {
       styles.width = figmaNode.absoluteBoundingBox.width;
       styles.height = figmaNode.absoluteBoundingBox.height;
-      console.log(`   ✅ width: ${styles.width}px, height: ${styles.height}px`);
+      logger.info(`   ✅ width: ${styles.width}px, height: ${styles.height}px`);
     }
     
     // ✅ FIX: Відступи - розширений аналіз
     if (figmaNode.paddingLeft !== undefined) {
       styles.paddingLeft = figmaNode.paddingLeft;
-      console.log(`   ✅ padding-left: ${styles.paddingLeft}px`);
+      logger.info(`   ✅ padding-left: ${styles.paddingLeft}px`);
     }
     if (figmaNode.paddingRight !== undefined) {
       styles.paddingRight = figmaNode.paddingRight;
-      console.log(`   ✅ padding-right: ${styles.paddingRight}px`);
+      logger.info(`   ✅ padding-right: ${styles.paddingRight}px`);
     }
     if (figmaNode.paddingTop !== undefined) {
       styles.paddingTop = figmaNode.paddingTop;
-      console.log(`   ✅ padding-top: ${styles.paddingTop}px`);
+      logger.info(`   ✅ padding-top: ${styles.paddingTop}px`);
     }
     if (figmaNode.paddingBottom !== undefined) {
       styles.paddingBottom = figmaNode.paddingBottom;
-      console.log(`   ✅ padding-bottom: ${styles.paddingBottom}px`);
+      logger.info(`   ✅ padding-bottom: ${styles.paddingBottom}px`);
     }
     
     // ✅ FIX: Маржіни - розширений аналіз
     if (figmaNode.marginLeft !== undefined) {
       styles.marginLeft = figmaNode.marginLeft;
-      console.log(`   ✅ margin-left: ${styles.marginLeft}px`);
+      logger.info(`   ✅ margin-left: ${styles.marginLeft}px`);
     }
     if (figmaNode.marginRight !== undefined) {
       styles.marginRight = figmaNode.marginRight;
-      console.log(`   ✅ margin-right: ${styles.marginRight}px`);
+      logger.info(`   ✅ margin-right: ${styles.marginRight}px`);
     }
     if (figmaNode.marginTop !== undefined) {
       styles.marginTop = figmaNode.marginTop;
-      console.log(`   ✅ margin-top: ${styles.marginTop}px`);
+      logger.info(`   ✅ margin-top: ${styles.marginTop}px`);
     }
     if (figmaNode.marginBottom !== undefined) {
       styles.marginBottom = figmaNode.marginBottom;
-      console.log(`   ✅ margin-bottom: ${styles.marginBottom}px`);
+      logger.info(`   ✅ margin-bottom: ${styles.marginBottom}px`);
     }
     
     // ✅ FIX: Радіус кутів - розширений аналіз
     if (figmaNode.cornerRadius !== undefined) {
       styles.borderRadius = figmaNode.cornerRadius;
-      console.log(`   ✅ border-radius: ${styles.borderRadius}px`);
+      logger.info(`   ✅ border-radius: ${styles.borderRadius}px`);
     }
     
     // ✅ FIX: Бордери - розширений аналіз
@@ -263,12 +264,12 @@ class SmartCSSGenerator {
       const stroke = figmaNode.strokes[0];
       if (stroke.type === 'SOLID' && stroke.color) {
         styles.borderColor = this.rgbToHex(stroke.color);
-        console.log(`   ✅ border-color: ${styles.borderColor}`);
+        logger.info(`   ✅ border-color: ${styles.borderColor}`);
       }
     }
     if (figmaNode.strokeWeight !== undefined) {
       styles.borderWidth = figmaNode.strokeWeight;
-      console.log(`   ✅ border-width: ${styles.borderWidth}px`);
+      logger.info(`   ✅ border-width: ${styles.borderWidth}px`);
     }
     
     // ✅ FIX: Тіні - розширений аналіз
@@ -277,21 +278,21 @@ class SmartCSSGenerator {
       if (effect.type === 'DROP_SHADOW') {
         const shadow = effect;
         styles.boxShadow = `${shadow.offset.x}px ${shadow.offset.y}px ${shadow.radius}px ${shadow.color ? this.rgbToHex(shadow.color) : 'rgba(0,0,0,0.25)'}`;
-        console.log(`   ✅ box-shadow: ${styles.boxShadow}`);
+        logger.info(`   ✅ box-shadow: ${styles.boxShadow}`);
       }
     }
     
     // ✅ FIX: Flexbox - розширений аналіз
     if (figmaNode.layoutMode) {
       styles.display = 'flex';
-      console.log('   ✅ display: flex');
+      logger.info('   ✅ display: flex');
       
       if (figmaNode.layoutMode === 'HORIZONTAL') {
         styles.flexDirection = 'row';
-        console.log('   ✅ flex-direction: row');
+        logger.info('   ✅ flex-direction: row');
       } else if (figmaNode.layoutMode === 'VERTICAL') {
         styles.flexDirection = 'column';
-        console.log('   ✅ flex-direction: column');
+        logger.info('   ✅ flex-direction: column');
       }
     }
     
@@ -303,7 +304,7 @@ class SmartCSSGenerator {
         'SPACE_BETWEEN': 'space-between'
       };
       styles.justifyContent = alignMap[figmaNode.primaryAxisAlignItems] || 'flex-start';
-      console.log(`   ✅ justify-content: ${styles.justifyContent}`);
+      logger.info(`   ✅ justify-content: ${styles.justifyContent}`);
     }
     
     if (figmaNode.counterAxisAlignItems) {
@@ -313,7 +314,7 @@ class SmartCSSGenerator {
         'MAX': 'flex-end'
       };
       styles.alignItems = alignMap[figmaNode.counterAxisAlignItems] || 'flex-start';
-      console.log(`   ✅ align-items: ${styles.alignItems}`);
+      logger.info(`   ✅ align-items: ${styles.alignItems}`);
     }
     
     // ✅ FIX: Позиціонування - розширений аналіз
@@ -321,10 +322,10 @@ class SmartCSSGenerator {
       styles.position = 'absolute';
       styles.left = figmaNode.absoluteBoundingBox.x;
       styles.top = figmaNode.absoluteBoundingBox.y;
-      console.log(`   ✅ position: absolute, left: ${styles.left}px, top: ${styles.top}px`);
+      logger.info(`   ✅ position: absolute, left: ${styles.left}px, top: ${styles.top}px`);
     }
     
-    console.log(`📊 Всього витягнуто ${Object.keys(styles).length} властивостей`);
+    logger.info(`📊 Всього витягнуто ${Object.keys(styles).length} властивостей`);
     
     return styles;
   }
@@ -337,69 +338,69 @@ class SmartCSSGenerator {
     const isExactMatch = confidence === 1.0;
     
     if (isExactMatch) {
-      console.log('🎯 100% ТОЧНЕ СПІВПАДІННЯ - ПОВНИЙ ПЕРЕНОС ВСІХ ВЛАСТИВОСТЕЙ!');
+      logger.info('🎯 100% ТОЧНЕ СПІВПАДІННЯ - ПОВНИЙ ПЕРЕНОС ВСІХ ВЛАСТИВОСТЕЙ!');
     }
     
     // ✅ FIX: Кольори - повний перенос
     if (figmaStyles.color) {
       cssRules.color = figmaStyles.color;
-      if (isExactMatch) console.log(`   ✅ color: ${figmaStyles.color}`);
+      if (isExactMatch) logger.info(`   ✅ color: ${figmaStyles.color}`);
     }
     
     // ✅ FIX: Шрифти - повний перенос
     if (figmaStyles.fontSize) {
       cssRules['font-size'] = `${figmaStyles.fontSize}px`;
-      if (isExactMatch) console.log(`   ✅ font-size: ${figmaStyles.fontSize}px`);
+      if (isExactMatch) logger.info(`   ✅ font-size: ${figmaStyles.fontSize}px`);
     }
     if (figmaStyles.fontFamily) {
       cssRules['font-family'] = `"${figmaStyles.fontFamily}", sans-serif`;
-      if (isExactMatch) console.log(`   ✅ font-family: "${figmaStyles.fontFamily}"`);
+      if (isExactMatch) logger.info(`   ✅ font-family: "${figmaStyles.fontFamily}"`);
     }
     if (figmaStyles.fontWeight) {
       cssRules['font-weight'] = figmaStyles.fontWeight;
-      if (isExactMatch) console.log(`   ✅ font-weight: ${figmaStyles.fontWeight}`);
+      if (isExactMatch) logger.info(`   ✅ font-weight: ${figmaStyles.fontWeight}`);
     }
     if (figmaStyles.lineHeight) {
       cssRules['line-height'] = `${figmaStyles.lineHeight}px`;
-      if (isExactMatch) console.log(`   ✅ line-height: ${figmaStyles.lineHeight}px`);
+      if (isExactMatch) logger.info(`   ✅ line-height: ${figmaStyles.lineHeight}px`);
     }
     if (figmaStyles.letterSpacing) {
       cssRules['letter-spacing'] = `${figmaStyles.letterSpacing}px`;
-      if (isExactMatch) console.log(`   ✅ letter-spacing: ${figmaStyles.letterSpacing}px`);
+      if (isExactMatch) logger.info(`   ✅ letter-spacing: ${figmaStyles.letterSpacing}px`);
     }
     if (figmaStyles.textAlign) {
       cssRules['text-align'] = figmaStyles.textAlign;
-      if (isExactMatch) console.log(`   ✅ text-align: ${figmaStyles.textAlign}`);
+      if (isExactMatch) logger.info(`   ✅ text-align: ${figmaStyles.textAlign}`);
     }
     if (figmaStyles.textDecoration) {
       cssRules['text-decoration'] = figmaStyles.textDecoration;
-      if (isExactMatch) console.log(`   ✅ text-decoration: ${figmaStyles.textDecoration}`);
+      if (isExactMatch) logger.info(`   ✅ text-decoration: ${figmaStyles.textDecoration}`);
     }
     
     // ✅ FIX: Розміри - повний перенос
     if (figmaStyles.width) {
       cssRules.width = `${figmaStyles.width}px`;
-      if (isExactMatch) console.log(`   ✅ width: ${figmaStyles.width}px`);
+      if (isExactMatch) logger.info(`   ✅ width: ${figmaStyles.width}px`);
     }
     if (figmaStyles.height) {
       cssRules.height = `${figmaStyles.height}px`;
-      if (isExactMatch) console.log(`   ✅ height: ${figmaStyles.height}px`);
+      if (isExactMatch) logger.info(`   ✅ height: ${figmaStyles.height}px`);
     }
     if (figmaStyles.minWidth) {
       cssRules['min-width'] = `${figmaStyles.minWidth}px`;
-      if (isExactMatch) console.log(`   ✅ min-width: ${figmaStyles.minWidth}px`);
+      if (isExactMatch) logger.info(`   ✅ min-width: ${figmaStyles.minWidth}px`);
     }
     if (figmaStyles.minHeight) {
       cssRules['min-height'] = `${figmaStyles.minHeight}px`;
-      if (isExactMatch) console.log(`   ✅ min-height: ${figmaStyles.minHeight}px`);
+      if (isExactMatch) logger.info(`   ✅ min-height: ${figmaStyles.minHeight}px`);
     }
     if (figmaStyles.maxWidth) {
       cssRules['max-width'] = `${figmaStyles.maxWidth}px`;
-      if (isExactMatch) console.log(`   ✅ max-width: ${figmaStyles.maxWidth}px`);
+      if (isExactMatch) logger.info(`   ✅ max-width: ${figmaStyles.maxWidth}px`);
     }
     if (figmaStyles.maxHeight) {
       cssRules['max-height'] = `${figmaStyles.maxHeight}px`;
-      if (isExactMatch) console.log(`   ✅ max-height: ${figmaStyles.maxHeight}px`);
+      if (isExactMatch) logger.info(`   ✅ max-height: ${figmaStyles.maxHeight}px`);
     }
     
     // ✅ FIX: Відступи - повний перенос
@@ -411,7 +412,7 @@ class SmartCSSGenerator {
         figmaStyles.paddingLeft || 0
       ].map(p => `${p}px`).join(' ');
       cssRules.padding = padding;
-      if (isExactMatch) console.log(`   ✅ padding: ${padding}`);
+      if (isExactMatch) logger.info(`   ✅ padding: ${padding}`);
     }
     
     if (figmaStyles.marginLeft || figmaStyles.marginRight || figmaStyles.marginTop || figmaStyles.marginBottom) {
@@ -422,115 +423,115 @@ class SmartCSSGenerator {
         figmaStyles.marginLeft || 0
       ].map(m => `${m}px`).join(' ');
       cssRules.margin = margin;
-      if (isExactMatch) console.log(`   ✅ margin: ${margin}`);
+      if (isExactMatch) logger.info(`   ✅ margin: ${margin}`);
     }
     
     // ✅ FIX: Позиціонування - повний перенос
     if (figmaStyles.position) {
       cssRules.position = figmaStyles.position;
-      if (isExactMatch) console.log(`   ✅ position: ${figmaStyles.position}`);
+      if (isExactMatch) logger.info(`   ✅ position: ${figmaStyles.position}`);
     }
     if (figmaStyles.top !== undefined) {
       cssRules.top = `${figmaStyles.top}px`;
-      if (isExactMatch) console.log(`   ✅ top: ${figmaStyles.top}px`);
+      if (isExactMatch) logger.info(`   ✅ top: ${figmaStyles.top}px`);
     }
     if (figmaStyles.right !== undefined) {
       cssRules.right = `${figmaStyles.right}px`;
-      if (isExactMatch) console.log(`   ✅ right: ${figmaStyles.right}px`);
+      if (isExactMatch) logger.info(`   ✅ right: ${figmaStyles.right}px`);
     }
     if (figmaStyles.bottom !== undefined) {
       cssRules.bottom = `${figmaStyles.bottom}px`;
-      if (isExactMatch) console.log(`   ✅ bottom: ${figmaStyles.bottom}px`);
+      if (isExactMatch) logger.info(`   ✅ bottom: ${figmaStyles.bottom}px`);
     }
     if (figmaStyles.left !== undefined) {
       cssRules.left = `${figmaStyles.left}px`;
-      if (isExactMatch) console.log(`   ✅ left: ${figmaStyles.left}px`);
+      if (isExactMatch) logger.info(`   ✅ left: ${figmaStyles.left}px`);
     }
     
     // ✅ FIX: Радіус кутів - повний перенос
     if (figmaStyles.borderRadius) {
       cssRules['border-radius'] = `${figmaStyles.borderRadius}px`;
-      if (isExactMatch) console.log(`   ✅ border-radius: ${figmaStyles.borderRadius}px`);
+      if (isExactMatch) logger.info(`   ✅ border-radius: ${figmaStyles.borderRadius}px`);
     }
     
     // ✅ FIX: Тіні - повний перенос
     if (figmaStyles.boxShadow) {
       cssRules['box-shadow'] = figmaStyles.boxShadow;
-      if (isExactMatch) console.log(`   ✅ box-shadow: ${figmaStyles.boxShadow}`);
+      if (isExactMatch) logger.info(`   ✅ box-shadow: ${figmaStyles.boxShadow}`);
     }
     if (figmaStyles.textShadow) {
       cssRules['text-shadow'] = figmaStyles.textShadow;
-      if (isExactMatch) console.log(`   ✅ text-shadow: ${figmaStyles.textShadow}`);
+      if (isExactMatch) logger.info(`   ✅ text-shadow: ${figmaStyles.textShadow}`);
     }
     
     // ✅ FIX: Фон - повний перенос
     if (figmaStyles.backgroundColor) {
       cssRules['background-color'] = figmaStyles.backgroundColor;
-      if (isExactMatch) console.log(`   ✅ background-color: ${figmaStyles.backgroundColor}`);
+      if (isExactMatch) logger.info(`   ✅ background-color: ${figmaStyles.backgroundColor}`);
     }
     if (figmaStyles.backgroundImage) {
       cssRules['background-image'] = figmaStyles.backgroundImage;
-      if (isExactMatch) console.log(`   ✅ background-image: ${figmaStyles.backgroundImage}`);
+      if (isExactMatch) logger.info(`   ✅ background-image: ${figmaStyles.backgroundImage}`);
     }
     if (figmaStyles.backgroundSize) {
       cssRules['background-size'] = figmaStyles.backgroundSize;
-      if (isExactMatch) console.log(`   ✅ background-size: ${figmaStyles.backgroundSize}`);
+      if (isExactMatch) logger.info(`   ✅ background-size: ${figmaStyles.backgroundSize}`);
     }
     if (figmaStyles.backgroundPosition) {
       cssRules['background-position'] = figmaStyles.backgroundPosition;
-      if (isExactMatch) console.log(`   ✅ background-position: ${figmaStyles.backgroundPosition}`);
+      if (isExactMatch) logger.info(`   ✅ background-position: ${figmaStyles.backgroundPosition}`);
     }
     
     // ✅ FIX: Бордери - повний перенос
     if (figmaStyles.borderWidth) {
       cssRules['border-width'] = `${figmaStyles.borderWidth}px`;
-      if (isExactMatch) console.log(`   ✅ border-width: ${figmaStyles.borderWidth}px`);
+      if (isExactMatch) logger.info(`   ✅ border-width: ${figmaStyles.borderWidth}px`);
     }
     if (figmaStyles.borderColor) {
       cssRules['border-color'] = figmaStyles.borderColor;
-      if (isExactMatch) console.log(`   ✅ border-color: ${figmaStyles.borderColor}`);
+      if (isExactMatch) logger.info(`   ✅ border-color: ${figmaStyles.borderColor}`);
     }
     if (figmaStyles.borderStyle) {
       cssRules['border-style'] = figmaStyles.borderStyle;
-      if (isExactMatch) console.log(`   ✅ border-style: ${figmaStyles.borderStyle}`);
+      if (isExactMatch) logger.info(`   ✅ border-style: ${figmaStyles.borderStyle}`);
     }
     
     // ✅ FIX: Flexbox - повний перенос
     if (figmaStyles.display) {
       cssRules.display = figmaStyles.display;
-      if (isExactMatch) console.log(`   ✅ display: ${figmaStyles.display}`);
+      if (isExactMatch) logger.info(`   ✅ display: ${figmaStyles.display}`);
     }
     if (figmaStyles.flexDirection) {
       cssRules['flex-direction'] = figmaStyles.flexDirection;
-      if (isExactMatch) console.log(`   ✅ flex-direction: ${figmaStyles.flexDirection}`);
+      if (isExactMatch) logger.info(`   ✅ flex-direction: ${figmaStyles.flexDirection}`);
     }
     if (figmaStyles.justifyContent) {
       cssRules['justify-content'] = figmaStyles.justifyContent;
-      if (isExactMatch) console.log(`   ✅ justify-content: ${figmaStyles.justifyContent}`);
+      if (isExactMatch) logger.info(`   ✅ justify-content: ${figmaStyles.justifyContent}`);
     }
     if (figmaStyles.alignItems) {
       cssRules['align-items'] = figmaStyles.alignItems;
-      if (isExactMatch) console.log(`   ✅ align-items: ${figmaStyles.alignItems}`);
+      if (isExactMatch) logger.info(`   ✅ align-items: ${figmaStyles.alignItems}`);
     }
     if (figmaStyles.flexWrap) {
       cssRules['flex-wrap'] = figmaStyles.flexWrap;
-      if (isExactMatch) console.log(`   ✅ flex-wrap: ${figmaStyles.flexWrap}`);
+      if (isExactMatch) logger.info(`   ✅ flex-wrap: ${figmaStyles.flexWrap}`);
     }
     if (figmaStyles.flexGrow) {
       cssRules['flex-grow'] = figmaStyles.flexGrow;
-      if (isExactMatch) console.log(`   ✅ flex-grow: ${figmaStyles.flexGrow}`);
+      if (isExactMatch) logger.info(`   ✅ flex-grow: ${figmaStyles.flexGrow}`);
     }
     if (figmaStyles.flexShrink) {
       cssRules['flex-shrink'] = figmaStyles.flexShrink;
-      if (isExactMatch) console.log(`   ✅ flex-shrink: ${figmaStyles.flexShrink}`);
+      if (isExactMatch) logger.info(`   ✅ flex-shrink: ${figmaStyles.flexShrink}`);
     }
     if (figmaStyles.flexBasis) {
       cssRules['flex-basis'] = `${figmaStyles.flexBasis}px`;
-      if (isExactMatch) console.log(`   ✅ flex-basis: ${figmaStyles.flexBasis}px`);
+      if (isExactMatch) logger.info(`   ✅ flex-basis: ${figmaStyles.flexBasis}px`);
     }
     
     if (isExactMatch) {
-      console.log(`🎯 ВСЬОГО ПЕРЕНЕСЕНО ${Object.keys(cssRules).length} CSS ВЛАСТИВОСТЕЙ!`);
+      logger.info(`🎯 ВСЬОГО ПЕРЕНЕСЕНО ${Object.keys(cssRules).length} CSS ВЛАСТИВОСТЕЙ!`);
     }
     
     // Додаємо коментар з рівнем впевненості
@@ -604,12 +605,12 @@ class SmartCSSGenerator {
   generateCSS(figmaData, htmlData, preMatchedElements = null) {
     this.reset();
 
-    console.log('🧠 Початок розумної генерації CSS...');
+    logger.info('🧠 Початок розумної генерації CSS...');
 
     // ✅ FIX: Розумне співставлення елементів
     const matches = preMatchedElements || this.performSmartMatching(figmaData, htmlData);
 
-    console.log(`🎯 Smart matching found ${matches.size} element pairs`);
+    logger.info(`🎯 Smart matching found ${matches.size} element pairs`);
 
     // ✅ FIX: Генерація базових стилів
     if (this.options.includeReset) {
@@ -651,7 +652,7 @@ class SmartCSSGenerator {
     const figmaElements = Array.from(figmaData.hierarchy.values());
     const htmlElements = Array.from(htmlData.hierarchy.values());
 
-    console.log(
+    logger.info(
       `🔍 Matching ${figmaElements.length} Figma elements with ${htmlElements.length} HTML elements`
     );
 
@@ -685,11 +686,11 @@ class SmartCSSGenerator {
         });
         usedHtmlElements.add(bestMatch.htmlIndex);
 
-        console.log(
+        logger.info(
           `✅ Matched: "${figmaElement.name}" → ".${this.getElementClassName(bestMatch.htmlElement)}" (${(bestMatch.score * 100).toFixed(1)}%)`
         );
       } else {
-        console.log(`❌ No match found for Figma element: "${figmaElement.name}"`);
+        logger.info(`❌ No match found for Figma element: "${figmaElement.name}"`);
       }
     });
 
@@ -848,7 +849,7 @@ class SmartCSSGenerator {
     this.statistics.totalRules++;
     this.statistics.matchedElements++;
 
-    console.log(
+    logger.info(
       `📝 Згенеровано стилі для .${className} з «${figmaElement.name}» (${figmaElement.type})`
     );
   }
@@ -1352,11 +1353,11 @@ class SmartCSSGenerator {
     this.statistics.matchingAccuracy =
       totalFigmaElements > 0 ? matches.size / totalFigmaElements : 0;
 
-    console.log('📊 Matching Statistics:');
-    console.log(`   Total Figma elements: ${totalFigmaElements}`);
-    console.log(`   Total HTML elements: ${totalHtmlElements}`);
-    console.log(`   Successful matches: ${matches.size}`);
-    console.log(`   Matching accuracy: ${(this.statistics.matchingAccuracy * 100).toFixed(1)}%`);
+    logger.info('📊 Matching Statistics:');
+    logger.info(`   Total Figma elements: ${totalFigmaElements}`);
+    logger.info(`   Total HTML elements: ${totalHtmlElements}`);
+    logger.info(`   Successful matches: ${matches.size}`);
+    logger.info(`   Matching accuracy: ${(this.statistics.matchingAccuracy * 100).toFixed(1)}%`);
   }
 
   optimizeCSS(css) {

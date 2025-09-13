@@ -1,3 +1,4 @@
+const { logger } = require('../utils/Logger');
 /**
  * ✅ Покращений CSS генератор з повною підтримкою налаштувань
  * Реалізує всі вимоги користувача для генерації CSS
@@ -44,7 +45,7 @@ class EnhancedCSSGenerator {
    * 🎯 Головний метод генерації CSS згідно з вимогами
    */
   async generateCSS(figmaData, htmlData, matchingResults, settings = {}) {
-    console.log('🚀 Початок покращеної генерації CSS...');
+    logger.info('🚀 Початок покращеної генерації CSS...');
     
     // Оновлюємо налаштування
     this.updateSettings(settings);
@@ -81,8 +82,8 @@ class EnhancedCSSGenerator {
     // Оновлюємо статистику
     this.updateStatistics();
     
-    console.log('✅ CSS генерація завершена');
-    console.log(`📊 Статистика: ${this.statistics.totalRules} правил, ${this.statistics.exactMatches} точних співпадінь`);
+    logger.info('✅ CSS генерація завершена');
+    logger.info(`📊 Статистика: ${this.statistics.totalRules} правил, ${this.statistics.exactMatches} точних співпадінь`);
     
     return css;
   }
@@ -91,7 +92,7 @@ class EnhancedCSSGenerator {
    * 🎨 Генерація CSS змінних з Figma
    */
   generateCSSVariables(figmaData) {
-    console.log('🎨 Генерація CSS змінних...');
+    logger.info('🎨 Генерація CSS змінних...');
     
     let css = '/* 🎨 CSS Custom Properties (змінні) з Figma */\n:root {\n';
     
@@ -118,7 +119,7 @@ class EnhancedCSSGenerator {
     
     css += '}\n\n';
     
-    console.log(`✅ Згенеровано ${this.variables.size} CSS змінних`);
+    logger.info(`✅ Згенеровано ${this.variables.size} CSS змінних`);
     return css;
   }
 
@@ -126,7 +127,7 @@ class EnhancedCSSGenerator {
    * 🌍 Генерація глобальних стилів
    */
   generateGlobalStyles() {
-    console.log('🌍 Генерація глобальних стилів...');
+    logger.info('🌍 Генерація глобальних стилів...');
     
     let css = '/* 🌍 Глобальні стилі */\n';
     
@@ -164,7 +165,7 @@ button {
 
 `;
     
-    console.log('✅ Глобальні стилі згенеровано');
+    logger.info('✅ Глобальні стилі згенеровано');
     return css;
   }
 
@@ -172,7 +173,7 @@ button {
    * 🔄 Генерація Reset стилів
    */
   generateResetStyles() {
-    console.log('🔄 Генерація Reset стилів...');
+    logger.info('🔄 Генерація Reset стилів...');
     
     let css = '/* 🔄 CSS Reset стилі */\n';
     
@@ -235,7 +236,7 @@ table {
 `;
     }
     
-    console.log('✅ Reset стилі згенеровано');
+    logger.info('✅ Reset стилі згенеровано');
     return css;
   }
 
@@ -243,7 +244,7 @@ table {
    * 🌳 Генерація ієрархічних стилів згідно HTML структури
    */
   async generateHierarchicalStyles(figmaData, htmlData, matchingResults) {
-    console.log('🌳 Генерація ієрархічних стилів...');
+    logger.info('🌳 Генерація ієрархічних стилів...');
     
     let css = '/* 🌳 Основні стилі в ієрархічній послідовності */\n';
     
@@ -257,7 +258,7 @@ table {
       const shouldUseFullTransfer = this.shouldUseFullPropertyTransfer(match);
       
       if (shouldUseFullTransfer) {
-        console.log(`🎯 100% ПЕРЕНОС ВЛАСТИВОСТЕЙ: ${html.tagName}.${html.className || 'no-class'}`);
+        logger.info(`🎯 100% ПЕРЕНОС ВЛАСТИВОСТЕЙ: ${html.tagName}.${html.className || 'no-class'}`);
         this.statistics.exactMatches++;
       }
       
@@ -273,7 +274,7 @@ table {
       }
     }
     
-    console.log(`✅ Ієрархічні стилі згенеровано для ${this.statistics.matchedElements} елементів`);
+    logger.info(`✅ Ієрархічні стилі згенеровано для ${this.statistics.matchedElements} елементів`);
     return css;
   }
 
@@ -285,25 +286,25 @@ table {
     
     // 1. Головний вузол Figma = 100% відповідність класу Body
     if (metadata && metadata.isMainNode && html.tagName === 'body') {
-      console.log('🎯 Головний вузол Figma ↔ Body: 100% перенос');
+      logger.info('🎯 Головний вузол Figma ↔ Body: 100% перенос');
       return true;
     }
     
     // 2. Дочірні елементи з однаковою кількістю
     if (metadata && metadata.isDirectMatch && metadata.figmaChildrenCount === metadata.htmlChildrenCount) {
-      console.log('🎯 Однакова кількість дочірніх елементів: 100% перенос');
+      logger.info('🎯 Однакова кількість дочірніх елементів: 100% перенос');
       return true;
     }
     
     // 3. 100% точне співпадіння тексту
     if (type === 'text' && confidence === 1.0 && metadata && metadata.isExactMatch) {
-      console.log('🎯 100% точне співпадіння тексту: 100% перенос');
+      logger.info('🎯 100% точне співпадіння тексту: 100% перенос');
       return true;
     }
     
     // 4. Високий рівень впевненості (90%+)
     if (confidence >= 0.9) {
-      console.log('🎯 Високий рівень впевненості (90%+): 100% перенос');
+      logger.info('🎯 Високий рівень впевненості (90%+): 100% перенос');
       return true;
     }
     
@@ -340,7 +341,7 @@ table {
    * 👤 Генерація користувацьких стилів з точним співпадінням класів
    */
   async generateCustomStyles(htmlData) {
-    console.log('👤 Генерація користувацьких стилів...');
+    logger.info('👤 Генерація користувацьких стилів...');
     
     let css = '/* 👤 Користувацькі стилі з точним співпадінням класів */\n';
     
@@ -369,7 +370,7 @@ table {
       }
     }
     
-    console.log('✅ Користувацькі стилі згенеровано');
+    logger.info('✅ Користувацькі стилі згенеровано');
     return css;
   }
 

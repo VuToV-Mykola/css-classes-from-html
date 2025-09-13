@@ -1,3 +1,4 @@
+const { logger } = require('../utils/Logger');
 /**
  * ✅ FIX: Розширений HTML парсер з правильним обробкою закриваючих тегів
  * Зберігає текст для порівняння з Figma вузлами
@@ -29,10 +30,10 @@ class AdvancedHTMLParser {
       // Парсимо всі елементи з збереженням порядку
       this.parseElement(document.body || document.documentElement, 0, 0);
       
-      console.log('📊 HTML парсинг завершено:');
-      console.log(`   • Всього елементів: ${this.elements.length}`);
-      console.log(`   • Текстових елементів: ${this.textElements.length}`);
-      console.log(`   • Ієрархічних рівнів: ${this.hierarchy.length}`);
+      logger.info('📊 HTML парсинг завершено:');
+      logger.info(`   • Всього елементів: ${this.elements.length}`);
+      logger.info(`   • Текстових елементів: ${this.textElements.length}`);
+      logger.info(`   • Ієрархічних рівнів: ${this.hierarchy.length}`);
       
       return {
         elements: this.elements,
@@ -43,7 +44,7 @@ class AdvancedHTMLParser {
       };
       
     } catch (error) {
-      console.error('❌ Помилка парсингу HTML:', error);
+      logger.error('❌ Помилка парсингу HTML:', error);
       return {
         elements: [],
         textElements: [],

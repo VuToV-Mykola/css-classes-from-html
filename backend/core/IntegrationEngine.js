@@ -1,5 +1,6 @@
 // IntegrationEngine — інтеграція з Figma API без хардкоду
 const FigmaAPIClient = require('./FigmaAPIClient');
+const { logger } = require('../utils/Logger');
 
 class IntegrationEngine {
   constructor(config) {
@@ -176,7 +177,7 @@ class IntegrationEngine {
     // ✅ FIX: Застосовуємо alias'и до Layers перед генерацією CSS
     if (figmaAnalysis.layers && Array.isArray(figmaAnalysis.layers)) {
       figmaAnalysis.layers = this.applyAliasesToLayers(figmaAnalysis.layers);
-      console.log(`✏️ Applied ${this.layerAliases.size} layer aliases before CSS generation`);
+      logger.info(`Застосовано ${this.layerAliases.size} псевдонімів layers перед генерацією CSS`);
     }
 
     const generator = new SmartCSSGenerator({
@@ -285,7 +286,7 @@ class IntegrationEngine {
   // ✅ FIX: Функції для роботи з перейменуваннями Layers
   async setLayerAlias(layerId, newName) {
     this.layerAliases.set(layerId, newName);
-    console.log(`✏️ Layer alias set: ${layerId} -> ${newName}`);
+    logger.info(`Псевдонім layer встановлено: ${layerId} -> ${newName}`);
     return true;
   }
 
@@ -299,7 +300,7 @@ class IntegrationEngine {
 
   clearAliases() {
     this.layerAliases.clear();
-    console.log('🗑️ All layer aliases cleared');
+    logger.info('Всі псевдоніми layers очищено');
   }
 
   // ✅ FIX: Застосування alias'ів до Layers перед генерацією CSS

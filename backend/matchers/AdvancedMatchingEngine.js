@@ -1,3 +1,4 @@
+const { logger } = require('../utils/Logger');
 /**
  * ✅ FIX: Розширений механізм співставлення з 100% переносом властивостей
  * Реалізує точне співставлення Figma вузлів з HTML елементами
@@ -42,7 +43,7 @@ class AdvancedMatchingEngine {
    * ✅ FIX: Основний метод співставлення
    */
   async match(figmaData, htmlData) {
-    console.log('🎯 Початок розширеного співставлення...');
+    logger.info('🎯 Початок розширеного співставлення...');
     
     // Очищаємо попередні результати
     this.matches = [];
@@ -69,27 +70,27 @@ class AdvancedMatchingEngine {
     }
     const htmlElements = this.normalizeHtmlData(htmlData);
     
-    console.log('📊 Дані для співставлення:');
-    console.log(`   • Figma вузлів: ${figmaNodes.length}`);
-    console.log(`   • HTML елементів: ${htmlElements.length}`);
+    logger.info('📊 Дані для співставлення:');
+    logger.info(`   • Figma вузлів: ${figmaNodes.length}`);
+    logger.info(`   • HTML елементів: ${htmlElements.length}`);
     
     // 1. Знаходимо головний вузол Figma (найбільший FRAME або CANVAS)
     const mainFigmaNode = this.findMainFigmaNode(figmaNodes);
     if (!mainFigmaNode) {
-      console.error('❌ Головний вузол Figma не знайдено');
+      logger.error('❌ Головний вузол Figma не знайдено');
       return this.matches;
     }
     
-    console.log(`🎯 Головний вузол Figma: ${mainFigmaNode.name || mainFigmaNode.type}`);
+    logger.info(`🎯 Головний вузол Figma: ${mainFigmaNode.name || mainFigmaNode.type}`);
     
     // 2. Знаходимо HTML body елемент
     const bodyElement = this.findBodyElement(htmlElements);
     if (!bodyElement) {
-      console.error('❌ HTML body елемент не знайдено');
+      logger.error('❌ HTML body елемент не знайдено');
       return this.matches;
     }
     
-    console.log(`🎯 HTML body елемент: ${bodyElement.tagName}.${bodyElement.className || 'no-class'}`);
+    logger.info(`🎯 HTML body елемент: ${bodyElement.tagName}.${bodyElement.className || 'no-class'}`);
     
     // 3. Створюємо 100% співставлення головного вузла з body
     this.createExactMatch(mainFigmaNode, bodyElement, 'main-node-body');
@@ -103,12 +104,12 @@ class AdvancedMatchingEngine {
     // 6. Розраховуємо статистику
     this.calculateStatistics();
     
-    console.log('✅ Співставлення завершено:');
-    console.log(`   • Всього співпадінь: ${this.matches.length}`);
-    console.log(`   • Точних співпадінь: ${this.statistics.exactMatches}`);
-    console.log(`   • Ієрархічних співпадінь: ${this.statistics.hierarchicalMatches}`);
-    console.log(`   • Текстових співпадінь: ${this.statistics.textMatches}`);
-    console.log(`   • Середня впевненість: ${(this.statistics.averageConfidence * 100).toFixed(1)}%`);
+    logger.info('✅ Співставлення завершено:');
+    logger.info(`   • Всього співпадінь: ${this.matches.length}`);
+    logger.info(`   • Точних співпадінь: ${this.statistics.exactMatches}`);
+    logger.info(`   • Ієрархічних співпадінь: ${this.statistics.hierarchicalMatches}`);
+    logger.info(`   • Текстових співпадінь: ${this.statistics.textMatches}`);
+    logger.info(`   • Середня впевненість: ${(this.statistics.averageConfidence * 100).toFixed(1)}%`);
     
     return this.matches;
   }
@@ -222,9 +223,9 @@ class AdvancedMatchingEngine {
     this.matches.push(match);
     this.statistics.exactMatches++;
     
-    console.log(`🎯 Точне співставлення створено: ${algorithm}`);
-    console.log(`   Figma: ${figmaNode.name || figmaNode.type}`);
-    console.log(`   HTML: ${htmlElement.tagName}.${htmlElement.className || 'no-class'}`);
+    logger.info(`🎯 Точне співставлення створено: ${algorithm}`);
+    logger.info(`   Figma: ${figmaNode.name || figmaNode.type}`);
+    logger.info(`   HTML: ${htmlElement.tagName}.${htmlElement.className || 'no-class'}`);
   }
 
   /**
@@ -234,13 +235,13 @@ class AdvancedMatchingEngine {
     const figmaChildren = figmaNode.children || [];
     const htmlChildren = htmlElement.children || [];
     
-    console.log('🌳 Ієрархічне співставлення:');
-    console.log(`   Figma дочірні: ${figmaChildren.length}`);
-    console.log(`   HTML дочірні: ${htmlChildren.length}`);
+    logger.info('🌳 Ієрархічне співставлення:');
+    logger.info(`   Figma дочірні: ${figmaChildren.length}`);
+    logger.info(`   HTML дочірні: ${htmlChildren.length}`);
     
     // Якщо кількість дочірніх елементів співпадає, робимо пряме співставлення
     if (figmaChildren.length === htmlChildren.length) {
-      console.log('✅ Кількість дочірніх елементів співпадає - пряме співставлення');
+      logger.info('✅ Кількість дочірніх елементів співпадає - пряме співставлення');
       
       for (let i = 0; i < figmaChildren.length; i++) {
         const figmaChild = figmaChildren[i];
@@ -254,7 +255,7 @@ class AdvancedMatchingEngine {
         await this.matchChildrenHierarchically(figmaChild, htmlChild);
       }
     } else {
-      console.log('⚠️ Кількість дочірніх елементів не співпадає - використовуємо математичний аналіз');
+      logger.info('⚠️ Кількість дочірніх елементів не співпадає - використовуємо математичний аналіз');
       
       // Використовуємо математичний аналіз для співставлення
       await this.matchWithMathematicalAnalysis(figmaChildren, htmlChildren);
@@ -265,9 +266,9 @@ class AdvancedMatchingEngine {
    * ✅ FIX: Математичний аналіз для співставлення
    */
   async matchWithMathematicalAnalysis(figmaChildren, htmlChildren) {
-    console.log('🧮 Математичний аналіз співставлення:');
-    console.log(`   Figma: ${figmaChildren.length} елементів`);
-    console.log(`   HTML: ${htmlChildren.length} елементів`);
+    logger.info('🧮 Математичний аналіз співставлення:');
+    logger.info(`   Figma: ${figmaChildren.length} елементів`);
+    logger.info(`   HTML: ${htmlChildren.length} елементів`);
     
     // Створюємо матрицю схожості
     const similarityMatrix = [];
@@ -481,7 +482,7 @@ class AdvancedMatchingEngine {
    * ✅ FIX: Пошук точних текстових співпадінь
    */
   async findExactTextMatches(figmaNodes, htmlElements) {
-    console.log('🔍 Пошук точних текстових співпадінь...');
+    logger.info('🔍 Пошук точних текстових співпадінь...');
     
     const textFigmaNodes = figmaNodes.filter(node => 
       node.type === 'TEXT' && node.characters && node.characters.trim().length > 0
@@ -491,8 +492,8 @@ class AdvancedMatchingEngine {
       el.textContent && el.textContent.trim().length > 0
     );
     
-    console.log(`📊 Текстових вузлів: ${textFigmaNodes.length}`);
-    console.log(`📊 Текстових HTML елементів: ${textHtmlElements.length}`);
+    logger.info(`📊 Текстових вузлів: ${textFigmaNodes.length}`);
+    logger.info(`📊 Текстових HTML елементів: ${textHtmlElements.length}`);
     
     for (const figmaNode of textFigmaNodes) {
       for (const htmlElement of textHtmlElements) {

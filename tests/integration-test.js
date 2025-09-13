@@ -1,5 +1,6 @@
 
-console.log('🧪 Running integration test...');
+const { logger } = require('../backend/utils/Logger');
+logger.start('Запуск інтеграційного тесту');
 
 // Test HTML Parser
 try {
@@ -25,16 +26,16 @@ try {
     throw new Error('HTML parsing failed - no elements found');
   }
     
-  console.log(`✓ HTML Parser: ${result.hierarchy.size} elements parsed`);
+  logger.success(`HTML Parser: ${result.hierarchy.size} елементів розпарсено`);
     
   if (!result.classMap || result.classMap.size === 0) {
     throw new Error('No CSS classes found');
   }
     
-  console.log(`✓ Class extraction: ${result.classMap.size} classes found`);
+  logger.success(`Витягування класів: ${result.classMap.size} класів знайдено`);
     
 } catch (error) {
-  console.error('❌ Integration test failed:', error.message);
+  logger.error('Інтеграційний тест не пройшов', error.message);
   process.exit(1);
 }
 
@@ -62,17 +63,17 @@ try {
     throw new Error('CSS generation failed - no output');
   }
     
-  console.log(`✓ CSS Generator: ${css.length} characters generated`);
+  logger.success(`CSS Generator: ${css.length} символів згенеровано`);
     
   if (!css.includes('.container') || !css.includes('.title')) {
     throw new Error('CSS generation failed - missing expected classes');
   }
     
-  console.log('✓ CSS classes properly generated');
+  logger.success('CSS класи правильно згенеровано');
     
 } catch (error) {
-  console.error('❌ CSS generation test failed:', error.message);
+  logger.error('CSS генерація не пройшла', error.message);
   process.exit(1);
 }
 
-console.log('🎉 Integration test completed successfully!');
+logger.complete('Інтеграційний тест успішно завершено!');

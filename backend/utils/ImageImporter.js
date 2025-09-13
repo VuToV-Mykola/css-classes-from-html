@@ -1,3 +1,4 @@
+const { logger } = require('./Logger');
 /**
  * ✅ FIX: Імпортер зображень з Figma з автооптимізацією
  * Завантажує та оптимізує зображення з Figma макетів
@@ -23,35 +24,35 @@ class ImageImporter {
    */
   async importImages(figmaClient, fileKey, selectedLayers = [], selectedCanvasIds = []) {
     try {
-      console.log('🖼️ Початок імпорту зображень з Figma...');
-      console.log('📋 File key:', fileKey);
-      console.log('📋 Selected layers:', selectedLayers);
-      console.log('📋 Selected canvas:', selectedCanvasIds);
+      logger.info('🖼️ Початок імпорту зображень з Figma...');
+      logger.info('📋 File key:', fileKey);
+      logger.info('📋 Selected layers:', selectedLayers);
+      logger.info('📋 Selected canvas:', selectedCanvasIds);
 
       // ✅ FIX: Створення директорії для зображень
       this.ensureOutputDirectory();
 
       // ✅ FIX: Отримання всіх зображень з файлу (з фільтрацією по canvas)
-      console.log('🔄 Getting all images from Figma...');
+      logger.info('🔄 Getting all images from Figma...');
       const allImages = await this.getAllImagesFromCanvases(figmaClient, fileKey, selectedCanvasIds);
-      console.log('📸 All images received:', allImages);
+      logger.info('📸 All images received:', allImages);
 
       // ✅ FIX: Логіка фільтрації за layers
       let imagesToProcess;
       if (selectedLayers.length > 0) {
         // Якщо є вибрані layers - імпортуємо тільки з них
         imagesToProcess = allImages.filter(img => selectedLayers.includes(img.id));
-        console.log(`🎯 Filtered by selected layers: ${imagesToProcess.length}/${allImages.length} images`);
+        logger.info(`🎯 Filtered by selected layers: ${imagesToProcess.length}/${allImages.length} images`);
       } else {
         // Якщо layers не вибрані - імпортуємо з усього canvas
         imagesToProcess = allImages;
-        console.log(`🌍 Processing all images from canvas: ${imagesToProcess.length} images`);
+        logger.info(`🌍 Processing all images from canvas: ${imagesToProcess.length} images`);
       }
 
-      console.log(`📸 Final images to process: ${imagesToProcess.length}`);
+      logger.info(`📸 Final images to process: ${imagesToProcess.length}`);
 
       if (imagesToProcess.length === 0) {
-        console.log('⚠️ Не знайдено зображень для імпорту');
+        logger.info('⚠️ Не знайдено зображень для імпорту');
         return {
           success: true,
           images: [],
@@ -59,7 +60,7 @@ class ImageImporter {
         };
       }
 
-      console.log(`📸 Знайдено ${imagesToProcess.length} зображень для обробки`);
+      logger.info(`📸 Знайдено ${imagesToProcess.length} зображень для обробки`);
 
       // ✅ FIX: Обробка кожного зображення
       const processedImages = [];
@@ -69,9 +70,9 @@ class ImageImporter {
         try {
           const result = await this.processImage(figmaClient, fileKey, image);
           processedImages.push(result);
-          console.log(`✅ Processed: ${result.name}`);
+          logger.info(`✅ Processed: ${result.name}`);
         } catch (error) {
-          console.error(`❌ Помилка обробки зображення ${image.name}:`, error.message);
+          logger.error(`❌ Помилка обробки зображення ${image.name}:`, error.message);
           errors.push({
             image: image.name,
             error: error.message
@@ -91,7 +92,7 @@ class ImageImporter {
         message: `Successfully imported ${processedImages.length} images`
       };
     } catch (error) {
-      console.error('❌ Імпорт зображень не вдався:', error.message);
+      logger.error('❌ Імпорт зображень не вдався:', error.message);
       throw new Error(`Помилка імпорту зображень: ${error.message}`);
     }
   }
@@ -144,7 +145,7 @@ class ImageImporter {
             size: this.getFileSize(filePath)
           });
         } catch (error) {
-          console.warn(`⚠️ Не вдалося експортувати ${cleanName} у форматі ${format}@${scale}x:`, error.message);
+          logger.warn(`⚠️ Не вдалося експортувати ${cleanName} у форматі ${format}@${scale}x:`, error.message);
         }
       }
     }
@@ -165,7 +166,7 @@ class ImageImporter {
 
       throw new Error(`Не знайдено URL експорту для вузла ${nodeId}`);
     } catch (error) {
-      console.error('Помилка отримання URL експорту:', error);
+      logger.error('Помилка отримання URL експорту:', error);
       throw error;
     }
   }
@@ -222,11 +223,11 @@ class ImageImporter {
       const newSize = newStats.size;
       const savings = (((originalSize - newSize) / originalSize) * 100).toFixed(1);
 
-      console.log(
+      logger.info(
         `🔧 Оптимізовано ${path.basename(filePath)}: ${this.formatBytes(originalSize)} → ${this.formatBytes(newSize)} (економія ${savings}%)`
       );
     } catch (error) {
-      console.warn(`⚠️ Не вдалося оптимізувати ${path.basename(filePath)}:`, error.message);
+      logger.warn(`⚠️ Не вдалося оптимізувати ${path.basename(filePath)}:`, error.message);
     }
   }
 
@@ -248,7 +249,7 @@ class ImageImporter {
       
       fs.writeFileSync(filePath, optimizedBuffer);
       
-      console.log(`📸 Застосовано оптимізацію PNG до ${path.basename(filePath)}`);
+      logger.info(`📸 Застосовано оптимізацію PNG до ${path.basename(filePath)}`);
     } catch (error) {
       throw new Error(`Помилка оптимізації PNG: ${error.message}`);
     }
@@ -272,7 +273,7 @@ class ImageImporter {
       
       fs.writeFileSync(filePath, optimizedBuffer);
       
-      console.log(`📸 Застосовано оптимізацію JPEG до ${path.basename(filePath)}`);
+      logger.info(`📸 Застосовано оптимізацію JPEG до ${path.basename(filePath)}`);
     } catch (error) {
       throw new Error(`Помилка оптимізації JPEG: ${error.message}`);
     }
@@ -294,7 +295,7 @@ class ImageImporter {
         .trim();
 
       fs.writeFileSync(filePath, svgContent, 'utf8');
-      console.log(`🎨 Застосовано оптимізацію SVG до ${path.basename(filePath)}`);
+      logger.info(`🎨 Застосовано оптимізацію SVG до ${path.basename(filePath)}`);
     } catch (error) {
       throw new Error(`Помилка оптимізації SVG: ${error.message}`);
     }
@@ -405,7 +406,7 @@ class ImageImporter {
           sprite += `    ${svgBody}\n`;
           sprite += '  </symbol>\n';
         } catch (error) {
-          console.warn(`⚠️ Failed to add ${image.name} to sprite:`, error.message);
+          logger.warn(`⚠️ Failed to add ${image.name} to sprite:`, error.message);
         }
       }
     }
@@ -416,7 +417,7 @@ class ImageImporter {
     const spritePath = path.join(this.outputDir, 'icons.svg');
     fs.writeFileSync(spritePath, sprite, 'utf8');
 
-    console.log(`🎨 Generated SVG sprite: ${spritePath}`);
+    logger.info(`🎨 Generated SVG sprite: ${spritePath}`);
 
     return {
       filePath: spritePath,
@@ -462,7 +463,7 @@ class ImageImporter {
         ? pages.filter(p => selectedCanvasIds.includes(p.id))
         : pages;
       
-      console.log(`🎯 Filtering images from ${targetPages.length} canvas(es)`);
+      logger.info(`🎯 Filtering images from ${targetPages.length} canvas(es)`);
       
       const allImages = [];
       
@@ -487,7 +488,7 @@ class ImageImporter {
               layerType: node.type, // Додаємо тип layer
               isLayer: true // Маркуємо як layer
             });
-            console.log(`🖼️ Found image in layer: ${node.name} (${node.id}) on canvas ${canvasId}`);
+            logger.info(`🖼️ Found image in layer: ${node.name} (${node.id}) on canvas ${canvasId}`);
           }
         }
         
@@ -518,27 +519,27 @@ class ImageImporter {
       
       // Обходимо кожну вибрану сторінку
       targetPages.forEach(page => {
-        console.log(`🔍 Scanning canvas: ${page.name} (${page.id})`);
+        logger.info(`🔍 Scanning canvas: ${page.name} (${page.id})`);
         walkForImages(page, null, page.id);
       });
       
-      console.log(`📸 Found ${allImages.length} images in ${targetPages.length} canvas(es)`);
+      logger.info(`📸 Found ${allImages.length} images in ${targetPages.length} canvas(es)`);
       
       // Додаткове логування для діагностики
       if (selectedCanvasIds.length > 0) {
-        console.log(`🎯 Canvas filtering active - selected: ${selectedCanvasIds.join(', ')}`);
+        logger.info(`🎯 Canvas filtering active - selected: ${selectedCanvasIds.join(', ')}`);
       } else {
-        console.log(`🌍 Processing all available canvas (${targetPages.length} total)`);
+        logger.info(`🌍 Processing all available canvas (${targetPages.length} total)`);
       }
       
       allImages.forEach((img, index) => {
-        console.log(`  ${index + 1}. ${img.name} (${img.type}) - Layer ID: ${img.id} - Canvas: ${img.canvasId}`);
+        logger.info(`  ${index + 1}. ${img.name} (${img.type}) - Layer ID: ${img.id} - Canvas: ${img.canvasId}`);
       });
       
       return allImages;
       
     } catch (error) {
-      console.error('❌ Error getting images from canvases:', error.message);
+      logger.error('❌ Error getting images from canvases:', error.message);
       // ✅ FIX: Видалено fallback - використовуємо тільки реальні дані
       return await figmaClient.getAllImages(fileKey);
     }
@@ -550,7 +551,7 @@ class ImageImporter {
   ensureOutputDirectory() {
     if (!fs.existsSync(this.outputDir)) {
       fs.mkdirSync(this.outputDir, {recursive: true});
-      console.log(`📁 Created output directory: ${this.outputDir}`);
+      logger.info(`📁 Created output directory: ${this.outputDir}`);
     }
   }
 
@@ -586,7 +587,7 @@ class ImageImporter {
   saveCSSFile(cssContent) {
     const cssPath = path.join(this.outputDir, 'images.css');
     fs.writeFileSync(cssPath, cssContent, 'utf8');
-    console.log(`📄 Generated CSS file: ${cssPath}`);
+    logger.info(`📄 Generated CSS file: ${cssPath}`);
   }
 
   /**

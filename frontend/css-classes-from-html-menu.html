@@ -199,6 +199,13 @@
     display: grid;
     gap: 1rem;
     grid-template-columns: 1fr 40%;
+    align-items: start;
+    height: calc(100vh - 80px);
+  }
+
+  .main-container {
+    height: calc(100vh - 80px - var(--actions-panel-height));
+    overflow-y: auto;
   }
 
   .styles-sidebar {
@@ -207,7 +214,8 @@
     border-radius: 8px;
     display: none;
     flex-direction: column;
-    height: calc(100vh - 120px);
+    height: calc(100vh - 80px);
+    max-height: calc(100vh - 80px);
     overflow-x: hidden;
     overflow-y: auto;
     padding: 0.8rem 0.8rem 2rem;
@@ -368,6 +376,23 @@
     transition: all 0.3s ease;
   }
 
+  /* Коли sidebar відображається, синхронізуємо висоту з ним */
+  .layout-with-sidebar.has-sidebar .main-container {
+    height: calc(100vh - 80px);
+  }
+
+  .layout-with-sidebar.has-sidebar #canvasSection,
+  .layout-with-sidebar.has-sidebar #layersSection {
+    height: calc(100vh - 180px - var(--actions-panel-height));
+    max-height: calc(100vh - 180px - var(--actions-panel-height));
+  }
+
+  .layout-with-sidebar.has-sidebar #layersSection .list-container,
+  .layout-with-sidebar.has-sidebar #canvasSection .list-container {
+    height: calc(100vh - 280px - var(--actions-panel-height));
+    max-height: calc(100vh - 280px - var(--actions-panel-height));
+  }
+
   .section:hover {
     box-shadow: 0 2px 8px var(--shadow);
   }
@@ -421,6 +446,32 @@
     margin-bottom: 0.6rem;
     overflow-y: auto;
     padding: 0.5rem;
+    max-height: 400px;
+    min-height: 200px;
+  }
+
+  /* Синхронізація висоти для layers та canvas секцій з урахуванням футера */
+  #layersSection .list-container,
+  #canvasSection .list-container {
+    height: calc(100vh - 300px - var(--actions-panel-height));
+    max-height: calc(100vh - 300px - var(--actions-panel-height));
+    min-height: 300px;
+  }
+
+  /* Основні секції повинні мати однакову висоту з урахуванням футера */
+  #canvasSection,
+  #layersSection {
+    height: calc(100vh - 200px - var(--actions-panel-height));
+    max-height: calc(100vh - 200px - var(--actions-panel-height));
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #canvasSection .list-container,
+  #layersSection .list-container {
+    flex: 1;
+    min-height: 0;
   }
 
   .tree-item {
@@ -1301,6 +1352,15 @@
                 <span data-i18n="user_styles">Користувацькі стилі</span>
               </button>
 
+              <!-- Редактор користувацьких стилів -->
+              <button
+                class="btn btn-secondary"
+                onclick="toggleCustomStylesSubmenu()"
+                style="display: flex; align-items: center; gap: 6px; padding: 0.4rem 0.6rem; font-size: 0.8rem;"
+                title="Відкрити редактор користувацьких стилів">
+                <span data-i18n="custom_styles_editor">📝 Редактор стилів</span>
+              </button>
+
               <!-- 5) Normalize стилі -->
               <div style="display: flex; align-items: center; gap: 6px; padding: 0.4rem 0.6rem; background: var(--bg-tertiary); border-radius: 4px; font-size: 0.8rem;">
                 <input type="checkbox" id="includeModernNormalize" style="margin: 0">
@@ -1350,6 +1410,50 @@
                 data-i18n="create_new_user_style"
                 >➕ Створити</button
               >
+            </div>
+
+            <!-- Поле для роботи з користувацькими стилями -->
+            <div id="customStylesSubmenu" class="submenu hidden">
+              <h4 data-i18n="custom_styles_editor">Редактор користувацьких стилів:</h4>
+              <textarea 
+                id="customStylesTextarea"
+                placeholder="Введіть ваші CSS стилі тут..."
+                style="
+                  width: 100%; 
+                  min-height: 200px; 
+                  padding: 12px; 
+                  border: 1px solid var(--border-color, #333);
+                  border-radius: 4px;
+                  background: var(--secondary-bg, #252526);
+                  color: var(--text-color, #cccccc);
+                  font-family: 'Courier New', monospace;
+                  font-size: 13px;
+                  line-height: 1.4;
+                  resize: vertical;
+                  margin-bottom: 12px;
+                "
+                data-i18n-placeholder="custom_styles_placeholder"
+              ></textarea>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button
+                  class="btn btn-primary"
+                  onclick="saveCustomStyles()"
+                  data-i18n="save_custom_styles"
+                  >💾 Зберегти стилі</button
+                >
+                <button
+                  class="btn btn-secondary"
+                  onclick="clearCustomStyles()"
+                  data-i18n="clear_custom_styles"
+                  >🗑️ Очистити</button
+                >
+                <button
+                  class="btn btn-success"
+                  onclick="applyCustomStyles()"
+                  data-i18n="apply_custom_styles"
+                  >✨ Застосувати</button
+                >
+              </div>
             </div>
           </div>
         </div>
@@ -1443,32 +1547,40 @@
                   id="layersSearch"
                   data-i18n="search_layers"
                   placeholder="Пошук по Layers... | Search Layers... | Layers suchen..."
-                  style="padding-right: 40px">
-                <button
-                  class="btn btn-secondary"
+                  style="padding-right: 30px; position: relative;">
+                <span
+                  class="search-clear-btn"
                   onclick="clearLayersSearch()"
                   style="
                     position: absolute;
-                    right: 4px;
+                    right: 8px;
                     top: 50%;
                     transform: translateY(-50%);
-                    padding: 2px 6px;
-                    font-size: 12px;
-                    min-width: auto;
-                    opacity: 0.7;
+                    cursor: pointer;
+                    font-size: 14px;
+                    color: #9CA3AF;
+                    user-select: none;
+                    opacity: 0;
+                    transition: all 0.2s ease;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 50%;
                   "
-                  data-i18n="clear_search"
+                  onmouseover="this.style.backgroundColor='rgba(156, 163, 175, 0.1)'; this.style.color='#F87171'"
+                  onmouseout="this.style.backgroundColor='transparent'; this.style.color='#9CA3AF'"
                   title="Очистити пошук"
-                  >✖</button
-                >
+                  >❌</span>
               </div>
               <div class="controls-group">
                 <button class="btn btn-secondary" onclick="selectAllLayers()" data-i18n="select_all"
                   >✅ Всі</button
                 >
                 <button
+                  id="clearLayersBtn"
                   class="btn btn-secondary"
-                  onclick="clearLayersSelection()"
                   data-i18n="clear_all"
                   >❌ Очистити</button
                 >
@@ -1647,12 +1759,14 @@
           basic_settings: "Основні налаштування",
           css_file_name: "Назва згенерованого CSS файлу",
           css_file_name_placeholder: "styles.css",
-          include_reset: "Включити Reset стилі",
+          include_reset: "Reset стилі",
           include_reset_tooltip: "Додає базові reset стилі",
           include_variables: "CSS змінні",
-          include_variables_tooltip: "Додає CSS custom properties",
+          include_variables_tooltip: "Додає CSS custom properties на CSS змінні",
+          normalize_styles: "Normalize стилі",
+          normalize_styles_tooltip: "Normalize стилі",
           include_responsive: "Responsive стилі",
-          include_responsive_tooltip: "Додає media queries",
+          include_responsive_tooltip: "Додає media queries на Responsive стилі",
           include_global: "Глобальні стилі",
           include_global_tooltip: "Додає глобальні стилі для базових елементів",
           include_small_scroll: "Полоса прокрутки для малих вьюпортів",
@@ -1767,6 +1881,11 @@
           user_styles: "👤 Користувацькі стилі",
           user_styles_submenu: "Збережені стилі з Figma:",
           create_new_user_style: "➕ Створити",
+          custom_styles_editor: "Редактор користувацьких стилів:",
+          custom_styles_placeholder: "Введіть ваші CSS стилі тут...",
+          save_custom_styles: "💾 Зберегти стилі",
+          clear_custom_styles: "🗑️ Очистити",
+          apply_custom_styles: "✨ Застосувати",
           includeInLibrary: "Включити в бібліотеку:",
           savingLibrary: "Збереження бібліотеки",
           save: "Зберегти",
@@ -1888,12 +2007,14 @@
           basic_settings: "Basic Settings",
           css_file_name: "CSS File Name",
           css_file_name_placeholder: "styles.css",
-          include_reset: "Include Reset Styles",
+          include_reset: "Reset Styles",
           include_reset_tooltip: "Adds basic reset styles",
           include_variables: "CSS Variables",
-          include_variables_tooltip: "Adds CSS custom properties",
+          include_variables_tooltip: "Adds CSS custom properties to CSS variables",
           include_responsive: "Responsive Styles",
-          include_responsive_tooltip: "Adds media queries",
+          include_responsive_tooltip: "Adds media queries to Responsive styles",
+          normalize_styles: "Normalize Styles",
+          normalize_styles_tooltip: "Normalize styles",
           include_global: "Global Styles",
           include_global_tooltip: "Adds global styles for basic elements",
           modern_normalize_styles: "Modern Normalize Styles",
@@ -2012,6 +2133,11 @@
           create_new_reset: "➕ Create new reset.css",
           create_new_global: "➕ Create new global.css",
           create_new_user_style: "➕ Create",
+          custom_styles_editor: "Custom Styles Editor:",
+          custom_styles_placeholder: "Enter your CSS styles here...",
+          save_custom_styles: "💾 Save Styles",
+          clear_custom_styles: "🗑️ Clear",
+          apply_custom_styles: "✨ Apply",
           png: "PNG (lossless, transparency support)",
           jpg: "JPG (compression, smaller size)",
           svg: "SVG (vector, scalable)",
@@ -2145,12 +2271,14 @@
           basic_settings: "Grundeinstellungen",
           css_file_name: "CSS-Dateiname",
           css_file_name_placeholder: "styles.css",
-          include_reset: "Reset-Styles einschließen",
+          include_reset: "Reset Stile",
           include_reset_tooltip: "Fügt grundlegende Reset-Styles hinzu",
           include_variables: "CSS-Variablen",
-          include_variables_tooltip: "Fügt CSS custom properties hinzu",
-          include_responsive: "Responsive Styles",
-          include_responsive_tooltip: "Fügt Media Queries hinzu",
+          include_variables_tooltip: "Fügt CSS custom properties zu CSS-Variablen hinzu",
+          include_responsive: "Responsive Stile",
+          include_responsive_tooltip: "Fügt Media Queries zu Responsive Stile hinzu",
+          normalize_styles: "Normalize Stile",
+          normalize_styles_tooltip: "Normalize Stile",
           include_global: "Globale Stile",
           include_global_tooltip: "Fügt globale Stile für Basis-Elemente hinzu",
           modern_normalize_styles: "Modern Normalize Stile",
@@ -2267,6 +2395,11 @@
           create_new_reset: "➕ Neue reset.css erstellen",
           create_new_global: "➕ Neue global.css erstellen",
           create_new_user_style: "➕ Erstellen",
+          custom_styles_editor: "Benutzerdefinierte Stil-Editor:",
+          custom_styles_placeholder: "Geben Sie hier Ihre CSS-Stile ein...",
+          save_custom_styles: "💾 Stile speichern",
+          clear_custom_styles: "🗑️ Löschen",
+          apply_custom_styles: "✨ Anwenden",
           save: "Speichern",
           cancel: "Abbrechen",
           png: "PNG (verlustfrei, Transparenz-Unterstützung)",
@@ -2400,6 +2533,11 @@
         }
 
         return text
+      }
+
+      // Функція для отримання поточної мови
+      window.getCurrentLanguage = function () {
+        return state.currentLanguage || "uk"
       }
 
       window.setLanguage = function (lang) {
@@ -2818,8 +2956,10 @@
           case "fontsImported":
             hideProgress()
             if (message.success) {
+              const fontCount = message.stats?.totalFonts || message.fonts || 0
+              const htmlFile = message.htmlFile || 'HTML файл'
               showStatus(
-                `✅ ${t("fontsImported")}: ${message.fonts} шрифтів у ${message.htmlFile}`,
+                `✅ ${t("fontsImported")}: ${fontCount} шрифтів у ${htmlFile}`,
                 "success"
               )
             } else {
@@ -3579,12 +3719,20 @@
 
         // Пошук по назві layer
         const search = document.getElementById("layersSearch")
+        const clearBtn = search?.parentElement?.querySelector(".search-clear-btn")
+        
         if (search && !search._bound) {
           search._bound = true
 
-          // ✅ FIX: Функція для обробки пошуку
+          // ✅ FIX: Функція для обробки пошуку та показу іконки очищення
           const handleSearch = () => {
             const q = search.value.toLowerCase().trim()
+            
+            // Показуємо/ховаємо іконку ❌ залежно від наявності тексту
+            if (clearBtn) {
+              clearBtn.style.opacity = q ? "0.7" : "0"
+            }
+            
             if (!q) {
               // Показуємо всі Layers, коли поле пошуку порожнє
               if (state._allLayers && state._allLayers.length > 0) {
@@ -3688,11 +3836,20 @@
       }
 
       window.renameLayer = function (layerId, newName) {
-        // Відправляємо запит на бекенд
+        // Отримуємо поточні Figma credentials для автозбереження стилів
+        const {figmaLink, figmaToken, linkOk, tokenOk} = getFigmaCreds()
+        
+        // Отримуємо вибрані Canvas для правильного імені файлу
+        const selectedCanvases = Array.from(state.selectedCanvasIds || []);
+        
+        // Відправляємо запит на бекенд з Figma даними для автозбереження
         vscode.postMessage({
           command: "renameLayer",
           layerId: layerId,
-          newName: newName
+          newName: newName,
+          figmaLink: linkOk ? figmaLink : null,
+          figmaToken: tokenOk ? figmaToken : null,
+          selectedCanvases: selectedCanvases
         })
 
         showStatus(`✏️ ${t("layerRenamed")}: ${newName}`, "success")
@@ -3778,12 +3935,31 @@
       // ✅ FIX: Функція очищення пошуку Layers
       window.clearLayersSearch = function () {
         const search = document.getElementById("layersSearch")
+        const clearBtn = search?.parentElement?.querySelector(".search-clear-btn")
+        
+        console.log("🧹 clearLayersSearch викликано");
+        console.log("📊 state._allLayers:", state._allLayers?.length || 0);
+        console.log("📊 state.allLayers:", state.allLayers?.length || 0);
+        
         if (search) {
           search.value = ""
-          // Показуємо всі Layers
-          if (state._allLayers && state._allLayers.length > 0) {
-            displayLayers(state._allLayers)
-            showStatus(`🔍 ${t("showAllLayers")}`, "info")
+          
+          // Ховаємо іконку ❌ після очищення
+          if (clearBtn) {
+            clearBtn.style.opacity = "0"
+          }
+          
+          // Показуємо всі Layers - спробуємо різні джерела
+          const layersToShow = state._allLayers || state.allLayers || [];
+          console.log("📊 layersToShow:", layersToShow.length);
+          
+          if (layersToShow.length > 0) {
+            console.log("🔄 Викликаємо displayLayers з", layersToShow.length, "layers");
+            displayLayers(layersToShow)
+            showStatus(`🔍 Показано всі Layers (${layersToShow.length})`, "info")
+          } else {
+            console.warn("⚠️ Немає layers для відображення");
+            showStatus("⚠️ Немає layers для відображення", "warning")
           }
         }
       }
@@ -3817,6 +3993,16 @@
         const el = document.getElementById("stylesSidebar")
         if (!el) return
         el.classList.toggle("visible", !!show)
+        
+        // Синхронізуємо висоту основного контенту з sidebar
+        const layoutContainer = document.querySelector(".layout-with-sidebar")
+        if (layoutContainer) {
+          if (show) {
+            layoutContainer.classList.add("has-sidebar")
+          } else {
+            layoutContainer.classList.remove("has-sidebar")
+          }
+        }
       }
 
       window.createListItem = function (data, type) {
@@ -4373,11 +4559,16 @@
         }
 
         // Знаходимо textarea для користувацьких стилів
-        const customStylesTextarea = document.querySelector(
-          '#customStylesSubmenu textarea, textarea[placeholder*="користувацькі"], textarea[placeholder*="custom"]'
-        )
+        const customStylesTextarea = document.getElementById("customStylesTextarea") || 
+          document.querySelector('#customStylesSubmenu textarea, textarea[placeholder*="користувацькі"], textarea[placeholder*="custom"]')
 
         if (customStylesTextarea) {
+          // Відкриваємо редактор якщо він прихований
+          const submenu = document.getElementById("customStylesSubmenu")
+          if (submenu && submenu.classList.contains("hidden")) {
+            submenu.classList.remove("hidden")
+          }
+
           // Додаємо стилі до існуючих користувацьких стилів з коментарем часу
           const timestamp = new Date().toLocaleString("uk-UA")
           const currentContent = customStylesTextarea.value
@@ -4394,7 +4585,22 @@
           // Закриваємо sidebar
           toggleSidebar(false)
         } else {
-          showStatus("Не знайдено поле для користувацьких стилів.", "error")
+          // Якщо textarea не знайдено, створюємо її
+          toggleCustomStylesSubmenu()
+          
+          setTimeout(() => {
+            const newTextarea = document.getElementById("customStylesTextarea")
+            if (newTextarea) {
+              const timestamp = new Date().toLocaleString("uk-UA")
+              newTextarea.value = `/* Стилі з Figma Layers - ${timestamp} */\n${styles}`
+              showStatus("Стилі додано в редактор користувацьких стилів ✅", "success")
+            } else {
+              showStatus("Не вдалося створити поле для користувацьких стилів.", "error")
+            }
+          }, 100)
+          
+          // Закриваємо sidebar
+          toggleSidebar(false)
         }
       }
 
@@ -4468,19 +4674,80 @@
         )
       }
 
-      // ✅ FIX: Функція для очищення всіх вибраних layers
+      // ✅ FIX: Функція для очищення всіх вибраних layers (покращена версія)
       window.clearLayersSelection = function () {
+        console.log("🧹 Starting clearLayersSelection...");
+        
         // Очищуємо стан
         state.selectedLayers = []
         state.selectedLayerIds.clear()
 
-        // Очищуємо всі чекбокси візуально
-        document.querySelectorAll('#layersList input[type="checkbox"]').forEach(cb => {
-          cb.checked = false
-        })
-
+        console.log("📊 State cleared");
+        
+        // Стратегія 1: Очищуємо всі чек-бокси в layersList
+        const container = document.getElementById("layersList")
+        let totalCleared = 0;
+        let totalFound = 0;
+        
+        if (container) {
+          // Знаходимо ВСІ чек-бокси, не тільки checked
+          const allCheckboxes = container.querySelectorAll('input[type="checkbox"]');
+          totalFound = allCheckboxes.length;
+          console.log(`🔍 Found ${totalFound} checkboxes in layersList container`);
+          
+          allCheckboxes.forEach((cb, index) => {
+            const wasChecked = cb.checked;
+            console.log(`📋 Checkbox ${index}:`, {
+              checked: wasChecked,
+              dataId: cb.dataset.id,
+              dataType: cb.dataset.type,
+              id: cb.id,
+              className: cb.className
+            });
+            
+            // Знімаємо checked стан з УСІХ чек-боксів
+            if (wasChecked) {
+              cb.checked = false;
+              totalCleared++;
+              console.log(`✅ Cleared checkbox ${index} with data-id: ${cb.dataset.id}`);
+            }
+          });
+        } else {
+          console.warn("⚠️ layersList container not found!");
+        }
+        
+        // Стратегія 2: Додаткове очищення через документ (на випадок, якщо щось пропустили)
+        const allDocumentCheckboxes = document.querySelectorAll('input[type="checkbox"][data-id]');
+        console.log(`🔍 Found ${allDocumentCheckboxes.length} checkboxes with data-id in document`);
+        
+        allDocumentCheckboxes.forEach((cb) => {
+          if (cb.checked) {
+            cb.checked = false;
+            totalCleared++;
+            console.log(`✅ Cleared document checkbox with data-id: ${cb.dataset.id}`);
+          }
+        });
+        
+        console.log(`🧹 Cleared ${totalCleared}/${totalFound} checkboxes`);
+        
+        // Стратегія 3: Додаткова перевірка через невеликий timeout (для випадку асинхронного оновлення DOM)
+        setTimeout(() => {
+          const stillChecked = document.querySelectorAll('input[type="checkbox"]:checked[data-id]');
+          if (stillChecked.length > 0) {
+            console.warn(`⚠️ Still ${stillChecked.length} checkboxes checked after timeout, clearing them now...`);
+            stillChecked.forEach((cb) => {
+              cb.checked = false;
+              console.log(`🔄 Force cleared checkbox with data-id: ${cb.dataset.id}`);
+            });
+          }
+        }, 100);
+        
+        // Додаткова перевірка результату
+        const remainingChecked = container ? container.querySelectorAll('input[type="checkbox"]:checked').length : 0;
+        console.log(`🔍 Remaining checked after clear: ${remainingChecked}`);
+        
         console.log("🧹 Cleared all layer selections")
-        showStatus("🧹 Очищено вибір layers", "info")
+        showStatus(`🧹 Очищено ${totalCleared} вибраних layers`, "info")
 
         // Старий код з подіями (коментуємо, оскільки це може викликати зайві події)
         /*document.querySelectorAll('#layersList input[type="checkbox"]').forEach(cb => {
@@ -4506,6 +4773,7 @@
           toggleSidebar(false)
         }
       }
+
 
       // ✅ FIX: Імпорт функції з діалогом вибору форматів
       window.importImages = function () {
@@ -4980,16 +5248,116 @@
         state.figmaLink = figmaLink
         state.figmaToken = figmaToken
 
-        showProgress("Імпорт шрифтів...")
+        // Показуємо діалог вибору місця збереження для шрифтів
+        showFontSaveLocationDialog()
+      }
 
-        // 🛠️ ✅ FIX: Передаємо також selectedCanvasIds, щоб обмежити аналіз шрифтів конкретними Canvas
+      // Діалог вибору місця збереження для шрифтів
+      function showFontSaveLocationDialog() {
+        const existingDialog = document.getElementById("font-save-location-dialog")
+        if (existingDialog) existingDialog.remove()
+
+        const dialog = document.createElement("div")
+        dialog.id = "font-save-location-dialog"
+        dialog.style.cssText = `
+          position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+          background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
+          z-index: 10000;
+        `
+
+        const currentLang = getCurrentLanguage()
+
+        dialog.innerHTML = `
+          <div style="
+            background: var(--bg-color, #1e1e1e); color: var(--text-color, #cccccc);
+            padding: 24px; border-radius: 8px; max-width: 550px; width: 90%;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color, #333);
+          ">
+            <h3 style="margin: 0 0 16px 0; color: var(--accent-color, #4fc3f7);">
+              🔤 ${currentLang === 'uk' ? 'Де імпортувати шрифти?' : currentLang === 'en' ? 'Where to import fonts?' : 'Wo sollen Schriften importiert werden?'}
+            </h3>
+            <div style="margin-bottom: 20px;">
+              <button onclick="importFontsToHTML()" style="
+                width: 100%; padding: 12px; margin-bottom: 8px;
+                background: var(--primary-color, #4fc3f7); color: white; border: none;
+                border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500;
+              ">
+                📄 ${currentLang === 'uk' ? 'У контекстний HTML файл (у head секцію)' : currentLang === 'en' ? 'To context HTML file (in head section)' : 'In Kontext-HTML-Datei (in head-Bereich)'}
+              </button>
+              <button onclick="importFontsToSeparateFile()" style="
+                width: 100%; padding: 12px;
+                background: var(--secondary-bg, #333); color: var(--text-color, #ccc);
+                border: 1px solid var(--border-color, #555); border-radius: 4px; 
+                cursor: pointer; font-size: 14px;
+              ">
+                📁 ${currentLang === 'uk' ? 'У окремий файл в корені теки контекстного файлу' : currentLang === 'en' ? 'To separate file in context file root folder' : 'In separate Datei im Stammordner der Kontextdatei'}
+              </button>
+            </div>
+            <div style="font-size: 12px; color: var(--text-secondary, #888); margin-bottom: 16px; line-height: 1.4;">
+              ${currentLang === 'uk' ? 
+                'Google Fonts імпорти будуть додані автоматично. Перший варіант додає їх безпосередньо в HTML, другий - створює окремий CSS файл.' : 
+                currentLang === 'en' ? 
+                'Google Fonts imports will be added automatically. First option adds them directly to HTML, second creates separate CSS file.' : 
+                'Google Fonts-Importe werden automatisch hinzugefügt. Erste Option fügt sie direkt zu HTML hinzu, zweite erstellt separate CSS-Datei.'}
+            </div>
+            <div style="text-align: right;">
+              <button onclick="closeFontSaveLocationDialog()" style="
+                background: var(--secondary-bg, #333); color: var(--text-color, #ccc);
+                border: 1px solid var(--border-color, #555); padding: 8px 16px;
+                border-radius: 4px; cursor: pointer; font-size: 14px;
+              ">
+                ${currentLang === 'uk' ? 'Скасувати' : currentLang === 'en' ? 'Cancel' : 'Abbrechen'}
+              </button>
+            </div>
+          </div>
+        `
+
+        // Закриття діалогу при кліку на фон
+        dialog.addEventListener('click', function(e) {
+          if (e.target === dialog) {
+            closeFontSaveLocationDialog()
+          }
+        })
+
+        document.body.appendChild(dialog)
+      }
+
+      window.closeFontSaveLocationDialog = function () {
+        const dialog = document.getElementById("font-save-location-dialog")
+        if (dialog) dialog.remove()
+      }
+
+      window.importFontsToHTML = function () {
+        showProgress("Імпорт шрифтів в HTML...")
+
+        // Використовуємо стандартний імпорт в HTML
         vscode.postMessage({
           command: "importFonts",
-          figmaLink: figmaLink,
-          figmaToken: figmaToken,
+          figmaLink: state.figmaLink,
+          figmaToken: state.figmaToken,
           selectedLayers: state.selectedLayers.map(l => l.id),
-          selectedCanvasIds: Array.from(state.selectedCanvasIds || [])
+          selectedCanvasIds: Array.from(state.selectedCanvasIds || []),
+          saveToHTML: true
         })
+        
+        closeFontSaveLocationDialog()
+      }
+
+      window.importFontsToSeparateFile = function () {
+        showProgress("Імпорт шрифтів в окремий файл...")
+
+        // Імпорт в окремий CSS файл
+        vscode.postMessage({
+          command: "importFonts",
+          figmaLink: state.figmaLink,
+          figmaToken: state.figmaToken,
+          selectedLayers: state.selectedLayers.map(l => l.id),
+          selectedCanvasIds: Array.from(state.selectedCanvasIds || []),
+          saveToSeparateFile: true
+        })
+        
+        closeFontSaveLocationDialog()
       }
 
       // Допоміжні функції безпечного читання елементів
@@ -5186,12 +5554,78 @@
       }
 
       window.deleteUserStyle = function (fileName) {
-        if (confirm(`Видалити стиль "${fileName}"?`)) {
-          vscode.postMessage({
-            command: "deleteUserStyle",
-            fileName: fileName
-          })
-        }
+        showDeleteConfirmDialog(fileName)
+      }
+
+      // Функція для показу діалогу підтвердження видалення
+      function showDeleteConfirmDialog(fileName) {
+        const existingDialog = document.getElementById("delete-confirm-dialog")
+        if (existingDialog) existingDialog.remove()
+
+        const dialog = document.createElement("div")
+        dialog.id = "delete-confirm-dialog"
+        dialog.style.cssText = `
+          position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+          background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
+          z-index: 10000;
+        `
+
+        const currentLang = getCurrentLanguage()
+        const strings = translations[currentLang] || translations.uk
+
+        dialog.innerHTML = `
+          <div style="
+            background: var(--bg-color, #1e1e1e); color: var(--text-color, #cccccc);
+            padding: 24px; border-radius: 8px; max-width: 400px; width: 90%;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color, #333);
+          ">
+            <h3 style="margin: 0 0 16px 0; color: var(--accent-color, #ff6b6b);">
+              🗑️ ${currentLang === 'uk' ? 'Підтвердження видалення' : currentLang === 'en' ? 'Confirm deletion' : 'Löschen bestätigen'}
+            </h3>
+            <p style="margin: 0 0 20px 0; line-height: 1.5;">
+              ${currentLang === 'uk' ? `Ви дійсно хочете видалити стиль` : currentLang === 'en' ? `Do you really want to delete the style` : `Möchten Sie den Stil wirklich löschen`} 
+              <strong>"${fileName}"</strong>?
+            </p>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+              <button onclick="closeDeleteConfirmDialog()" style="
+                background: var(--secondary-bg, #333); color: var(--text-color, #ccc);
+                border: 1px solid var(--border-color, #555); padding: 8px 16px;
+                border-radius: 4px; cursor: pointer; font-size: 14px;
+              ">
+                ${currentLang === 'uk' ? 'Скасувати' : currentLang === 'en' ? 'Cancel' : 'Abbrechen'}
+              </button>
+              <button onclick="confirmDeleteUserStyle('${fileName}')" style="
+                background: #ff4757; color: white; border: none; padding: 8px 16px;
+                border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500;
+              ">
+                ${currentLang === 'uk' ? 'Видалити' : currentLang === 'en' ? 'Delete' : 'Löschen'}
+              </button>
+            </div>
+          </div>
+        `
+
+        // Закриття діалогу при кліку на фон
+        dialog.addEventListener('click', function(e) {
+          if (e.target === dialog) {
+            closeDeleteConfirmDialog()
+          }
+        })
+
+        document.body.appendChild(dialog)
+      }
+
+      window.closeDeleteConfirmDialog = function () {
+        const dialog = document.getElementById("delete-confirm-dialog")
+        if (dialog) dialog.remove()
+      }
+
+      window.confirmDeleteUserStyle = function (fileName) {
+        vscode.postMessage({
+          command: "deleteUserStyle",
+          fileName: fileName
+        })
+        closeDeleteConfirmDialog()
       }
 
       window.createNewUserStyle = function () {
@@ -5275,6 +5709,156 @@
       window.createNewGlobalFile = function () {
         const fileName = "global.css"
         createNewStyleFile(fileName, "global", getGlobalTemplate())
+      }
+
+      // Функції для роботи з користувацькими стилями
+      window.saveCustomStyles = function () {
+        const textarea = document.getElementById("customStylesTextarea")
+        const styles = textarea.value.trim()
+        
+        if (!styles) {
+          showStatus("⚠️ Немає стилів для збереження", "warning")
+          return
+        }
+
+        // Показуємо діалог вибору місця збереження
+        showSaveLocationDialog(styles)
+      }
+
+      // Діалог вибору місця збереження для користувацьких стилів
+      function showSaveLocationDialog(styles) {
+        const existingDialog = document.getElementById("save-location-dialog")
+        if (existingDialog) existingDialog.remove()
+
+        const dialog = document.createElement("div")
+        dialog.id = "save-location-dialog"
+        dialog.style.cssText = `
+          position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+          background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
+          z-index: 10000;
+        `
+
+        const currentLang = getCurrentLanguage()
+
+        dialog.innerHTML = `
+          <div style="
+            background: var(--bg-color, #1e1e1e); color: var(--text-color, #cccccc);
+            padding: 24px; border-radius: 8px; max-width: 500px; width: 90%;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color, #333);
+          ">
+            <h3 style="margin: 0 0 16px 0; color: var(--accent-color, #4fc3f7);">
+              💾 ${currentLang === 'uk' ? 'Де зберегти стилі?' : currentLang === 'en' ? 'Where to save styles?' : 'Wo sollen Stile gespeichert werden?'}
+            </h3>
+            <div style="margin-bottom: 20px;">
+              <button onclick="saveToUserStyles('${btoa(styles)}')" style="
+                width: 100%; padding: 12px; margin-bottom: 8px;
+                background: var(--primary-color, #4fc3f7); color: white; border: none;
+                border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500;
+              ">
+                📁 ${currentLang === 'uk' ? 'У теку користувацьких стилів розширення' : currentLang === 'en' ? 'To extension user styles folder' : 'In Erweiterung Benutzerstile Ordner'}
+              </button>
+              <button onclick="saveToCustomLocation('${btoa(styles)}')" style="
+                width: 100%; padding: 12px;
+                background: var(--secondary-bg, #333); color: var(--text-color, #ccc);
+                border: 1px solid var(--border-color, #555); border-radius: 4px; 
+                cursor: pointer; font-size: 14px;
+              ">
+                📂 ${currentLang === 'uk' ? 'Вибрати власне місце збереження' : currentLang === 'en' ? 'Choose custom save location' : 'Benutzerdefinierten Speicherort wählen'}
+              </button>
+            </div>
+            <div style="text-align: right;">
+              <button onclick="closeSaveLocationDialog()" style="
+                background: var(--secondary-bg, #333); color: var(--text-color, #ccc);
+                border: 1px solid var(--border-color, #555); padding: 8px 16px;
+                border-radius: 4px; cursor: pointer; font-size: 14px;
+              ">
+                ${currentLang === 'uk' ? 'Скасувати' : currentLang === 'en' ? 'Cancel' : 'Abbrechen'}
+              </button>
+            </div>
+          </div>
+        `
+
+        // Закриття діалогу при кліку на фон
+        dialog.addEventListener('click', function(e) {
+          if (e.target === dialog) {
+            closeSaveLocationDialog()
+          }
+        })
+
+        document.body.appendChild(dialog)
+      }
+
+      window.closeSaveLocationDialog = function () {
+        const dialog = document.getElementById("save-location-dialog")
+        if (dialog) dialog.remove()
+      }
+
+      window.saveToUserStyles = function (encodedStyles) {
+        const styles = atob(encodedStyles)
+        
+        // Створюємо унікальне ім'я файлу з часом
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
+        const fileName = `custom-styles-${timestamp}.css`
+        
+        vscode.postMessage({
+          command: "saveUserStyle",
+          fileName: fileName,
+          content: styles
+        })
+        
+        showStatus(`💾 Стилі збережено в теку користувацьких стилів: ${fileName}`, "success")
+        closeSaveLocationDialog()
+      }
+
+      window.saveToCustomLocation = function (encodedStyles) {
+        const styles = atob(encodedStyles)
+        
+        vscode.postMessage({
+          command: "saveUserStyles",
+          css: styles
+        })
+        
+        showStatus("💾 Відкрито діалог збереження файлу", "info")
+        closeSaveLocationDialog()
+      }
+
+      window.clearCustomStyles = function () {
+        const textarea = document.getElementById("customStylesTextarea")
+        if (textarea.value.trim()) {
+          textarea.value = ""
+          showStatus("🗑️ Поле очищено", "info")
+        }
+      }
+
+      window.applyCustomStyles = function () {
+        const textarea = document.getElementById("customStylesTextarea")
+        const styles = textarea.value.trim()
+        
+        if (!styles) {
+          showStatus("⚠️ Немає стилів для застосування", "warning")
+          return
+        }
+
+        // Застосовуємо стилі до поточного документу
+        vscode.postMessage({
+          command: "applyCustomStyles",
+          styles: styles
+        })
+        
+        showStatus("✨ Користувацькі стилі застосовано", "success")
+      }
+
+      // Функція для показу/приховування редактора користувацьких стилів
+      window.toggleCustomStylesSubmenu = function () {
+        const submenu = document.getElementById("customStylesSubmenu")
+        const isHidden = submenu.classList.contains("hidden")
+
+        if (isHidden) {
+          submenu.classList.remove("hidden")
+        } else {
+          submenu.classList.add("hidden")
+        }
       }
 
       window.createNewStyleFile = function (fileName, type, template) {
@@ -5715,8 +6299,48 @@ p {
         updateActionsPanel("default")
       })
 
+      // ✅ FIX: Логіка взаємовиключення Reset стилів та Normalize стилів
+      document.addEventListener("DOMContentLoaded", () => {
+        const includeReset = document.getElementById("includeReset");
+        const includeModernNormalize = document.getElementById("includeModernNormalize");
+
+        if (includeReset && includeModernNormalize) {
+          // При включенні Reset стилів - вимикаємо Normalize
+          includeReset.addEventListener("change", function() {
+            if (this.checked) {
+              includeModernNormalize.checked = false;
+              console.log("✅ Reset стилі включено - Normalize стилі вимкнено");
+            }
+          });
+
+          // При включенні Normalize стилів - вимикаємо Reset
+          includeModernNormalize.addEventListener("change", function() {
+            if (this.checked) {
+              includeReset.checked = false;
+              console.log("✅ Normalize стилі включено - Reset стилі вимкнено");
+            }
+          });
+
+          console.log("✅ Взаємовиключення Reset/Normalize стилів ініціалізовано");
+        }
+      });
+
       // ✅ ВИПРАВЛЕННЯ: Початкова ініціалізація ✅
       console.log("✅ CSS Classes Menu v0.0.7 з динамічною панеллю завантажено")
+      
+      // ✅ FIX: Додаємо event listener для кнопки очищення layers після завантаження всіх функцій
+      document.addEventListener('DOMContentLoaded', function() {
+        const clearLayersBtn = document.getElementById('clearLayersBtn');
+        if (clearLayersBtn && window.clearLayersSelection) {
+          clearLayersBtn.addEventListener('click', window.clearLayersSelection);
+          console.log('✅ Event listener додано для clearLayersBtn');
+        } else {
+          console.warn('⚠️ clearLayersBtn або window.clearLayersSelection не знайдено', {
+            btn: clearLayersBtn,
+            func: window.clearLayersSelection
+          });
+        }
+      });
     </script>
   </body>
 </html>

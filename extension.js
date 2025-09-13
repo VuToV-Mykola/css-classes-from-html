@@ -2,9 +2,19 @@
 // Автоматична генерація CSS класів з HTML файлів з реальною інтеграцією Figma
 // Версія з виправленою проблемою передачі контексту HTML файлу
 
+// ✅ FIX: Suppress punycode deprecation warning
+process.removeAllListeners('warning');
+process.on('warning', (warning) => {
+  if (warning.name === 'DeprecationWarning' && warning.message.includes('punycode')) {
+    return; // Ignore punycode warnings
+  }
+  console.warn(warning.message);
+});
+
 const vscode = require('vscode');
 const path = require('path');
 const fs = require('fs');
+const { logger } = require('./backend/utils/Logger');
 
 // Runtime require trace (for packaging optimization)
 const Module = require('module');
@@ -649,6 +659,84 @@ const userStylesManager = {
       outputChannel?.appendLine(`❌ Помилка видалення користувацького стилю: ${error.message}`);
       return { success: false, error: error.message };
     }
+  },
+
+  /**
+   * ✅ FIX: Додавання стилів Layer'а в користувацький файл
+   * Якщо файл не існує - створює, якщо існує - додає вгорі
+   */
+  async appendLayerStyles(fileName, layerCSS, layerInfo = {}) {
+    try {
+      if (!this.userStylesPath) {
+        throw new Error('Тека користувацьких стилів не ініціалізована');
+      }
+
+      const filePath = path.join(this.userStylesPath, fileName);
+      
+      // Генеруємо коментар для Layer'а
+      const layerHeader = `
+/* ===== Layer: ${layerInfo.layerName || 'Невідомий'} ===== */
+/* ID: ${layerInfo.layerId || 'N/A'} */
+/* Canvas: ${layerInfo.canvasName || 'N/A'} */
+/* Автозбережено: ${new Date().toLocaleString('uk-UA')} */
+/* ${layerInfo.autoSaved ? 'Зміна імені Layer' : 'Ручне збереження'} */
+
+`;
+
+      const layerContent = layerHeader + layerCSS + '\n\n';
+
+      if (fs.existsSync(filePath)) {
+        // Файл існує - читаємо і додаємо вгорі після заголовку
+        const existingContent = fs.readFileSync(filePath, 'utf8');
+        
+        // Шукаємо кінець заголовку файлу (після коментарів)
+        const headerEndPattern = /\*\/\s*\n\s*\n/;
+        const headerMatch = existingContent.match(headerEndPattern);
+        
+        let newContent;
+        if (headerMatch) {
+          // Вставляємо після заголовку
+          const insertPosition = headerMatch.index + headerMatch[0].length;
+          newContent = existingContent.slice(0, insertPosition) + 
+                      layerContent + 
+                      existingContent.slice(insertPosition);
+        } else {
+          // Просто додаємо на початок
+          newContent = layerContent + existingContent;
+        }
+        
+        fs.writeFileSync(filePath, newContent, 'utf8');
+        outputChannel?.appendLine(`✏️ Стилі Layer'а додано в існуючий файл: ${fileName}`);
+      } else {
+        // Файл не існує - створюємо новий з повним заголовком
+        const fileHeader = `/* 
+ * Згенеровано з Figma: ${layerInfo.figmaLink || 'Невідоме посилання'} 
+ * Canvas: ${layerInfo.canvasName || 'Невідомий canvas'}
+ * Дата створення: ${new Date().toLocaleString('uk-UA')}
+ * Розширення: CSS Classes from HTML v0.0.7
+ * Тип: Користувацькі стилі Layer'ів
+ */
+
+`;
+        
+        const fullContent = fileHeader + layerContent;
+        fs.writeFileSync(filePath, fullContent, 'utf8');
+        outputChannel?.appendLine(`🆕 Створено новий файл користувацьких стилів: ${fileName}`);
+      }
+      
+      return {
+        success: true,
+        filePath: filePath,
+        fileName: fileName,
+        layerName: layerInfo.layerName
+      };
+    } catch (error) {
+      outputChannel?.appendLine(`❌ Помилка збереження Layer стилів: ${error.message}`);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
   }
 };
 
@@ -700,6 +788,10 @@ function activate(context) {
 
     // 2. Налаштування модульного завантажувача
     moduleLoader.setOutputChannel(outputChannel);
+    
+    // 2.1. Налаштування logger
+    logger.setOutputChannel(outputChannel);
+    logger.setDebugMode(true);
 
     // 3. Ініціалізація конфігурації (використовуємо globalStorage)
     const storagePath =
@@ -1000,6 +1092,7 @@ async function openMainMenu(context) {
       vscode.ViewColumn.One,
       {
         enableScripts: true,
+        enableCommandUris: true,
         retainContextWhenHidden: true,
         localResourceRoots: [vscode.Uri.file(context.extensionPath)]
       }
@@ -1561,8 +1654,8 @@ async function handleGenerateCSS(panel, settings) {
           const htmlData = htmlParser.parseToHierarchy(htmlContent);
 
           // 🔍 ДІАГНОСТИКА: Збереження та логування даних
-          console.log("🔍 ДІАГНОСТИКА: Figma Data Structure:", JSON.stringify(figmaData, null, 2).substring(0, 1000) + "...");
-          console.log("🔍 ДІАГНОСТИКА: HTML Data Structure:", JSON.stringify(htmlData, null, 2).substring(0, 1000) + "...");
+          console.log('🔍 ДІАГНОСТИКА: Figma Data Structure:', JSON.stringify(figmaData, null, 2).substring(0, 1000) + '...');
+          console.log('🔍 ДІАГНОСТИКА: HTML Data Structure:', JSON.stringify(htmlData, null, 2).substring(0, 1000) + '...');
           
           // Зберігаємо дані для детального аналізу
           const fs = require('fs').promises;
@@ -1573,7 +1666,7 @@ async function handleGenerateCSS(panel, settings) {
           await fs.writeFile(path.join(debugDir, `figma-data-${timestamp}.json`), JSON.stringify(figmaData, null, 2));
           await fs.writeFile(path.join(debugDir, `html-data-${timestamp}.json`), JSON.stringify(htmlData, null, 2));
           
-          outputChannel?.appendLine(`🔍 Debug files saved to debugs/ directory`);
+          outputChannel?.appendLine('🔍 Debug files saved to debugs/ directory');
           outputChannel?.appendLine(`📊 Figma nodes available: ${figmaData?.document?.children?.length || 0}`);
           outputChannel?.appendLine(`📊 HTML elements parsed: ${htmlData?.elements?.length || 0}`);
 
@@ -1624,6 +1717,40 @@ async function handleGenerateCSS(panel, settings) {
 
           outputChannel?.appendLine(`✅ CSS згенеровано з ${matchingResults.length} співставленнями`);
 
+          // ✅ FIX: Автоматичний імпорт Google Fonts з Figma даних
+          try {
+            const FontImporter = moduleLoader.getModule('FontImporter');
+            if (FontImporter) {
+              outputChannel?.appendLine('🔤 Автоматично імпортуємо шрифти з Figma...');
+              
+              const importer = new FontImporter({
+                includeAllWeights: true,
+                includeAllStyles: true,
+                display: 'swap',
+                customFileName: 'figma-fonts'
+              });
+
+              // Імпортуємо шрифти з поточних Figma даних
+              const fontResult = await importer.importFonts(
+                integrationEngine.figmaClient,
+                fileId,
+                [], // layers - використовуємо всі
+                settings.selectedCanvases || [] // canvas ids
+              );
+
+              // Додаємо Google Fonts імпорти в HTML
+              if (fontResult && fontResult.imports && fontResult.imports.html) {
+                await addFontsImportsToHTML(htmlFilePath, fontResult.imports.html);
+                const fontStats = importer.getImportStats(fontResult.fonts);
+                outputChannel?.appendLine(`✅ Google Fonts автоматично додано: ${fontStats.totalFonts} шрифтів`);
+              }
+            } else {
+              outputChannel?.appendLine('⚠️ FontImporter не доступний для автоматичного імпорту шрифтів');
+            }
+          } catch (fontError) {
+            outputChannel?.appendLine(`⚠️ Помилка автоматичного імпорту шрифтів: ${fontError.message}`);
+          }
+
           // Додаємо статистику
           outputChannel?.appendLine('📈 CSS Generation Stats:');
           outputChannel?.appendLine(`   • Matched elements: ${matchingResults.length}`);
@@ -1661,18 +1788,32 @@ async function handleGenerateCSS(panel, settings) {
           const selectedCanvasIds = Array.isArray(settings.selectedCanvases) ? settings.selectedCanvases : [];
           let canvasName = 'Canvas';
           
-          if (selectedCanvasIds.length > 0) {
-            try {
-              const figmaData = await integrationEngine.figmaClient.getFile(fileId);
+          try {
+            const figmaData = await integrationEngine.figmaClient.getFile(fileId);
+            
+            if (selectedCanvasIds.length > 0) {
+              // Шукаємо конкретний вибраний Canvas
               const canvas = figmaData?.document?.children?.find(child => 
                 selectedCanvasIds.includes(child.id)
               );
-              if (canvas) {
-                canvasName = canvas.name || 'Canvas';
+              if (canvas && canvas.name) {
+                canvasName = canvas.name;
+                outputChannel?.appendLine(`✅ Знайшов вибраний Canvas: ${canvasName}`);
+              } else {
+                outputChannel?.appendLine('⚠️ Вибраний Canvas не знайдено, використовуємо перший доступний');
               }
-            } catch (e) {
-              outputChannel?.appendLine(`⚠️ Не вдалося отримати ім'я canvas: ${e.message}`);
             }
+            
+            // Якщо не знайшли вибраний Canvas або його не було вибрано, використовуємо перший доступний
+            if (canvasName === 'Canvas' && figmaData?.document?.children?.length > 0) {
+              const firstCanvas = figmaData.document.children[0];
+              if (firstCanvas && firstCanvas.name) {
+                canvasName = firstCanvas.name;
+                outputChannel?.appendLine(`✅ Використовуємо перший Canvas: ${canvasName}`);
+              }
+            }
+          } catch (e) {
+            outputChannel?.appendLine(`⚠️ Не вдалося отримати ім'я canvas: ${e.message}`);
           }
           
           // Отримуємо правильне ім'я файлу
@@ -2815,18 +2956,74 @@ async function handleImportFonts(panel, message) {
 
     const stats = importer.getImportStats(result.fonts);
 
-    // ✅ FIX: Додаємо імпорти Google Fonts безпосередньо в HTML (без збереження окремих файлів)
-    if (htmlPath && result && result.imports && result.imports.html) {
+    // ✅ FIX: Обробка різних варіантів збереження шрифтів
+    outputChannel?.appendLine(`🔍 Debug: saveToHTML = ${message.saveToHTML}`);
+    outputChannel?.appendLine(`🔍 Debug: saveToSeparateFile = ${message.saveToSeparateFile}`);
+    outputChannel?.appendLine(`🔍 Debug: htmlPath = ${htmlPath}`);
+    outputChannel?.appendLine(`🔍 Debug: result.imports = ${JSON.stringify(result.imports, null, 2)}`);
+    outputChannel?.appendLine(`🔍 Debug: result.imports.html length = ${result.imports?.html?.length || 0}`);
+    
+    if (message.saveToHTML && htmlPath && result && result.imports && result.imports.html) {
+      // Варіант 1: Додавання в існуючий HTML файл
       try {
+        outputChannel?.appendLine(`🔤 Додаємо Google Fonts до HTML: ${htmlPath}`);
+        outputChannel?.appendLine(`📝 HTML content to inject:\n${result.imports.html}`);
+        
         await addFontsImportsToHTML(htmlPath, result.imports.html);
         outputChannel?.appendLine(`✅ Google Fonts imports додано до HTML: ${htmlPath}`);
         
-        // Відкриваємо HTML файл для перегляду
+        // Відкриваємо HTML файл та переводимо на нього фокус
         const doc = await vscode.workspace.openTextDocument(htmlPath);
-        await vscode.window.showTextDocument(doc, vscode.ViewColumn.One);
+        await vscode.window.showTextDocument(doc, {
+          viewColumn: vscode.ViewColumn.One,
+          preserveFocus: false
+        });
       } catch (error) {
         outputChannel?.appendLine(`⚠️ Не вдалося додати Google Fonts до HTML: ${error.message}`);
       }
+    } else if (message.saveToSeparateFile && htmlPath && result && result.imports && result.imports.html) {
+      // Варіант 2: Створення окремого fonts.html файлу
+      try {
+        const htmlDir = path.dirname(htmlPath);
+        const fontsFilePath = path.join(htmlDir, 'fonts.html');
+        
+        outputChannel?.appendLine(`🔤 Створюємо окремий файл fonts.html: ${fontsFilePath}`);
+        
+        // Створюємо повний HTML контент для fonts.html
+        const fullHtmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Fonts Import</title>
+${result.imports.html}
+</head>
+<body>
+    <h1>Google Fonts успішно імпортовано</h1>
+    <p>Скопіюйте лінки з head секції цього файлу у ваш основний HTML файл.</p>
+</body>
+</html>`;
+
+        await fs.promises.writeFile(fontsFilePath, fullHtmlContent, 'utf8');
+        outputChannel?.appendLine(`✅ Створено fonts.html: ${fontsFilePath}`);
+        
+        // Відкриваємо створений файл та переводимо на нього фокус
+        const doc = await vscode.workspace.openTextDocument(fontsFilePath);
+        await vscode.window.showTextDocument(doc, {
+          viewColumn: vscode.ViewColumn.One,
+          preserveFocus: false
+        });
+      } catch (error) {
+        outputChannel?.appendLine(`⚠️ Не вдалося створити fonts.html: ${error.message}`);
+      }
+    } else {
+      outputChannel?.appendLine(`⚠️ Умови не виконані для додавання шрифтів:`);
+      outputChannel?.appendLine(`  - saveToHTML: ${!!message.saveToHTML}`);
+      outputChannel?.appendLine(`  - saveToSeparateFile: ${!!message.saveToSeparateFile}`);
+      outputChannel?.appendLine(`  - htmlPath: ${!!htmlPath}`);
+      outputChannel?.appendLine(`  - result: ${!!result}`);
+      outputChannel?.appendLine(`  - result.imports: ${!!result?.imports}`);
+      outputChannel?.appendLine(`  - result.imports.html: ${!!result?.imports?.html}`);
     }
 
     panel.webview.postMessage({
@@ -2858,7 +3055,7 @@ async function handleRenameLayer(panel, message) {
       throw new Error('Integration engine не доступний');
     }
 
-    const {layerId, newName} = message;
+    const {layerId, newName, figmaLink, figmaToken, selectedCanvases} = message;
 
     if (!layerId || !newName) {
       throw new Error('Некоректні параметри для перейменовування');
@@ -2868,6 +3065,89 @@ async function handleRenameLayer(panel, message) {
 
     // Зберігаємо перейменування в IntegrationEngine
     await integrationEngine.setLayerAlias(layerId, newName);
+
+    // ✅ FIX: Автоматичне збереження стилів Layer'а в користувацький файл після перейменування
+    if (figmaLink && figmaToken && userStylesManager) {
+      try {
+        outputChannel?.appendLine(`🔤 Автоматично зберігаю стилі для переіменованого Layer: ${newName}`);
+        
+        // Оновлюємо токен в Integration Engine
+        integrationEngine.updateOptions({ figmaToken });
+        
+        // Отримуємо файл ID
+        const fileId = integrationEngine.extractFileIdFromFigmaLink(figmaLink);
+        if (fileId) {
+          // Отримуємо стилі для конкретного Layer'а
+          const layerStyles = await integrationEngine.getLayerStyles(fileId, [layerId]);
+          
+          if (layerStyles && layerStyles.length > 0) {
+            // Генеруємо CSS з перейменованого Layer'а
+            const layerCSS = layerStyles.map(style => {
+              return `/* ${newName} - автозбережено при перейменуванні */
+.${newName.toLowerCase().replace(/[^a-zA-Z0-9]/g, '-')} {
+${style.css || style.styles || '  /* Стилі Layer\'а */'}
+}`;
+            }).join('\n\n');
+            
+            // Отримуємо ім'я Canvas для створення файлу (як у handleGenerateCSS)
+            const selectedCanvasIds = Array.isArray(selectedCanvases) ? selectedCanvases : [];
+            let canvasName = 'Canvas';
+            
+            try {
+              const figmaData = await integrationEngine.figmaClient.getFile(fileId);
+              
+              if (selectedCanvasIds.length > 0) {
+                // Шукаємо конкретний вибраний Canvas
+                const canvas = figmaData?.document?.children?.find(child => 
+                  selectedCanvasIds.includes(child.id)
+                );
+                if (canvas && canvas.name) {
+                  canvasName = canvas.name;
+                  outputChannel?.appendLine(`✅ Використовуємо вибраний Canvas для автозбереження: ${canvasName}`);
+                } else {
+                  outputChannel?.appendLine('⚠️ Вибраний Canvas не знайдено, використовуємо перший доступний');
+                }
+              }
+              
+              // Якщо не знайшли вибраний Canvas або його не було вибрано, використовуємо перший доступний
+              if (canvasName === 'Canvas' && figmaData?.document?.children?.length > 0) {
+                const firstCanvas = figmaData.document.children[0];
+                if (firstCanvas && firstCanvas.name) {
+                  canvasName = firstCanvas.name;
+                  outputChannel?.appendLine(`✅ Використовуємо перший Canvas для автозбереження: ${canvasName}`);
+                }
+              }
+            } catch (e) {
+              outputChannel?.appendLine(`⚠️ Не вдалося отримати Canvas ім'я: ${e.message}`);
+            }
+            
+            // Генеруємо ім'я файлу
+            const fileName = await integrationEngine.figmaClient.getFileNameAndCanvas(fileId, canvasName);
+            
+            // Зберігаємо або додаємо стилі в користувацький файл
+            const saveResult = await userStylesManager.appendLayerStyles(
+              fileName.fullFileName, 
+              layerCSS, 
+              {
+                layerName: newName,
+                layerId: layerId,
+                canvasName: canvasName,
+                figmaLink: figmaLink,
+                autoSaved: true
+              }
+            );
+            
+            if (saveResult.success) {
+              outputChannel?.appendLine(`✅ Стилі Layer'а "${newName}" автоматично збережено в ${fileName.fullFileName}`);
+            } else {
+              outputChannel?.appendLine(`⚠️ Не вдалося зберегти стилі: ${saveResult.error}`);
+            }
+          }
+        }
+      } catch (autoSaveError) {
+        outputChannel?.appendLine(`⚠️ Помилка автозбереження стилів: ${autoSaveError.message}`);
+      }
+    }
 
     panel.webview.postMessage({
       command: 'layerRenamed',

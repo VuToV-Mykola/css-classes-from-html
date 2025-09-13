@@ -1,3 +1,4 @@
+const { logger } = require('../utils/Logger');
 /**
  * ✅ FIX: Розширений CSS генератор з 100% переносом властивостей
  * Забезпечує повний перенос стилів з Figma в HTML класи
@@ -46,14 +47,14 @@ class AdvancedCSSGenerator {
    * ✅ FIX: Генерація адаптивного CSS з мобільним підходом
    */
   async generateCSS(figmaData, htmlData, matchingResults) {
-    console.log('🎨 Початок розширеної адаптивної генерації CSS...');
+    logger.info('🎨 Початок розширеної адаптивної генерації CSS...');
     
     // Очищаємо попередні дані
     this.cssRules.clear();
     this.variables.clear();
     this.mediaQueries.clear();
     
-    console.log(`📊 Результати співставлення: ${matchingResults.length}`);
+    logger.info(`📊 Результати співставлення: ${matchingResults.length}`);
     
     // Генеруємо адаптивні CSS змінні
     if (this.options.fluidTypography || this.options.mobileFirst) {
@@ -71,10 +72,10 @@ class AdvancedCSSGenerator {
     // Розраховуємо статистику
     this.calculateStatistics();
     
-    console.log('✅ CSS генерація завершена:');
-    console.log(`   • Всього правил: ${this.statistics.totalRules}`);
-    console.log(`   • Зіставлено елементів: ${this.statistics.matchedElements}`);
-    console.log(`   • Не зіставлено елементів: ${this.statistics.unmatchedElements}`);
+    logger.info('✅ CSS генерація завершена:');
+    logger.info(`   • Всього правил: ${this.statistics.totalRules}`);
+    logger.info(`   • Зіставлено елементів: ${this.statistics.matchedElements}`);
+    logger.info(`   • Не зіставлено елементів: ${this.statistics.unmatchedElements}`);
     
     return css;
   }
@@ -86,19 +87,19 @@ class AdvancedCSSGenerator {
     const { figma, html, confidence, type, metadata } = match;
     
     try {
-      console.log('🔍 Обробка співставлення:');
-      console.log(`   Figma: ${figma.name || figma.type}`);
-      console.log(`   HTML: ${html.tagName}.${html.className || 'no-class'}`);
-      console.log(`   Confidence: ${confidence}`);
-      console.log(`   Type: ${type}`);
+      logger.info('🔍 Обробка співставлення:');
+      logger.info(`   Figma: ${figma.name || figma.type}`);
+      logger.info(`   HTML: ${html.tagName}.${html.className || 'no-class'}`);
+      logger.info(`   Confidence: ${confidence}`);
+      logger.info(`   Type: ${type}`);
       
       // Витягуємо стилі з Figma елемента
       const figmaStyles = this.extractFigmaStyles(figma);
-      console.log('📊 Figma стилі:', figmaStyles);
+      logger.info('📊 Figma стилі:', figmaStyles);
       
       // Генеруємо CSS селектор для HTML елемента
       const selector = this.generateSelector(html);
-      console.log(`🎯 Селектор: ${selector}`);
+      logger.info(`🎯 Селектор: ${selector}`);
       
       // Отримуємо інформацію про Canvas та Layers
       const canvasInfo = this.getCanvasInfo(figma);
@@ -107,7 +108,7 @@ class AdvancedCSSGenerator {
       // Для точних співпадінь використовуємо 100% властивостей
       const shouldUseFullTransfer = metadata && metadata.isExactMatch === true;
       const cssRules = this.convertFigmaStylesToCSS(figmaStyles, shouldUseFullTransfer ? 1.0 : confidence);
-      console.log('📊 CSS правила:', cssRules);
+      logger.info('📊 CSS правила:', cssRules);
       
       // ✅ Мердж утилітних класів з бібліотеки (тільки відсутні властивості)
       const enhancedRules = this.mergeUtilityClassIfNeeded(selector, cssRules);
@@ -137,18 +138,18 @@ class AdvancedCSSGenerator {
         
         this.statistics.matchedElements++;
         
-        console.log(`✅ CSS згенеровано для ${selector}`);
-        console.log(`   Canvas: ${canvasInfo.name}`);
-        console.log(`   Layer: ${layerInfo.name}`);
-        console.log(`   Кількість правил: ${Object.keys(cssRules).length}`);
-        console.log('   Джерело: Figma (БЕЗ FALLBACK)');
+        logger.info(`✅ CSS згенеровано для ${selector}`);
+        logger.info(`   Canvas: ${canvasInfo.name}`);
+        logger.info(`   Layer: ${layerInfo.name}`);
+        logger.info(`   Кількість правил: ${Object.keys(cssRules).length}`);
+        logger.info('   Джерело: Figma (БЕЗ FALLBACK)');
       } else {
-        console.log(`⚠️ Немає Figma стилів для ${selector} - пропускаємо (БЕЗ FALLBACK)`);
+        logger.info(`⚠️ Немає Figma стилів для ${selector} - пропускаємо (БЕЗ FALLBACK)`);
         this.statistics.unmatchedElements++;
       }
       
     } catch (error) {
-      console.error('❌ Помилка генерації CSS для співставлення:', error);
+      logger.error('❌ Помилка генерації CSS для співставлення:', error);
       this.statistics.unmatchedElements++;
     }
   }
@@ -186,14 +187,14 @@ class AdvancedCSSGenerator {
     
     if (!figmaNode) return styles;
     
-    console.log(`🔍 Витягування стилів з Figma вузла: ${figmaNode.name || figmaNode.type}`);
+    logger.info(`🔍 Витягування стилів з Figma вузла: ${figmaNode.name || figmaNode.type}`);
     
     // Кольори
     if (figmaNode.fills && figmaNode.fills.length > 0) {
       const fill = figmaNode.fills[0];
       if (fill.type === 'SOLID' && fill.color) {
         styles.color = this.rgbToHex(fill.color);
-        console.log(`   ✅ color: ${styles.color}`);
+        logger.info(`   ✅ color: ${styles.color}`);
       }
     }
     
@@ -202,7 +203,7 @@ class AdvancedCSSGenerator {
       const fill = figmaNode.fills[0];
       if (fill.type === 'SOLID' && fill.color) {
         styles.backgroundColor = this.rgbToHex(fill.color);
-        console.log(`   ✅ background-color: ${styles.backgroundColor}`);
+        logger.info(`   ✅ background-color: ${styles.backgroundColor}`);
       }
     }
     
@@ -210,42 +211,42 @@ class AdvancedCSSGenerator {
     if (figmaNode.style) {
       if (figmaNode.style.fontFamily) {
         styles.fontFamily = `"${figmaNode.style.fontFamily}", sans-serif`;
-        console.log(`   ✅ font-family: ${styles.fontFamily}`);
+        logger.info(`   ✅ font-family: ${styles.fontFamily}`);
       }
       
       if (figmaNode.style.fontSize) {
         styles.fontSize = `${figmaNode.style.fontSize}px`;
-        console.log(`   ✅ font-size: ${styles.fontSize}`);
+        logger.info(`   ✅ font-size: ${styles.fontSize}`);
       }
       
       if (figmaNode.style.fontWeight) {
         styles.fontWeight = figmaNode.style.fontWeight;
-        console.log(`   ✅ font-weight: ${styles.fontWeight}`);
+        logger.info(`   ✅ font-weight: ${styles.fontWeight}`);
       }
       
       if (figmaNode.style.fontStyle) {
         styles.fontStyle = figmaNode.style.fontStyle;
-        console.log(`   ✅ font-style: ${styles.fontStyle}`);
+        logger.info(`   ✅ font-style: ${styles.fontStyle}`);
       }
       
       if (figmaNode.style.textAlignHorizontal) {
         styles.textAlign = figmaNode.style.textAlignHorizontal.toLowerCase();
-        console.log(`   ✅ text-align: ${styles.textAlign}`);
+        logger.info(`   ✅ text-align: ${styles.textAlign}`);
       }
       
       if (figmaNode.style.textAlignVertical) {
         styles.verticalAlign = figmaNode.style.textAlignVertical.toLowerCase();
-        console.log(`   ✅ vertical-align: ${styles.verticalAlign}`);
+        logger.info(`   ✅ vertical-align: ${styles.verticalAlign}`);
       }
       
       if (figmaNode.style.letterSpacing) {
         styles.letterSpacing = `${figmaNode.style.letterSpacing}px`;
-        console.log(`   ✅ letter-spacing: ${styles.letterSpacing}`);
+        logger.info(`   ✅ letter-spacing: ${styles.letterSpacing}`);
       }
       
       if (figmaNode.style.lineHeightPx) {
         styles.lineHeight = `${figmaNode.style.lineHeightPx}px`;
-        console.log(`   ✅ line-height: ${styles.lineHeight}`);
+        logger.info(`   ✅ line-height: ${styles.lineHeight}`);
       }
     }
     
@@ -255,40 +256,40 @@ class AdvancedCSSGenerator {
       
       if (width) {
         styles.width = `${width}px`;
-        console.log(`   ✅ width: ${styles.width}`);
+        logger.info(`   ✅ width: ${styles.width}`);
       }
       
       if (height) {
         styles.height = `${height}px`;
-        console.log(`   ✅ height: ${styles.height}`);
+        logger.info(`   ✅ height: ${styles.height}`);
       }
     }
     
     // Відступи
     if (figmaNode.paddingLeft) {
       styles.paddingLeft = `${figmaNode.paddingLeft}px`;
-      console.log(`   ✅ padding-left: ${styles.paddingLeft}`);
+      logger.info(`   ✅ padding-left: ${styles.paddingLeft}`);
     }
     
     if (figmaNode.paddingRight) {
       styles.paddingRight = `${figmaNode.paddingRight}px`;
-      console.log(`   ✅ padding-right: ${styles.paddingRight}`);
+      logger.info(`   ✅ padding-right: ${styles.paddingRight}`);
     }
     
     if (figmaNode.paddingTop) {
       styles.paddingTop = `${figmaNode.paddingTop}px`;
-      console.log(`   ✅ padding-top: ${styles.paddingTop}`);
+      logger.info(`   ✅ padding-top: ${styles.paddingTop}`);
     }
     
     if (figmaNode.paddingBottom) {
       styles.paddingBottom = `${figmaNode.paddingBottom}px`;
-      console.log(`   ✅ padding-bottom: ${styles.paddingBottom}`);
+      logger.info(`   ✅ padding-bottom: ${styles.paddingBottom}`);
     }
     
     // Радіус кутів
     if (figmaNode.cornerRadius) {
       styles.borderRadius = `${figmaNode.cornerRadius}px`;
-      console.log(`   ✅ border-radius: ${styles.borderRadius}`);
+      logger.info(`   ✅ border-radius: ${styles.borderRadius}`);
     }
     
     // Границі
@@ -296,12 +297,12 @@ class AdvancedCSSGenerator {
       const stroke = figmaNode.strokes[0];
       if (stroke.type === 'SOLID' && stroke.color) {
         styles.borderColor = this.rgbToHex(stroke.color);
-        console.log(`   ✅ border-color: ${styles.borderColor}`);
+        logger.info(`   ✅ border-color: ${styles.borderColor}`);
       }
       
       if (stroke.strokeWeight) {
         styles.borderWidth = `${stroke.strokeWeight}px`;
-        console.log(`   ✅ border-width: ${styles.borderWidth}`);
+        logger.info(`   ✅ border-width: ${styles.borderWidth}`);
       }
     }
     
@@ -311,14 +312,14 @@ class AdvancedCSSGenerator {
       if (shadow) {
         const { offset, radius, color } = shadow;
         styles.boxShadow = `${offset.x}px ${offset.y}px ${radius}px ${this.rgbToHex(color)}`;
-        console.log(`   ✅ box-shadow: ${styles.boxShadow}`);
+        logger.info(`   ✅ box-shadow: ${styles.boxShadow}`);
       }
     }
     
     // Flexbox
     if (figmaNode.layoutMode) {
       styles.display = 'flex';
-      console.log('   ✅ display: flex');
+      logger.info('   ✅ display: flex');
       
       if (figmaNode.primaryAxisAlignItems) {
         const alignMap = {
@@ -328,7 +329,7 @@ class AdvancedCSSGenerator {
           'SPACE_BETWEEN': 'space-between'
         };
         styles.justifyContent = alignMap[figmaNode.primaryAxisAlignItems] || 'flex-start';
-        console.log(`   ✅ justify-content: ${styles.justifyContent}`);
+        logger.info(`   ✅ justify-content: ${styles.justifyContent}`);
       }
       
       if (figmaNode.counterAxisAlignItems) {
@@ -339,7 +340,7 @@ class AdvancedCSSGenerator {
           'BASELINE': 'baseline'
         };
         styles.alignItems = alignMap[figmaNode.counterAxisAlignItems] || 'flex-start';
-        console.log(`   ✅ align-items: ${styles.alignItems}`);
+        logger.info(`   ✅ align-items: ${styles.alignItems}`);
       }
     }
     
@@ -349,16 +350,16 @@ class AdvancedCSSGenerator {
       
       if (x !== undefined) {
         styles.left = `${x}px`;
-        console.log(`   ✅ left: ${styles.left}`);
+        logger.info(`   ✅ left: ${styles.left}`);
       }
       
       if (y !== undefined) {
         styles.top = `${y}px`;
-        console.log(`   ✅ top: ${styles.top}`);
+        logger.info(`   ✅ top: ${styles.top}`);
       }
     }
     
-    console.log(`📊 Всього стилів витягнуто: ${Object.keys(styles).length}`);
+    logger.info(`📊 Всього стилів витягнуто: ${Object.keys(styles).length}`);
     
     return styles;
   }
@@ -373,13 +374,13 @@ class AdvancedCSSGenerator {
       return cssRules;
     }
     
-    console.log(`🎨 Конвертація Figma стилів в CSS (впевненість: ${(confidence * 100).toFixed(1)}%)`);
+    logger.info(`🎨 Конвертація Figma стилів в CSS (впевненість: ${(confidence * 100).toFixed(1)}%)`);
     
     // Копіюємо всі стилі з Figma
     for (const [property, value] of Object.entries(figmaStyles)) {
       if (value !== undefined && value !== null && value !== '') {
         cssRules[property] = value;
-        console.log(`   ✅ ${property}: ${value}`);
+        logger.info(`   ✅ ${property}: ${value}`);
       }
     }
     
@@ -395,7 +396,7 @@ class AdvancedCSSGenerator {
       }
     }
     
-    console.log(`📊 CSS правил згенеровано: ${Object.keys(cssRules).length}`);
+    logger.info(`📊 CSS правил згенеровано: ${Object.keys(cssRules).length}`);
     
     return cssRules;
   }
@@ -592,7 +593,7 @@ class AdvancedCSSGenerator {
    * ✅ FIX: Сортування селекторів за ієрархічним порядком HTML
    */
   sortSelectorsByHierarchy() {
-    console.log('🌳 Сортування селекторів за ієрархічним порядком HTML...');
+    logger.info('🌳 Сортування селекторів за ієрархічним порядком HTML...');
     
     // Створюємо масив з селекторами та їх HTML елементами
     const selectorsWithElements = [];
@@ -622,8 +623,8 @@ class AdvancedCSSGenerator {
     
     const sortedSelectors = selectorsWithElements.map(item => item.selector);
     
-    console.log(`📊 Селекторів відсортовано: ${sortedSelectors.length}`);
-    console.log('🌳 Порядок селекторів:', sortedSelectors);
+    logger.info(`📊 Селекторів відсортовано: ${sortedSelectors.length}`);
+    logger.info('🌳 Порядок селекторів:', sortedSelectors);
     
     return sortedSelectors;
   }
