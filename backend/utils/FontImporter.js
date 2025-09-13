@@ -128,6 +128,7 @@ class FontImporter {
       logger.debug(`Вибрані сторінки для аналізу: ${targetPages.length} з ${pages.length}`)
       if (selectedCanvasIds.length > 0) {
         logger.debug(`Фільтруємо по canvas IDs: ${selectedCanvasIds.join(', ')}`)
+        logger.debug(`Знайдені canvas:`, pages.map(p => ({ id: p.id, name: p.name })))
       } else {
         logger.debug('Аналізуємо всі canvas (selectedCanvasIds порожній)')
       }
@@ -211,9 +212,15 @@ class FontImporter {
              type: child.type,
              hasStyle: !!child.style
            })))
+           
+           // Обходимо всі дочірні елементи canvas
+           page.children.forEach(child => {
+             logger.debug(`Обробка дочірнього елемента: ${child.name} (${child.type})`)
+             walkForFonts(child, page.id)
+           })
+         } else {
+           logger.warn(`Canvas ${page.name} не має дочірніх елементів`)
          }
-         
-         walkForFonts(page, page.id)
        })
 
       // Конвертуємо в масив з необхідною структурою
