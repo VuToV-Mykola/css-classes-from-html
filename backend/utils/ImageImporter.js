@@ -37,16 +37,31 @@ class ImageImporter {
       const allImages = await this.getAllImagesFromCanvases(figmaClient, fileKey, selectedCanvasIds);
       logger.info('📸 All images received:', allImages);
 
-      // ✅ FIX: Логіка фільтрації за layers
-      let imagesToProcess;
-      if (selectedLayers.length > 0) {
-        // Якщо є вибрані layers - імпортуємо тільки з них
-        imagesToProcess = allImages.filter(img => selectedLayers.includes(img.id));
-        logger.info(`🎯 Filtered by selected layers: ${imagesToProcess.length}/${allImages.length} images`);
+      // ✅ FIX: Логіка фільтрації - завжди імпортуємо всі зображення з вибраних canvas
+      // Згідно з вимогами: "Фільтр тільки по канвас, для всіх Layers"
+      let imagesToProcess = allImages;
+      
+      if (selectedCanvasIds.length > 0) {
+        logger.info(`🎯 Canvas filtering active - importing all images from selected canvas(es): ${imagesToProcess.length} images`);
       } else {
-        // Якщо layers не вибрані - імпортуємо з усього canvas
-        imagesToProcess = allImages;
-        logger.info(`🌍 Processing all images from canvas: ${imagesToProcess.length} images`);
+        logger.info(`🌍 Processing all images from all canvas: ${imagesToProcess.length} images`);
+      }
+      
+      // Додаткова фільтрація по layers (якщо потрібно)
+      if (selectedLayers.length > 0) {
+        // Фільтруємо зображення, які належать до вибраних layers
+        const filteredImages = imagesToProcess.filter(img => {
+          // Перевіряємо, чи зображення належить до вибраного layer
+          return selectedLayers.includes(img.id) || selectedLayers.includes(img.parentId);
+        });
+        
+        if (filteredImages.length > 0) {
+          imagesToProcess = filteredImages;
+          logger.info(`🎯 Additional layer filtering: ${imagesToProcess.length}/${allImages.length} images match selected layers`);
+        } else {
+          // Якщо фільтрація по layers не дала результатів, імпортуємо всі з canvas
+          logger.info(`⚠️ No images match selected layers, importing all from canvas: ${imagesToProcess.length} images`);
+        }
       }
 
       logger.info(`📸 Final images to process: ${imagesToProcess.length}`);
