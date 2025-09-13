@@ -4770,8 +4770,7 @@
 
           showStatus("Стилі збережено в користувацькі стилі під макет ✅", "success")
 
-          // Закриваємо sidebar
-          toggleSidebar(false)
+          // ✅ FIX: НЕ закриваємо sidebar після збереження - залишаємо стилі видимими
         } else {
           // Якщо textarea не знайдено, створюємо її
           toggleCustomStylesSubmenu()
@@ -6366,6 +6365,14 @@ p {
           showStatus(`💾 Збережено: ${message.fileName}`, "success")
           // Оновлюємо список користувацьких стилів
           loadUserStyles()
+          
+          // ✅ FIX: Відновлюємо sidebar з поточними стилями після збереження
+          // Якщо є вибрані layers, показуємо їх стилі знову
+          if (state.selectedLayers && state.selectedLayers.length > 0) {
+            const selectedIds = state.selectedLayers.map(l => l.id)
+            console.log(`🔄 Відновлюємо стилі для ${selectedIds.length} layers після збереження`)
+            requestStylesForIds(selectedIds)
+          }
         } else {
           showStatus(`❌ Помилка збереження: ${message.error}`, "error")
         }
