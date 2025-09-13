@@ -136,6 +136,11 @@ class FontImporter {
         totalNodesProcessed++
         if (!node) return
 
+        // Додаткова діагностика для перших кількох вузлів
+        if (totalNodesProcessed <= 10) {
+          logger.debug(`Обробка вузла ${totalNodesProcessed}: ${node.name} (${node.type})`)
+        }
+
         // Перевіряємо чи треба обробляти цей layer
         if (selectedLayers.length > 0 && !selectedLayers.includes(node.id)) {
           // Якщо є фільтр по layers і цей node не в списку - пропускаємо його дітей теж
@@ -187,6 +192,17 @@ class FontImporter {
        targetPages.forEach(page => {
          logger.debug(`Сканування шрифтів на canvas: ${page.name} (${page.id})`)
          logger.debug(`Canvas children count: ${page.children?.length || 0}`)
+         
+         // Додаткова діагностика структури
+         if (page.children && page.children.length > 0) {
+           logger.debug(`Перші 5 дочірніх елементів:`, page.children.slice(0, 5).map(child => ({
+             id: child.id,
+             name: child.name,
+             type: child.type,
+             hasStyle: !!child.style
+           })))
+         }
+         
          walkForFonts(page, page.id)
        })
 
