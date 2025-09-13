@@ -982,6 +982,16 @@
     height: 4px;
     margin: 1rem 0;
     overflow: hidden;
+    /* ✅ FIX: Зарезервуємо місце, щоб уникнути скачків інтерфейсу */
+    min-height: 4px;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+  
+  .progress.visible {
+    visibility: visible;
+    opacity: 1;
   }
 
   .progress-bar {
@@ -1214,11 +1224,12 @@
           </div>
         </div>
       </div>
-      <div class="progress" id="progressContainer" style="display: none">
+      <!-- Progress bar -->
+      <div class="progress" id="progressContainer">
         <div class="progress-bar" id="progressBar"></div>
       </div>
       <div class="header">
-        <!-- Progress bar -->
+        
         <!-- Status повідомлення з автоприховуванням -->
         <div id="status" class="status status-auto-hide">
           <span id="status-text"></span>
@@ -6032,7 +6043,8 @@ p {
         const bar = document.getElementById("progressBar")
 
         if (container) {
-          container.style.display = "block"
+          // ✅ FIX: Використовуємо CSS клас замість display для плавної анімації
+          container.classList.add("visible")
           bar.style.width = "70%"
         }
 
@@ -6042,7 +6054,13 @@ p {
       window.hideProgress = function () {
         const container = document.getElementById("progressContainer")
         if (container) {
-          container.style.display = "none"
+          // ✅ FIX: Використовуємо CSS клас замість display для плавної анімації
+          container.classList.remove("visible")
+          // Скидаємо прогрес після приховування
+          setTimeout(() => {
+            const bar = document.getElementById("progressBar")
+            if (bar) bar.style.width = "0%"
+          }, 300) // Чекаємо завершення анімації
         }
       }
 
