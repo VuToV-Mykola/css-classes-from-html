@@ -3245,6 +3245,10 @@
             handleUserStyleSaved(message)
             break
 
+          case "autoSaveFileNameGenerated":
+            handleAutoSaveFileNameGenerated(message)
+            break
+
           case "styleFileSaved":
             // Обробка результату збереження CSS файлу
             if (message.success) {
@@ -5954,6 +5958,31 @@
         createNewStyleFile(fileName, "global", getGlobalTemplate())
       }
 
+      // ✅ FIX: Функція для генерації імені файлу в стилі автозбереження
+      window.generateAutoSaveFileName = function () {
+        // Отримуємо поточні Figma credentials
+        const {figmaLink, figmaToken, linkOk, tokenOk} = getFigmaCreds()
+        
+        if (!linkOk || !tokenOk) {
+          // Якщо немає Figma credentials, використовуємо базове ім'я
+          const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
+          return `custom-styles-${timestamp}.css`
+        }
+        
+        // Отримуємо вибрані Canvas для правильного імені файлу
+        const selectedCanvases = Array.from(state.selectedCanvasIds || [])
+        
+        // Відправляємо запит на бекенд для генерації імені файлу
+        vscode.postMessage({
+          command: "generateAutoSaveFileName",
+          figmaLink: figmaLink,
+          figmaToken: figmaToken,
+          selectedCanvases: selectedCanvases
+        })
+        
+        return null // Повертаємо null, оскільки ім'я буде отримано асинхронно
+      }
+
       // Функції для роботи з користувацькими стилями
       window.saveCustomStyles = function () {
         const textarea = document.getElementById("customStylesTextarea")
@@ -5964,8 +5993,27 @@
           return
         }
 
-        // Показуємо діалог вибору місця збереження
-        showSaveLocationDialog(styles)
+        // ✅ FIX: Автоматичне збереження з іменем файлу в стилі автозбереження
+        const fileName = generateAutoSaveFileName()
+        
+        if (fileName) {
+          // Якщо ім'я файлу вже готове, зберігаємо одразу
+          saveCustomStylesWithFileName(styles, fileName)
+        } else {
+          // Якщо потрібно отримати ім'я файлу асинхронно, показуємо діалог
+          showSaveLocationDialog(styles)
+        }
+      }
+
+      // ✅ FIX: Функція для збереження користувацьких стилів з конкретним іменем файлу
+      window.saveCustomStylesWithFileName = function (styles, fileName) {
+        vscode.postMessage({
+          command: "saveUserStyle",
+          fileName: fileName,
+          content: styles
+        })
+        
+        showStatus(`💾 Стилі збережено: ${fileName}`, "success")
       }
 
       // ✅ FIX: Безпечна функція кодування для Unicode символів
@@ -6457,6 +6505,34 @@ p {
           }
         } else {
           showStatus(`❌ Помилка збереження: ${message.error}`, "error")
+        }
+      }
+
+      // ✅ FIX: Обробка згенерованого імені файлу для автозбереження
+      function handleAutoSaveFileNameGenerated(message) {
+        if (message.success !== false && message.fileName) {
+          console.log(`🔤 Отримано ім'я файлу для автозбереження: ${message.fileName}`)
+          
+          // Отримуємо стилі з textarea
+          const textarea = document.getElementById("customStylesTextarea")
+          const styles = textarea ? textarea.value.trim() : ""
+          
+          if (styles) {
+            // Зберігаємо стилі з згенерованим іменем файлу
+            saveCustomStylesWithFileName(styles, message.fileName)
+          } else {
+            showStatus("⚠️ Немає стилів для збереження", "warning")
+          }
+        } else {
+          console.error(`❌ Помилка генерації імені файлу: ${message.error}`)
+          showStatus(`❌ Помилка генерації імені файлу: ${message.error}`, "error")
+          
+          // Fallback: показуємо діалог вибору місця збереження
+          const textarea = document.getElementById("customStylesTextarea")
+          const styles = textarea ? textarea.value.trim() : ""
+          if (styles) {
+            showSaveLocationDialog(styles)
+          }
         }
       }
 

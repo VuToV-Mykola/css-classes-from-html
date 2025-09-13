@@ -1482,6 +1482,10 @@ function setupMessageHandlers(panel) {
         await handleRenameLayer(panel, message);
         break;
 
+      case 'generateAutoSaveFileName':
+        await handleGenerateAutoSaveFileName(panel, message);
+        break;
+
         // 💾 Збереження CSS файлу після перейменування layer'а
       case 'saveStyleFile': {
         try {
@@ -3037,6 +3041,84 @@ ${result.imports.html}
     outputChannel?.appendLine(`❌ Error importing fonts: ${error.message}`);
     panel.webview.postMessage({
       command: 'fontsImported',
+      success: false,
+      error: error.message
+    });
+  }
+}
+
+// ✅ FIX: Функція для генерації імені файлу в стилі автозбереження
+async function handleGenerateAutoSaveFileName(panel, message) {
+  try {
+    if (!integrationEngine) {
+      throw new Error('Integration engine не доступний');
+    }
+
+    const {figmaLink, figmaToken, selectedCanvases} = message;
+
+    if (!figmaLink || !figmaToken) {
+      throw new Error('Некоректні Figma credentials');
+    }
+
+    outputChannel?.appendLine(`🔤 Генеруємо ім'я файлу для автозбереження...`);
+
+    // Оновлюємо токен в Integration Engine
+    integrationEngine.updateOptions({ figmaToken });
+    
+    // Отримуємо файл ID
+    const fileId = integrationEngine.extractFileIdFromFigmaLink(figmaLink);
+    if (!fileId) {
+      throw new Error('Некоректний Figma link');
+    }
+
+    // Отримуємо ім'я Canvas для створення файлу
+    const selectedCanvasIds = Array.isArray(selectedCanvases) ? selectedCanvases : [];
+    let canvasName = 'Canvas';
+    
+    try {
+      const figmaData = await integrationEngine.figmaClient.getFile(fileId);
+      
+      if (selectedCanvasIds.length > 0) {
+        // Шукаємо конкретний вибраний Canvas
+        const canvas = figmaData?.document?.children?.find(child => 
+          selectedCanvasIds.includes(child.id)
+        );
+        if (canvas && canvas.name) {
+          canvasName = canvas.name;
+          outputChannel?.appendLine(`✅ Використовуємо вибраний Canvas для автозбереження: ${canvasName}`);
+        } else {
+          outputChannel?.appendLine('⚠️ Вибраний Canvas не знайдено, використовуємо перший доступний');
+        }
+      }
+      
+      // Якщо не знайшли вибраний Canvas або його не було вибрано, використовуємо перший доступний
+      if (canvasName === 'Canvas' && figmaData?.document?.children?.length > 0) {
+        const firstCanvas = figmaData.document.children[0];
+        if (firstCanvas && firstCanvas.name) {
+          canvasName = firstCanvas.name;
+          outputChannel?.appendLine(`✅ Використовуємо перший Canvas для автозбереження: ${canvasName}`);
+        }
+      }
+    } catch (e) {
+      outputChannel?.appendLine(`⚠️ Не вдалося отримати Canvas ім'я: ${e.message}`);
+    }
+    
+    // Генеруємо ім'я файлу
+    const fileName = await integrationEngine.figmaClient.getFileNameAndCanvas(fileId, canvasName);
+    
+    // Відправляємо ім'я файлу назад на фронтенд
+    panel.webview.postMessage({
+      command: 'autoSaveFileNameGenerated',
+      fileName: fileName.fullFileName,
+      canvasName: canvasName
+    });
+    
+    outputChannel?.appendLine(`✅ Згенеровано ім'я файлу для автозбереження: ${fileName.fullFileName}`);
+    
+  } catch (error) {
+    outputChannel?.appendLine(`❌ Помилка генерації імені файлу: ${error.message}`);
+    panel.webview.postMessage({
+      command: 'autoSaveFileNameGenerated',
       success: false,
       error: error.message
     });
