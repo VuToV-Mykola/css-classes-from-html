@@ -4967,6 +4967,8 @@
             // Знімаємо checked стан з УСІХ чек-боксів
             if (wasChecked) {
               cb.checked = false;
+              // ✅ FIX: Викликаємо подію change для синхронізації з обробниками
+              cb.dispatchEvent(new Event("change", { bubbles: true }));
               totalCleared++;
               console.log(`✅ Cleared checkbox ${index} with data-id: ${cb.dataset.id}`);
             }
@@ -4982,6 +4984,8 @@
         allDocumentCheckboxes.forEach((cb) => {
           if (cb.checked) {
             cb.checked = false;
+            // ✅ FIX: Викликаємо подію change для синхронізації з обробниками
+            cb.dispatchEvent(new Event("change", { bubbles: true }));
             totalCleared++;
             console.log(`✅ Cleared document checkbox with data-id: ${cb.dataset.id}`);
           }
@@ -4996,6 +5000,8 @@
             console.warn(`⚠️ Still ${stillChecked.length} checkboxes checked after timeout, clearing them now...`);
             stillChecked.forEach((cb) => {
               cb.checked = false;
+              // ✅ FIX: Викликаємо подію change для синхронізації з обробниками
+              cb.dispatchEvent(new Event("change", { bubbles: true }));
               console.log(`🔄 Force cleared checkbox with data-id: ${cb.dataset.id}`);
             });
           }
@@ -5005,16 +5011,26 @@
         const remainingChecked = container ? container.querySelectorAll('input[type="checkbox"]:checked').length : 0;
         console.log(`🔍 Remaining checked after clear: ${remainingChecked}`);
         
+        // ✅ FIX: Додаткова агресивна стратегія очищення всіх чекбоксів
+        if (remainingChecked > 0) {
+          console.warn(`⚠️ Still ${remainingChecked} checkboxes checked, applying aggressive clearing...`);
+          
+          // Очищуємо ВСІ чекбокси в документі, які мають data-id
+          const allCheckboxesInDocument = document.querySelectorAll('input[type="checkbox"][data-id]');
+          allCheckboxesInDocument.forEach((cb) => {
+            if (cb.checked) {
+              cb.checked = false;
+              cb.dispatchEvent(new Event("change", { bubbles: true }));
+              console.log(`🔥 Aggressively cleared checkbox with data-id: ${cb.dataset.id}`);
+            }
+          });
+        }
+        
         console.log("🧹 Cleared all layer selections")
         showStatus(`🧹 Очищено ${totalCleared} вибраних layers`, "info")
 
-        // Старий код з подіями (коментуємо, оскільки це може викликати зайві події)
-        /*document.querySelectorAll('#layersList input[type="checkbox"]').forEach(cb => {
-          if (cb.checked) {
-            cb.checked = false
-            cb.dispatchEvent(new Event("change"))
-          }
-        })*/
+        // ✅ FIX: Очищуємо стан після всіх операцій
+        state.selectedLayers = []
         state.selectedLayerIds = new Set()
 
         // ✅ FIX: Автоматично оновлюємо sidebar після очищення layers
