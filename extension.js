@@ -1548,13 +1548,7 @@ function setupMessageHandlers(panel) {
         break;
       }
 
-      case 'testMessage':
-        outputChannel?.appendLine(`🧪 Test message received: ${JSON.stringify(message.data)}`);
-        panel.webview.postMessage({
-          command: 'testResponse',
-          message: 'Test message processed successfully!'
-        });
-        break;
+      // ✅ FIX: Видалено test message handler - використовуємо тільки реальні функції
 
       case 'viewportChanged':
         // Handle viewport changes for dynamic optimization

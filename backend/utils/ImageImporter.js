@@ -555,8 +555,8 @@ class ImageImporter {
       
     } catch (error) {
       logger.error('❌ Error getting images from canvases:', error.message);
-      // ✅ FIX: Видалено fallback - використовуємо тільки реальні дані
-      return await figmaClient.getAllImages(fileKey);
+      // ✅ FIX: Повертаємо порожній масив замість fallback
+      return [];
     }
   }
 

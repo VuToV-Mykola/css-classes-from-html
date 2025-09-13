@@ -50,8 +50,8 @@ class HierarchicalCSSGenerator {
     logger.info(`📊 Співставлень для обробки: ${matches.length}`);
 
     if (!matches.length) {
-      logger.warn('⚠️ Немає співставлень для генерації CSS');
-      return this.generateFallbackCSS(htmlElements);
+      logger.warn('⚠️ Немає співставлень для генерації CSS - повертаємо порожній CSS');
+      return '/* Немає співставлень з Figma макетом */';
     }
 
     // Очищуємо попередні результати
@@ -66,8 +66,7 @@ class HierarchicalCSSGenerator {
       await this.generateCSSForMatch(match, figmaData);
     }
 
-    // Етап 3: Генеруємо CSS для елементів без співставлень
-    await this.generateFallbackCSSForUnmatchedElements(htmlElements, matches);
+    // ✅ FIX: Видалено fallback CSS - використовуємо тільки реальні дані з Figma
 
     // Етап 4: Формуємо підсумковий CSS
     const finalCSS = this.compileFinalCSS();
@@ -561,92 +560,9 @@ class HierarchicalCSSGenerator {
       .trim();
   }
 
-  /**
-   * 🔄 Генерація fallback CSS для елементів без співставлень
-   */
-  async generateFallbackCSSForUnmatchedElements(htmlElements, matches) {
-    const matchedElementIds = new Set(matches.map(m => this.getElementId(m.html)));
-    
-    for (const element of htmlElements) {
-      const elementId = this.getElementId(element);
-      if (!matchedElementIds.has(elementId)) {
-        const selector = this.generateCSSSelector(element, { figma: { name: null } });
-        if (selector && !this.generatedCSS.has(selector)) {
-          this.generatedCSS.set(selector, {
-            properties: this.generateBasicStyles(element),
-            match: null,
-            confidence: 0,
-            type: 'fallback',
-            source: {
-              figmaNodeId: null,
-              figmaNodeName: 'fallback',
-              htmlElement: this.getElementInfo(element)
-            }
-          });
-        }
-      }
-    }
-  }
+  // ✅ FIX: Видалено fallback CSS для неспівставлених елементів - використовуємо тільки реальні дані з Figma
 
-  generateBasicStyles(element) {
-    const properties = [];
-    const tag = element.tagName?.toLowerCase();
-    
-    // Базові стилі за типом елемента
-    switch (tag) {
-    case 'h1':
-    case 'h2':
-    case 'h3':
-    case 'h4':
-    case 'h5':
-    case 'h6':
-      properties.push('font-weight: bold');
-      properties.push('margin: 0.5em 0');
-      break;
-    case 'p':
-      properties.push('margin: 1em 0');
-      break;
-    case 'button':
-      properties.push('cursor: pointer');
-      properties.push('border: none');
-      properties.push('padding: 0.5em 1em');
-      break;
-    case 'a':
-      properties.push('text-decoration: none');
-      properties.push('color: inherit');
-      break;
-    }
-    
-    return properties;
-  }
-
-  getElementId(element) {
-    return element.id || element.dataset?.id || `${element.tagName}-${Date.now()}-${Math.random()}`;
-  }
-
-  /**
-   * 🔄 Генерація fallback CSS
-   */
-  generateFallbackCSS(htmlElements) {
-    logger.info('🔄 Генерація fallback CSS для всіх HTML елементів...');
-    
-    let css = '/* Українською: Автогенерований CSS без співставлень Figma / English: Auto-generated CSS without Figma matches */\n\n';
-    
-    for (const element of htmlElements) {
-      const selector = this.generateCSSSelector(element, { figma: { name: null } });
-      const properties = this.generateBasicStyles(element);
-      
-      if (selector && properties.length > 0) {
-        css += `${selector} {\n`;
-        for (const property of properties) {
-          css += `  ${property};\n`;
-        }
-        css += '}\n\n';
-      }
-    }
-    
-    return css;
-  }
+  // ✅ FIX: Видалено всі fallback методи - використовуємо тільки реальні дані з Figma
 
   /**
    * 📝 Компіляція підсумкового CSS
