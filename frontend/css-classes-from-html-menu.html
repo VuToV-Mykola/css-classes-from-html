@@ -3406,17 +3406,40 @@
 
       // ✅ Функція збереження в користувацькі стилі ✅
       window.saveUserStyles = function () {
+        // ✅ FIX: Спочатку перевіряємо sidebar, потім results
+        const stylesContent = document.getElementById("stylesContent")
         const resultsContainer = document.getElementById("results")
-        if (!resultsContainer || !resultsContainer.textContent.trim()) {
+        
+        let stylesToSave = ""
+        
+        // Пріоритет 1: Стилі з sidebar (якщо є)
+        if (stylesContent && stylesContent.dataset.allCss) {
+          stylesToSave = stylesContent.dataset.allCss
+          console.log("💾 Зберігаємо стилі з sidebar")
+        }
+        // Пріоритет 2: Стилі з results (якщо sidebar порожній)
+        else if (resultsContainer && resultsContainer.textContent.trim()) {
+          stylesToSave = resultsContainer.textContent
+          console.log("💾 Зберігаємо стилі з results")
+        }
+        // Пріоритет 3: Збираємо всі стилі з sidebar вручну
+        else if (stylesContent) {
+          const allCssElements = stylesContent.querySelectorAll("pre")
+          if (allCssElements.length > 0) {
+            stylesToSave = Array.from(allCssElements)
+              .map(el => el.textContent)
+              .join('\n\n')
+            console.log("💾 Збираємо стилі з sidebar вручну")
+          }
+        }
+        
+        if (!stylesToSave.trim()) {
           showStatus(`❌ ${t("noStylesToSave")}`, "error")
           return
         }
 
-        vscode.postMessage({
-          command: "saveUserStyles",
-          css: resultsContainer.textContent
-        })
-        showStatus(`💾 ${t("stylesSaved")}`, "success")
+        // Показуємо діалог вибору місця збереження
+        showSaveLocationDialog(stylesToSave)
       }
 
       window.updateHTMLDisplay = function (fileName, fullPath = null) {
@@ -4043,6 +4066,38 @@
         showStatus(`✏️ ${t("layerRenamed")}: ${newName}`, "success")
       }
 
+      // ✅ FIX: Автоматичне оновлення sidebar після зміни canvas
+      window.updateSidebarAfterCanvasChange = function () {
+        console.log("🔄 Оновлюємо sidebar після зміни canvas...")
+        
+        // Якщо є вибрані layers, оновлюємо їх стилі
+        if (state.selectedLayers && state.selectedLayers.length > 0) {
+          const selectedIds = state.selectedLayers.map(l => l.id)
+          console.log(`🔄 Оновлюємо стилі для ${selectedIds.length} layers після зміни canvas`)
+          requestStylesForIds(selectedIds)
+        } else {
+          // Якщо немає вибраних layers, очищуємо sidebar
+          console.log("🧹 Немає вибраних layers, очищуємо sidebar")
+          clearSidebar()
+        }
+      }
+
+      // ✅ FIX: Автоматичне оновлення sidebar після зміни layers
+      window.updateSidebarAfterLayersChange = function () {
+        console.log("🔄 Оновлюємо sidebar після зміни layers...")
+        
+        // Якщо є вибрані layers, оновлюємо їх стилі
+        if (state.selectedLayers && state.selectedLayers.length > 0) {
+          const selectedIds = state.selectedLayers.map(l => l.id)
+          console.log(`🔄 Оновлюємо стилі для ${selectedIds.length} layers після зміни layers`)
+          requestStylesForIds(selectedIds)
+        } else {
+          // Якщо немає вибраних layers, очищуємо sidebar
+          console.log("🧹 Немає вибраних layers, очищуємо sidebar")
+          clearSidebar()
+        }
+      }
+
       // ✅ FIX: Автоматичне оновлення sidebar після зміни імені Layer
       window.updateSidebarAfterLayerRename = function (layerId, newName, oldName) {
         // Перевіряємо чи sidebar відображається і чи є CSS стилі
@@ -4285,6 +4340,10 @@
           if (state.selectedCanvases.length > 0) {
             loadLayersForCanvases()
           }
+          
+          // ✅ FIX: Автоматично оновлюємо sidebar при зміні canvas
+          updateSidebarAfterCanvasChange()
+          
           // ✅ FIX: НЕ пересортовуємо Canvas список - залишаємо позицію
           // Canvas блоки залишаються на своїх місцях при виборі
         } else if (type === "layer") {
@@ -4807,6 +4866,9 @@
             cb.dispatchEvent(new Event("change"))
           }
         })
+        
+        // ✅ FIX: Автоматично оновлюємо sidebar після вибору всіх canvas
+        updateSidebarAfterCanvasChange()
       }
 
       window.clearCanvasSelection = function () {
@@ -4819,6 +4881,9 @@
         state.selectedCanvases = []
         state.selectedCanvasIds = new Set()
         document.getElementById("layersSection").style.display = "none"
+        
+        // ✅ FIX: Автоматично оновлюємо sidebar після очищення canvas
+        updateSidebarAfterCanvasChange()
       }
 
       // ✅ FIX: Функція для вибору тільки кореневих елементів (без каскадного вибору)
@@ -4844,6 +4909,9 @@
 
         console.log(`🌳 Selected all ${state.allLayers.length} layers`)
         showStatus(`✅ Вибрано всі layers (${state.allLayers.length})`, "success")
+        
+        // ✅ FIX: Автоматично оновлюємо sidebar після вибору всіх layers
+        updateSidebarAfterLayersChange()
 
         // Старий код для кореневих елементів (залишаємо як коментар)
         /*const rootLayers = state.allLayers.filter(layer => !layer.parentId)
@@ -4945,20 +5013,8 @@
         })*/
         state.selectedLayerIds = new Set()
 
-        // Очищуємо sidebar і закриваємо його
-        const sidebar = document.getElementById("stylesSidebar")
-        const stylesContent = document.getElementById("stylesContent")
-        if (stylesContent) {
-          stylesContent.innerHTML = `
-            <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
-              <div style="font-size: 2rem; margin-bottom: 0.5rem;">📋</div>
-              <div>Виберіть layers щоб побачити стилі</div>
-            </div>
-          `
-        }
-        if (sidebar && sidebar.classList.contains("visible")) {
-          toggleSidebar(false)
-        }
+        // ✅ FIX: Автоматично оновлюємо sidebar після очищення layers
+        updateSidebarAfterLayersChange()
       }
 
 
