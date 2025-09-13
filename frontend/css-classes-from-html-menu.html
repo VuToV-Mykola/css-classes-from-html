@@ -5912,6 +5912,19 @@
         showSaveLocationDialog(styles)
       }
 
+      // ✅ FIX: Безпечна функція кодування для Unicode символів
+      function safeEncode(str) {
+        try {
+          // Спочатку кодуємо в UTF-8, потім в base64
+          return btoa(unescape(encodeURIComponent(str)))
+        } catch (error) {
+          console.error('Помилка кодування:', error)
+          // Fallback: замінюємо проблемні символи
+          const cleanStr = str.replace(/[^\x00-\x7F]/g, '?')
+          return btoa(cleanStr)
+        }
+      }
+
       // Діалог вибору місця збереження для користувацьких стилів
       function showSaveLocationDialog(styles) {
         const existingDialog = document.getElementById("save-location-dialog")
@@ -5926,6 +5939,7 @@
         `
 
         const currentLang = getCurrentLanguage()
+        const encodedStyles = safeEncode(styles)
 
         dialog.innerHTML = `
           <div style="
@@ -5938,14 +5952,14 @@
               💾 ${currentLang === 'uk' ? 'Де зберегти стилі?' : currentLang === 'en' ? 'Where to save styles?' : 'Wo sollen Stile gespeichert werden?'}
             </h3>
             <div style="margin-bottom: 20px;">
-              <button onclick="saveToUserStyles('${btoa(styles)}')" style="
+              <button onclick="saveToUserStyles('${encodedStyles}')" style="
                 width: 100%; padding: 12px; margin-bottom: 8px;
                 background: var(--primary-color, #4fc3f7); color: white; border: none;
                 border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500;
               ">
                 📁 ${currentLang === 'uk' ? 'У теку користувацьких стилів розширення' : currentLang === 'en' ? 'To extension user styles folder' : 'In Erweiterung Benutzerstile Ordner'}
               </button>
-              <button onclick="saveToCustomLocation('${btoa(styles)}')" style="
+              <button onclick="saveToCustomLocation('${encodedStyles}')" style="
                 width: 100%; padding: 12px;
                 background: var(--secondary-bg, #333); color: var(--text-color, #ccc);
                 border: 1px solid var(--border-color, #555); border-radius: 4px; 
@@ -5981,8 +5995,20 @@
         if (dialog) dialog.remove()
       }
 
+      // ✅ FIX: Безпечна функція декодування для Unicode символів
+      function safeDecode(encodedStr) {
+        try {
+          // Спочатку декодуємо з base64, потім з UTF-8
+          return decodeURIComponent(escape(atob(encodedStr)))
+        } catch (error) {
+          console.error('Помилка декодування:', error)
+          // Fallback: повертаємо як є
+          return atob(encodedStr)
+        }
+      }
+
       window.saveToUserStyles = function (encodedStyles) {
-        const styles = atob(encodedStyles)
+        const styles = safeDecode(encodedStyles)
         
         // Створюємо унікальне ім'я файлу з часом
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
@@ -5999,7 +6025,7 @@
       }
 
       window.saveToCustomLocation = function (encodedStyles) {
-        const styles = atob(encodedStyles)
+        const styles = safeDecode(encodedStyles)
         
         vscode.postMessage({
           command: "saveUserStyles",
