@@ -492,12 +492,21 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .
 
+          # Перевірка наявності змін
+          if git diff --cached --quiet; then
+            echo "🔄 No changes to commit"
+            exit 0
+          fi
+
           COMMIT_MSG="📊 Auto-update: visitors, likes"
           if [ "$SCREENSHOT_CREATED" = "true" ]; then
             COMMIT_MSG="$COMMIT_MSG, and screenshot"
           fi
 
-          git commit -m "$COMMIT_MSG" || exit 0
+          git commit -m "$COMMIT_MSG"
+
+          # Синхронізація з віддаленим репозиторієм перед пушем
+          git pull --rebase origin ${{ github.ref_name }} || true
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
 
           echo "📄 Triggering updates..."
