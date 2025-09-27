@@ -37,6 +37,11 @@ class ImageImporter {
       const allImages = await this.getAllImagesFromCanvases(figmaClient, fileKey, selectedCanvasIds);
       logger.info('📸 All images received:', allImages);
 
+      // ✅ FIX: Отримуємо інформацію про всі layers для створення тек
+      logger.info('🔄 Getting all layers info for folder structure...');
+      const allLayers = await this.getAllLayersInfo(figmaClient, fileKey);
+      logger.info(`📋 Found ${allLayers.length} layers for folder organization`);
+
       // ✅ FIX: Логіка фільтрації згідно з вимогами користувача
       // Якщо layers не вибрані або вибрані всі - імпортуємо всі зображення
       // Якщо вибрані певні layers - імпортуємо тільки для них
@@ -92,9 +97,9 @@ class ImageImporter {
 
       for (const image of imagesToProcess) {
         try {
-          const result = await this.processImage(figmaClient, fileKey, image);
+          const result = await this.processImage(figmaClient, fileKey, image, allLayers);
           processedImages.push(result);
-          logger.info(`✅ Processed: ${result.name}`);
+          logger.info(`✅ Processed: ${result.name} → Layer: ${result.layerName}`);
         } catch (error) {
           logger.error(`❌ Помилка обробки зображення ${image.name}:`, error.message);
           errors.push({
@@ -122,15 +127,22 @@ class ImageImporter {
   }
 
   /**
-   * ✅ FIX: Обробка окремого зображення
+   * ✅ FIX: Обробка окремого зображення з створенням теки layer
    */
-  async processImage(figmaClient, fileKey, imageInfo) {
+  async processImage(figmaClient, fileKey, imageInfo, allLayers = []) {
     const cleanName = this.sanitizeFileName(imageInfo.name);
+
+    // Знаходимо layer, до якого належить зображення
+    const parentLayer = this.findParentLayer(imageInfo, allLayers);
+    const layerFolderName = parentLayer ? this.sanitizeFileName(parentLayer.name) : 'unknown-layer';
+
     const imageData = {
       id: imageInfo.id,
       name: cleanName,
       originalName: imageInfo.name,
       type: imageInfo.type,
+      layerName: parentLayer?.name || 'Unknown Layer',
+      layerFolder: layerFolderName,
       files: []
     };
 
@@ -147,7 +159,8 @@ class ImageImporter {
           );
           const fileName = `${cleanName}.${format}`;
           const scaleFolder = scale > 1 ? `@${scale}x` : '@1x';
-          const dirByFormatAndScale = path.join(this.outputDir, format, scaleFolder);
+          // ✅ FIX: Додаємо теку з назвою layer
+          const dirByFormatAndScale = path.join(this.outputDir, layerFolderName, format, scaleFolder);
           if (!fs.existsSync(dirByFormatAndScale)) {
             fs.mkdirSync(dirByFormatAndScale, { recursive: true });
           }
@@ -329,9 +342,10 @@ class ImageImporter {
    * ✅ FIX: Створення CSS файлу для зображень
    */
   generateImageCSS(processedImages) {
-    let css = '/* ✅ Згенеровані стилі зображень з Figma */\n';
+    let css = '/* ✅ Згенеровані стилі зображень з Figma (з layer теками) */\n';
     css += `/* Згенеровано: ${new Date().toLocaleString()} */\n`;
-    css += `/* Імпортовано зображень: ${processedImages.length} */\n\n`;
+    css += `/* Імпортовано зображень: ${processedImages.length} */\n`;
+    css += `/* Структура: images/[layer-name]/[format]/[@scale]/[filename] */\n\n`;
 
     // ✅ FIX: CSS змінні для шляхів
     css += ':root {\n';
@@ -341,8 +355,8 @@ class ImageImporter {
     processedImages.forEach(image => {
       const className = this.generateCSSClassName(image.name);
 
-      // ✅ FIX: Основний клас
-      css += `/* Figma Image: ${image.originalName} */\n`;
+      // ✅ FIX: Основний клас з інформацією про layer
+      css += `/* Figma Image: ${image.originalName} (Layer: ${image.layerName}) */\n`;
       css += `.${className} {\n`;
 
       // ✅ FIX: Шукаємо найкращий формат
@@ -353,7 +367,9 @@ class ImageImporter {
       const primaryFile = svgFile || pngFile || jpgFile || image.files[0];
 
       if (primaryFile) {
-        css += `  background-image: url(var(--images-path)${primaryFile.fileName});\n`;
+        // ✅ FIX: Включаємо layer теку в шлях
+        const relativePath = `${image.layerFolder}/${primaryFile.format}/@1x/${primaryFile.fileName}`;
+        css += `  background-image: url(var(--images-path)${relativePath});\n`;
         css += '  background-size: cover;\n';
         css += '  background-position: center;\n';
         css += '  background-repeat: no-repeat;\n';
@@ -374,7 +390,9 @@ class ImageImporter {
         css += `  .${className} {\n`;
 
         const retinaFile = retinaFiles[0];
-        css += `    background-image: url(var(--images-path)${retinaFile.fileName});\n`;
+        // ✅ FIX: Включаємо layer теку в шлях для retina
+        const retinaRelativePath = `${image.layerFolder}/${retinaFile.format}/@${retinaFile.scale}x/${retinaFile.fileName}`;
+        css += `    background-image: url(var(--images-path)${retinaRelativePath});\n`;
 
         css += '  }\n';
         css += '}\n\n';
@@ -567,6 +585,100 @@ class ImageImporter {
       // ✅ FIX: Повертаємо порожній масив замість fallback
       return [];
     }
+  }
+
+  /**
+   * ✅ FIX: Отримує інформацію про всі layers з файлу
+   */
+  async getAllLayersInfo(figmaClient, fileKey) {
+    try {
+      const file = await figmaClient.getFile(fileKey);
+      const pages = file?.document?.children || [];
+
+      const allLayers = [];
+
+      // Рекурсивний обхід для збору всіх layers
+      const walkForLayers = (node, parentId = null, canvasId = null, depth = 0) => {
+        if (!node) return;
+
+        allLayers.push({
+          id: node.id,
+          name: node.name || `Layer-${node.id}`,
+          type: node.type,
+          parentId: parentId,
+          canvasId: canvasId || node.id,
+          depth: depth,
+          children: node.children ? node.children.map(child => ({ id: child.id, name: child.name })) : []
+        });
+
+        // Рекурсивно обходимо дочірні елементи
+        if (node.children && Array.isArray(node.children)) {
+          node.children.forEach(child =>
+            walkForLayers(child, node.id, canvasId || node.id, depth + 1)
+          );
+        }
+      };
+
+      // Обходимо кожну сторінку
+      pages.forEach(page => {
+        walkForLayers(page, null, page.id, 0);
+      });
+
+      logger.info(`📋 Collected ${allLayers.length} layers from Figma file`);
+      return allLayers;
+
+    } catch (error) {
+      logger.error('❌ Error getting layers info:', error.message);
+      return [];
+    }
+  }
+
+  /**
+   * ✅ FIX: Знаходить батьківський layer для зображення
+   */
+  findParentLayer(imageInfo, allLayers) {
+    if (!allLayers || allLayers.length === 0) {
+      return null;
+    }
+
+    // Спочатку шукаємо прямий збіг по ID
+    let layer = allLayers.find(l => l.id === imageInfo.id);
+    if (layer) {
+      return layer;
+    }
+
+    // Потім шукаємо по parentId
+    layer = allLayers.find(l => l.id === imageInfo.parentId);
+    if (layer) {
+      return layer;
+    }
+
+    // Шукаємо по layerId (якщо є)
+    if (imageInfo.layerId) {
+      layer = allLayers.find(l => l.id === imageInfo.layerId);
+      if (layer) {
+        return layer;
+      }
+    }
+
+    // Рекурсивний пошук у батьківській ієрархії
+    const findInHierarchy = (nodeId) => {
+      const node = allLayers.find(l => l.id === nodeId);
+      if (node) {
+        return node;
+      }
+      // Шукаємо серед батьківських елементів
+      for (const l of allLayers) {
+        if (l.children && l.children.some(child => child.id === nodeId)) {
+          return l;
+        }
+      }
+      return null;
+    };
+
+    // Якщо нічого не знайшли, повертаємо перший layer з canvas
+    const canvasLayer = allLayers.find(l => l.canvasId === imageInfo.canvasId);
+    return canvasLayer || allLayers[0] || null;
   }
 
   /**
