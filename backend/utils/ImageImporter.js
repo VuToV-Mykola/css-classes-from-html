@@ -113,12 +113,22 @@ class ImageImporter {
       const cssContent = this.generateImageCSS(processedImages);
       this.saveCSSFile(cssContent);
 
+      // ✅ FIX: Генерація SVG спрайту для іконок
+      const iconImages = processedImages.filter(img => img.isIcon);
+      let spriteInfo = null;
+      if (iconImages.length > 0) {
+        spriteInfo = await this.generateSVGSprite(iconImages);
+        logger.info(`🎨 Generated SVG sprite with ${iconImages.length} icons`);
+      }
+
       return {
         success: true,
         images: processedImages,
+        icons: iconImages,
+        sprite: spriteInfo,
         errors: errors,
         cssFile: path.join(this.outputDir, 'images.css'),
-        message: `Successfully imported ${processedImages.length} images`
+        message: `Successfully imported ${processedImages.length} images (${iconImages.length} icons)`
       };
     } catch (error) {
       logger.error('❌ Імпорт зображень не вдався:', error.message);
@@ -143,12 +153,18 @@ class ImageImporter {
       type: imageInfo.type,
       layerName: parentLayer?.name || 'Unknown Layer',
       layerFolder: layerFolderName,
+      isIcon: imageInfo.isIcon || false,
+      isVector: imageInfo.isVector || false,
+      iconSize: imageInfo.size || { width: 24, height: 24 },
       files: []
     };
 
-    // ✅ FIX: Експорт в різних форматах та масштабах
-    for (const format of this.formats) {
-      for (const scale of this.scales) {
+    // ✅ FIX: Спеціальна логіка для іконок та звичайних зображень
+    const formatsToExport = imageInfo.isIcon ? ['svg'] : this.formats; // Іконки експортуємо тільки в SVG
+    const scalesToExport = imageInfo.isIcon ? [1] : this.scales; // Іконки тільки в 1x розмірі
+
+    for (const format of formatsToExport) {
+      for (const scale of scalesToExport) {
         try {
           const exportUrl = await this.getExportUrl(
             figmaClient,
@@ -159,18 +175,27 @@ class ImageImporter {
           );
           const fileName = `${cleanName}.${format}`;
           const scaleFolder = scale > 1 ? `@${scale}x` : '@1x';
-          // ✅ FIX: Додаємо теку з назвою layer
-          const dirByFormatAndScale = path.join(this.outputDir, layerFolderName, format, scaleFolder);
-          if (!fs.existsSync(dirByFormatAndScale)) {
-            fs.mkdirSync(dirByFormatAndScale, { recursive: true });
+
+          // ✅ FIX: Для іконок створюємо окрему теку icons
+          const basePath = imageInfo.isIcon ?
+            path.join(this.outputDir, 'icons', layerFolderName) :
+            path.join(this.outputDir, layerFolderName, format, scaleFolder);
+
+          if (!fs.existsSync(basePath)) {
+            fs.mkdirSync(basePath, { recursive: true });
           }
-          const filePath = path.join(dirByFormatAndScale, fileName);
+          const filePath = path.join(basePath, fileName);
 
           // ✅ FIX: Завантаження файлу
           await this.downloadFile(exportUrl, filePath);
 
+          // ✅ FIX: Спеціальна обробка для SVG іконок
+          if (imageInfo.isIcon && format === 'svg') {
+            await this.processSVGIcon(filePath);
+          }
+
           // ✅ FIX: Оптимізація (якщо включена)
-          if (this.optimizeImages) {
+          if (this.optimizeImages && !imageInfo.isIcon) {
             await this.optimizeImage(filePath, format);
           }
 
@@ -418,12 +443,10 @@ class ImageImporter {
   }
 
   /**
-   * ✅ FIX: Генерація sprite для SVG іконок
+   * ✅ FIX: Генерація оптимізованого sprite для SVG іконок
    */
-  async generateSVGSprite(processedImages) {
-    const svgImages = processedImages.filter(img => img.files.some(f => f.format === 'svg'));
-
-    if (svgImages.length === 0) {
+  async generateSVGSprite(iconImages) {
+    if (!iconImages || iconImages.length === 0) {
       return null;
     }
 
@@ -431,62 +454,108 @@ class ImageImporter {
     const svgNamespace = 'http://www.w3.org/2000/svg';
     let sprite = `<svg xmlns="${svgNamespace}" style="display: none;">\n`;
 
-    for (const image of svgImages) {
-      const svgFile = image.files.find(f => f.format === 'svg');
+    for (const icon of iconImages) {
+      const svgFile = icon.files.find(f => f.format === 'svg');
       if (svgFile) {
         try {
-          const svgContent = fs.readFileSync(svgFile.filePath, 'utf8');
-          const symbolId = this.generateCSSClassName(image.name);
+          let svgContent = fs.readFileSync(svgFile.filePath, 'utf8');
+          const symbolId = this.generateCSSClassName(icon.name);
+
+          // ✅ FIX: Витягуємо viewBox з оригінального SVG
+          const viewBoxMatch = svgContent.match(/viewBox\s*=\s*["']([^"']+)["']/i);
+          const viewBox = viewBoxMatch ? viewBoxMatch[1] : `0 0 ${icon.iconSize.width} ${icon.iconSize.height}`;
 
           // ✅ FIX: Витягуємо вміст SVG та обгортаємо в symbol
           const svgBody = svgContent
             .replace(/<svg[^>]*>/, '')
             .replace(/<\/svg>/, '')
-            .replace(/fill="[^"]*"/g, ''); // Видаляємо fill для кастомізації
+            .replace(/fill="[^"]*"/g, '') // Видаляємо fill для кастомізації
+            .replace(/\s*stroke\s*=\s*["'][^"']*["']/gi, '') // Видаляємо stroke
+            .trim();
 
-          sprite += `  <symbol id="${symbolId}" viewBox="0 0 24 24">\n`;
+          sprite += `  <symbol id="${symbolId}" viewBox="${viewBox}">\n`;
           sprite += `    ${svgBody}\n`;
           sprite += '  </symbol>\n';
+
+          logger.info(`🎨 Added icon to sprite: ${icon.name} (${icon.iconSize.width}x${icon.iconSize.height})`);
         } catch (error) {
-          logger.warn(`⚠️ Failed to add ${image.name} to sprite:`, error.message);
+          logger.warn(`⚠️ Failed to add ${icon.name} to sprite:`, error.message);
         }
       }
     }
 
     sprite += '</svg>\n';
 
+    // ✅ FIX: Оптимізація sprite
+    sprite = this.optimizeSVGForIcon(sprite);
+
     // ✅ FIX: Збереження sprite
     const spritePath = path.join(this.outputDir, 'icons.svg');
     fs.writeFileSync(spritePath, sprite, 'utf8');
 
-    logger.info(`🎨 Generated SVG sprite: ${spritePath}`);
+    logger.info(`🎨 Generated optimized SVG sprite: ${spritePath} (${iconImages.length} icons)`);
+
+    // ✅ FIX: Генерація CSS для використання sprite
+    const spriteCSS = this.generateSpriteUsageCSS(iconImages);
+    const spriteCSSPath = path.join(this.outputDir, 'icons.css');
+    fs.writeFileSync(spriteCSSPath, spriteCSS, 'utf8');
 
     return {
       filePath: spritePath,
-      iconsCount: svgImages.length,
-      usage: this.generateSpriteUsageCSS(svgImages)
+      cssFilePath: spriteCSSPath,
+      iconsCount: iconImages.length,
+      usage: spriteCSS
     };
   }
 
   /**
-   * ✅ FIX: Генерація CSS для sprite
+   * ✅ FIX: Генерація CSS для sprite з розмірами іконок
    */
-  generateSpriteUsageCSS(svgImages) {
-    let css = '/* ✅ SVG Sprite Usage */\n';
+  generateSpriteUsageCSS(iconImages) {
+    let css = '/* ✅ SVG Icons Sprite - Optimized for Use */\n';
+    css += `/* Generated: ${new Date().toLocaleString()} */\n`;
+    css += `/* Icons count: ${iconImages.length} */\n\n`;
+
+    // ✅ Базовий клас для всіх іконок
     css += '.icon {\n';
     css += '  display: inline-block;\n';
     css += '  width: 1em;\n';
     css += '  height: 1em;\n';
     css += '  fill: currentColor;\n';
+    css += '  flex-shrink: 0;\n';
     css += '}\n\n';
 
-    svgImages.forEach(image => {
-      const className = this.generateCSSClassName(image.name);
+    // ✅ Додаткові розміри іконок
+    css += '/* Icon Sizes */\n';
+    css += '.icon-xs { width: 12px; height: 12px; }\n';
+    css += '.icon-sm { width: 16px; height: 16px; }\n';
+    css += '.icon-md { width: 20px; height: 20px; }\n';
+    css += '.icon-lg { width: 24px; height: 24px; }\n';
+    css += '.icon-xl { width: 32px; height: 32px; }\n';
+    css += '.icon-2xl { width: 48px; height: 48px; }\n\n';
+
+    // ✅ Специфічні класи для кожної іконки
+    iconImages.forEach(icon => {
+      const className = this.generateCSSClassName(icon.name);
+      css += `/* Icon: ${icon.originalName} (${icon.iconSize.width}x${icon.iconSize.height}) */\n`;
       css += `.icon-${className} {\n`;
-      css +=
-        '  /* Використання: <svg class="icon icon-${className}"><use href="#${className}"></use></svg> */\n';
+      css += `  /* Використання: <svg class="icon icon-${className}"><use href="#${className}"></use></svg> */\n`;
+
+      // Додаємо оригінальні розміри як custom properties
+      if (icon.iconSize.width !== 24 || icon.iconSize.height !== 24) {
+        css += `  --icon-width: ${icon.iconSize.width}px;\n`;
+        css += `  --icon-height: ${icon.iconSize.height}px;\n`;
+      }
+
       css += '}\n\n';
     });
+
+    // ✅ Додаємо інструкції з використання
+    css += '/* Usage Examples:\n';
+    css += ' * Basic: <svg class="icon icon-name"><use href="#icon-name"></use></svg>\n';
+    css += ' * With size: <svg class="icon icon-lg icon-name"><use href="#icon-name"></use></svg>\n';
+    css += ' * Custom color: <svg class="icon" style="color: #ff0000;"><use href="#icon-name"></use></svg>\n';
+    css += ' */\n';
 
     return css;
   }
@@ -534,6 +603,23 @@ class ImageImporter {
           }
         }
         
+        // ✅ FIX: Розпізнавання векторних іконок
+        if (this.isVectorIcon(node)) {
+          allImages.push({
+            id: node.id,
+            name: node.name || `icon-${node.id}`,
+            type: 'VECTOR_ICON',
+            canvasId: canvasId,
+            parentId: parentId,
+            layerType: node.type,
+            isIcon: true,
+            isVector: true,
+            size: this.extractIconSize(node),
+            isLayer: true
+          });
+          logger.info(`🎨 Found vector icon: ${node.name} (${node.id}) - ${node.type}`);
+        }
+
         // Також перевіряємо, чи це зображення як окремий тип вузла
         if (node.type === 'RECTANGLE' && node.fills) {
           // Додаткова перевірка для прямокутників із зображеннями
@@ -679,6 +765,133 @@ class ImageImporter {
     // Якщо нічого не знайшли, повертаємо перший layer з canvas
     const canvasLayer = allLayers.find(l => l.canvasId === imageInfo.canvasId);
     return canvasLayer || allLayers[0] || null;
+  }
+
+  /**
+   * ✅ FIX: Розпізнає векторні іконки на основі типу та назви
+   */
+  isVectorIcon(node) {
+    if (!node || !node.type) return false;
+
+    // Векторні типи в Figma
+    const vectorTypes = [
+      'VECTOR',
+      'STAR',
+      'POLYGON',
+      'ELLIPSE',
+      'LINE'
+    ];
+
+    // Перевіряємо тип
+    if (vectorTypes.includes(node.type)) {
+      return true;
+    }
+
+    // Перевіряємо групи з векторними дочірніми елементами
+    if (node.type === 'GROUP' || node.type === 'FRAME') {
+      const hasVectorChildren = node.children?.some(child =>
+        vectorTypes.includes(child.type)
+      );
+
+      // Додаткова перевірка за назвою для іконок
+      const hasIconName = node.name && (
+        node.name.toLowerCase().includes('icon') ||
+        node.name.toLowerCase().includes('ico') ||
+        node.name.toLowerCase().includes('symbol') ||
+        node.name.toLowerCase().includes('arrow') ||
+        node.name.toLowerCase().includes('button') ||
+        node.name.toLowerCase().includes('menu') ||
+        node.name.toLowerCase().startsWith('ic_') ||
+        node.name.startsWith('Icon')
+      );
+
+      return hasVectorChildren && hasIconName;
+    }
+
+    return false;
+  }
+
+  /**
+   * ✅ FIX: Витягує розміри іконки з Figma node
+   */
+  extractIconSize(node) {
+    if (!node) return { width: 24, height: 24 }; // Розмір за замовчуванням
+
+    // Витягуємо розміри з bounding box або absoluteBoundingBox
+    const bounds = node.absoluteBoundingBox || node.boundingBox || {};
+
+    return {
+      width: Math.round(bounds.width || 24),
+      height: Math.round(bounds.height || 24)
+    };
+  }
+
+  /**
+   * ✅ FIX: Обробляє SVG іконку - очищає fill та оптимізує
+   */
+  async processSVGIcon(filePath) {
+    try {
+      let svgContent = fs.readFileSync(filePath, 'utf8');
+
+      // Очищуємо fill атрибути
+      svgContent = this.cleanSVGFills(svgContent);
+
+      // Додаємо currentColor як fill за замовчуванням для кастомізації
+      svgContent = svgContent.replace(
+        /<svg([^>]*)>/i,
+        '<svg$1 fill="currentColor">'
+      );
+
+      // Оптимізуємо SVG
+      svgContent = this.optimizeSVGForIcon(svgContent);
+
+      // Записуємо оброблений файл
+      fs.writeFileSync(filePath, svgContent, 'utf8');
+
+      logger.info(`🎨 Processed SVG icon: ${path.basename(filePath)}`);
+    } catch (error) {
+      logger.warn(`⚠️ Failed to process SVG icon ${path.basename(filePath)}:`, error.message);
+    }
+  }
+
+  /**
+   * ✅ FIX: Оптимізує SVG для іконок
+   */
+  optimizeSVGForIcon(svgContent) {
+    if (!svgContent) return svgContent;
+
+    return svgContent
+      // Видаляємо коментарі
+      .replace(/<!--[\s\S]*?-->/g, '')
+      // Видаляємо зайві атрибути
+      .replace(/\s*(id|class)\s*=\s*["'][^"']*["']/gi, '')
+      // Видаляємо зайві xmlns
+      .replace(/\s*xmlns:[\w]+\s*=\s*["'][^"']*["']/gi, '')
+      // Стискаємо пробіли
+      .replace(/\s+/g, ' ')
+      .replace(/>\s+</g, '><')
+      // Округлюємо числа в path
+      .replace(/(\d+\.\d{3,})/g, (match) => parseFloat(match).toFixed(2))
+      .trim();
+  }
+
+  /**
+   * ✅ FIX: Очищає fill атрибути з SVG для кастомізації
+   */
+  cleanSVGFills(svgContent) {
+    if (!svgContent) return svgContent;
+
+    return svgContent
+      // Видаляємо fill атрибути
+      .replace(/\s*fill\s*=\s*["'][^"']*["']/gi, '')
+      // Видаляємо fill в style атрибутах
+      .replace(/fill\s*:\s*[^;]+;?/gi, '')
+      // Видаляємо пусті style атрибути
+      .replace(/\s*style\s*=\s*["']\s*["']/gi, '')
+      // Очищуємо зайві пробіли
+      .replace(/\s+/g, ' ')
+      .replace(/>\s+</g, '><')
+      .trim();
   }
 
   /**
