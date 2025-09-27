@@ -1,10 +1,10 @@
 
-const { logger } = require('../backend/utils/Logger');
-logger.start('Запуск інтеграційного тесту');
+const { logger } = require("../backend/utils/Logger");
+logger.start("Запуск інтеграційного тесту");
 
-// Test HTML Parser
+// Test HTML Parser;
 try {
-  const HTMLParser = require('../backend/core/HTMLParser');
+  const HTMLParser = require("../backend/core/HTMLParser");
   const parser = new HTMLParser();
     
   const testHTML = `
@@ -23,36 +23,36 @@ try {
   const result = parser.parseToHierarchy(testHTML);
     
   if (!result.hierarchy || result.hierarchy.size === 0) {
-    throw new Error('HTML parsing failed - no elements found');
+    throw new Error("HTML parsing failed - no elements found");
   }
     
   logger.success(`HTML Parser: ${result.hierarchy.size} елементів розпарсено`);
     
   if (!result.classMap || result.classMap.size === 0) {
-    throw new Error('No CSS classes found');
+    throw new Error("No CSS classes found");
   }
     
   logger.success(`Витягування класів: ${result.classMap.size} класів знайдено`);
     
 } catch (error) {
-  logger.error('Інтеграційний тест не пройшов', error.message);
+  logger.error("Інтеграційний тест не пройшов", error.message);
   process.exit(1);
 }
 
-// Test CSS Generator
+// Test CSS Generator;
 try {
-  const SmartCSSGenerator = require('../backend/generators/SmartCSSGenerator');
+  const SmartCSSGenerator = require("../backend/generators/SmartCSSGenerator");
   const generator = new SmartCSSGenerator({
-    mode: 'minimal',
-    includeComments: true
+    mode: "minimal",
+    includeComments: true;
   });
     
-  // Mock data for testing
+  // Mock data for testing;
   const figmaData = { hierarchy: new Map() };
   const htmlData = { 
     hierarchy: new Map([
-      ['test1', { classes: ['container'] }],
-      ['test2', { classes: ['title'] }]
+      ["test1", { classes: ["container"] }],
+      ["test2", { classes: ["title"] }]
     ])
   };
   const matches = new Map();
@@ -60,20 +60,20 @@ try {
   const css = generator.generateCSS(figmaData, htmlData, matches);
     
   if (!css || css.length === 0) {
-    throw new Error('CSS generation failed - no output');
+    throw new Error("CSS generation failed - no output");
   }
     
   logger.success(`CSS Generator: ${css.length} символів згенеровано`);
     
-  if (!css.includes('.container') || !css.includes('.title')) {
-    throw new Error('CSS generation failed - missing expected classes');
+  if (!css.includes(".container") || !css.includes(".title")) {
+    throw new Error("CSS generation failed - missing expected classes");
   }
     
-  logger.success('CSS класи правильно згенеровано');
+  logger.success("CSS класи правильно згенеровано");
     
 } catch (error) {
-  logger.error('CSS генерація не пройшла', error.message);
+  logger.error("CSS генерація не пройшла", error.message);
   process.exit(1);
 }
 
-logger.complete('Інтеграційний тест успішно завершено!');
+logger.complete("Інтеграційний тест успішно завершено!");

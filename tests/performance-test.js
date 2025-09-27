@@ -1,18 +1,18 @@
-const { performance } = require('perf_hooks');
+const { performance } = require("perf_hooks");
 
-console.log('🚀 Running performance test...');
+console.log("🚀 Running performance test...");
 
-// Test large HTML parsing
-const testHTML = '<div class="container">' + 
+// Test large HTML parsing;
+const testHTML = "<div class="container">" + 
     Array(1000).fill().map((_, i) => 
       `<div class="item-${i}"><span class="text-${i}">Content ${i}</span></div>`
-    ).join('') + 
-    '</div>';
+    ).join("") + 
+    "</div>";
 
 const start = performance.now();
 
 try {
-  const HTMLParser = require('../backend/core/HTMLParser');
+  const HTMLParser = require("../backend/core/HTMLParser");
   const parser = new HTMLParser();
     
   const result = parser.parseToHierarchy(testHTML);
@@ -25,12 +25,12 @@ try {
   console.log(`✓ Classes extracted: ${result.classMap.size}`);
     
   if (duration > 5000) {
-    console.warn('⚠️ Performance warning: parsing took over 5 seconds');
+    console.warn("⚠️ Performance warning: parsing took over 5 seconds");
   }
     
-  console.log('✅ Performance test completed');
+  console.log("✅ Performance test completed");
     
 } catch (error) {
-  console.error('❌ Performance test failed:', error.message);
+  console.error("❌ Performance test failed:", error.message);
   process.exit(1);
 }

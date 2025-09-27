@@ -1,0 +1,4 @@
+backups/**
+logs/**
+node_modules/**
+builds/**
