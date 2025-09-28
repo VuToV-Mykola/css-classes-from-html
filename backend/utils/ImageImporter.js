@@ -137,22 +137,26 @@ class ImageImporter {
   }
 
   /**
-   * ✅ FIX: Обробка окремого зображення з створенням теки layer
+   * ✅ FIX: Обробка окремого зображення з ієрархічним збереженням за структурою Figma
    */
   async processImage(figmaClient, fileKey, imageInfo, allLayers = []) {
-    const cleanName = this.sanitizeFileName(imageInfo.name);
+    // ✅ FIX: Створюємо унікальну назву файлу з оригінальної назви Figma
+    const originalName = imageInfo.name || 'unnamed-image';
+    const cleanName = this.createUniqueFileName(originalName, imageInfo.id);
 
-    // Знаходимо layer, до якого належить зображення
+    // ✅ FIX: Будуємо повний ієрархічний шлях за структурою Figma шарів
+    const hierarchicalPath = this.buildHierarchicalPath(imageInfo, allLayers);
     const parentLayer = this.findParentLayer(imageInfo, allLayers);
-    const layerFolderName = parentLayer ? this.sanitizeFileName(parentLayer.name) : 'unknown-layer';
 
     const imageData = {
       id: imageInfo.id,
       name: cleanName,
-      originalName: imageInfo.name,
+      originalName: originalName,
       type: imageInfo.type,
       layerName: parentLayer?.name || 'Unknown Layer',
-      layerFolder: layerFolderName,
+      layerFolder: hierarchicalPath[hierarchicalPath.length - 1] || 'unknown-layer',
+      hierarchicalPath: hierarchicalPath, // Зберігаємо повний шлях
+      fullPath: hierarchicalPath.join('/'), // Шлях як рядок
       isIcon: imageInfo.isIcon || false,
       isVector: imageInfo.isVector || false,
       iconSize: imageInfo.size || { width: 24, height: 24 },
@@ -176,15 +180,22 @@ class ImageImporter {
           const fileName = `${cleanName}.${format}`;
           const scaleFolder = scale > 1 ? `@${scale}x` : '@1x';
 
-          // ✅ FIX: Для іконок створюємо окрему теку icons
-          const basePath = imageInfo.isIcon ?
-            path.join(this.outputDir, 'icons', layerFolderName) :
-            path.join(this.outputDir, layerFolderName, format, scaleFolder);
+          // ✅ FIX: Створюємо ієрархічну структуру папок за Figma шарами
+          let basePath;
+          if (imageInfo.isIcon) {
+            // Для іконок: images/icons/[ієрархічний-шлях]
+            basePath = path.join(this.outputDir, 'icons', ...hierarchicalPath);
+          } else {
+            // Для зображень: images/[ієрархічний-шлях]/[format]/[scale]
+            basePath = path.join(this.outputDir, ...hierarchicalPath, format, scaleFolder);
+          }
 
           if (!fs.existsSync(basePath)) {
             fs.mkdirSync(basePath, { recursive: true });
           }
           const filePath = path.join(basePath, fileName);
+
+          logger.info(`📁 Створюю файл: ${filePath}`);
 
           // ✅ FIX: Завантаження файлу
           await this.downloadFile(exportUrl, filePath);
@@ -342,22 +353,59 @@ class ImageImporter {
   }
 
   /**
-   * ✅ FIX: Оптимізація SVG
+   * ✅ FIX: Розширена оптимізація SVG
    */
   async optimizeSVG(filePath) {
     try {
       let svgContent = fs.readFileSync(filePath, 'utf8');
 
-      // ✅ FIX: Базові оптимізації SVG
+      // ✅ FIX: Розширені оптимізації SVG
       svgContent = svgContent
-        .replace(/<!--[\s\S]*?-->/g, '') // Видаляємо коментарі
-        .replace(/\s+/g, ' ') // Стискаємо пробіли
-        .replace(/>\s+</g, '><') // Видаляємо пробіли між тегами
-        .replace(/fill="[^"]*"/g, '') // Видаляємо fill для іконок
+        // Видаляємо коментарі
+        .replace(/<!--[\s\S]*?-->/g, '')
+        // Видаляємо metadata
+        .replace(/<metadata[\s\S]*?<\/metadata>/gi, '')
+        // Видаляємо DOCTYPE
+        .replace(/<!DOCTYPE[\s\S]*?>/gi, '')
+        // Видаляємо XML декларації
+        .replace(/<\?xml[\s\S]*?\?>/gi, '')
+        // Видаляємо зайві атрибути
+        .replace(/\s*(id|class|data-[\w-]+)\s*=\s*["'][^"']*["']/gi, '')
+        // Видаляємо зайві namespace
+        .replace(/\s*xmlns:[\w]+\s*=\s*["'][^"']*["']/gi, '')
+        // Видаляємо editor-specific атрибути
+        .replace(/\s*(inkscape|sodipodi|adobe|sketch)[\w:-]*\s*=\s*["'][^"']*["']/gi, '')
+        // Видаляємо пусті групи
+        .replace(/<g[^>]*>\s*<\/g>/gi, '')
+        // Видаляємо fill та stroke для кастомізації
+        .replace(/\s*fill\s*=\s*["'][^"']*["']/gi, '')
+        .replace(/\s*stroke\s*=\s*["'][^"']*["']/gi, '')
+        // Видаляємо style атрибути з fill/stroke
+        .replace(/style\s*=\s*["']([^"']*?)fill\s*:[^;"']*;?([^"']*?)["']/gi, 'style="$1$2"')
+        .replace(/style\s*=\s*["']([^"']*?)stroke\s*:[^;"']*;?([^"']*?)["']/gi, 'style="$1$2"')
+        // Видаляємо пусті style атрибути
+        .replace(/\s*style\s*=\s*["']\s*["']/gi, '')
+        // Стискаємо пробіли
+        .replace(/\s+/g, ' ')
+        // Видаляємо пробіли між тегами
+        .replace(/>\s+</g, '><')
+        // Округлюємо числа в path та інших атрибутах
+        .replace(/(\d+\.\d{3,})/g, (match) => parseFloat(match).toFixed(2))
+        // Видаляємо зайві пробіли в path
+        .replace(/\s*([MLHVCSQTAZ])\s*/gi, '$1')
+        .replace(/\s*,\s*/g, ',')
         .trim();
 
+      // Додаємо fill="currentColor" для кастомізації кольору
+      if (!svgContent.includes('fill=') && !svgContent.includes('currentColor')) {
+        svgContent = svgContent.replace(
+          /<svg([^>]*)>/i,
+          '<svg$1 fill="currentColor">'
+        );
+      }
+
       fs.writeFileSync(filePath, svgContent, 'utf8');
-      logger.info(`🎨 Застосовано оптимізацію SVG до ${path.basename(filePath)}`);
+      logger.info(`🎨 Застосовано розширену оптимізацію SVG до ${path.basename(filePath)}`);
     } catch (error) {
       throw new Error(`Помилка оптимізації SVG: ${error.message}`);
     }
@@ -380,8 +428,9 @@ class ImageImporter {
     processedImages.forEach(image => {
       const className = this.generateCSSClassName(image.name);
 
-      // ✅ FIX: Основний клас з інформацією про layer
-      css += `/* Figma Image: ${image.originalName} (Layer: ${image.layerName}) */\n`;
+      // ✅ FIX: Основний клас з інформацією про layer та ієрархічний шлях
+      css += `/* Figma Image: ${image.originalName} */\n`;
+      css += `/* Layer Path: ${image.fullPath} */\n`;
       css += `.${className} {\n`;
 
       // ✅ FIX: Шукаємо найкращий формат
@@ -392,8 +441,10 @@ class ImageImporter {
       const primaryFile = svgFile || pngFile || jpgFile || image.files[0];
 
       if (primaryFile) {
-        // ✅ FIX: Включаємо layer теку в шлях
-        const relativePath = `${image.layerFolder}/${primaryFile.format}/@1x/${primaryFile.fileName}`;
+        // ✅ FIX: Використовуємо повний ієрархічний шлях
+        const relativePath = image.isIcon
+          ? `icons/${image.hierarchicalPath.join('/')}/${primaryFile.fileName}`
+          : `${image.hierarchicalPath.join('/')}/${primaryFile.format}/@1x/${primaryFile.fileName}`;
         css += `  background-image: url(var(--images-path)${relativePath});\n`;
         css += '  background-size: cover;\n';
         css += '  background-position: center;\n';
@@ -415,8 +466,10 @@ class ImageImporter {
         css += `  .${className} {\n`;
 
         const retinaFile = retinaFiles[0];
-        // ✅ FIX: Включаємо layer теку в шлях для retina
-        const retinaRelativePath = `${image.layerFolder}/${retinaFile.format}/@${retinaFile.scale}x/${retinaFile.fileName}`;
+        // ✅ FIX: Використовуємо ієрархічний шлях для retina
+        const retinaRelativePath = image.isIcon
+          ? `icons/${image.hierarchicalPath.join('/')}/${retinaFile.fileName}`
+          : `${image.hierarchicalPath.join('/')}/${retinaFile.format}/@${retinaFile.scale}x/${retinaFile.fileName}`;
         css += `    background-image: url(var(--images-path)${retinaRelativePath});\n`;
 
         css += '  }\n';
@@ -465,7 +518,7 @@ class ImageImporter {
           const viewBoxMatch = svgContent.match(/viewBox\s*=\s*["']([^"']+)["']/i);
           const viewBox = viewBoxMatch ? viewBoxMatch[1] : `0 0 ${icon.iconSize.width} ${icon.iconSize.height}`;
 
-          // ✅ FIX: Витягуємо вміст SVG та обгортаємо в symbol
+          // ✅ FIX: Витягуємо вміст SVG та обгортаємо в symbol з #frame ідентифікатором
           const svgBody = svgContent
             .replace(/<svg[^>]*>/, '')
             .replace(/<\/svg>/, '')
@@ -473,7 +526,9 @@ class ImageImporter {
             .replace(/\s*stroke\s*=\s*["'][^"']*["']/gi, '') // Видаляємо stroke
             .trim();
 
-          sprite += `  <symbol id="${symbolId}" viewBox="${viewBox}">\n`;
+          // ✅ FIX: Додаємо #frame до ID для легшого пошуку
+          const frameSymbolId = `frame-${symbolId}`;
+          sprite += `  <symbol id="${frameSymbolId}" viewBox="${viewBox}">\n`;
           sprite += `    ${svgBody}\n`;
           sprite += '  </symbol>\n';
 
@@ -534,12 +589,13 @@ class ImageImporter {
     css += '.icon-xl { width: 32px; height: 32px; }\n';
     css += '.icon-2xl { width: 48px; height: 48px; }\n\n';
 
-    // ✅ Специфічні класи для кожної іконки
+    // ✅ Специфічні класи для кожної іконки з #frame префіксом
     iconImages.forEach(icon => {
       const className = this.generateCSSClassName(icon.name);
+      const frameSymbolId = `frame-${className}`;
       css += `/* Icon: ${icon.originalName} (${icon.iconSize.width}x${icon.iconSize.height}) */\n`;
       css += `.icon-${className} {\n`;
-      css += `  /* Використання: <svg class="icon icon-${className}"><use href="#${className}"></use></svg> */\n`;
+      css += `  /* Використання: <svg class="icon icon-${className}"><use href="#${frameSymbolId}"></use></svg> */\n`;
 
       // Додаємо оригінальні розміри як custom properties
       if (icon.iconSize.width !== 24 || icon.iconSize.height !== 24) {
@@ -550,11 +606,11 @@ class ImageImporter {
       css += '}\n\n';
     });
 
-    // ✅ Додаємо інструкції з використання
+    // ✅ Додаємо інструкції з використання з #frame префіксом
     css += '/* Usage Examples:\n';
-    css += ' * Basic: <svg class="icon icon-name"><use href="#icon-name"></use></svg>\n';
-    css += ' * With size: <svg class="icon icon-lg icon-name"><use href="#icon-name"></use></svg>\n';
-    css += ' * Custom color: <svg class="icon" style="color: #ff0000;"><use href="#icon-name"></use></svg>\n';
+    css += ' * Basic: <svg class="icon icon-name"><use href="#frame-icon-name"></use></svg>\n';
+    css += ' * With size: <svg class="icon icon-lg icon-name"><use href="#frame-icon-name"></use></svg>\n';
+    css += ' * Custom color: <svg class="icon" style="color: #ff0000;"><use href="#frame-icon-name"></use></svg>\n';
     css += ' */\n';
 
     return css;
@@ -720,13 +776,53 @@ class ImageImporter {
   }
 
   /**
-   * ✅ FIX: Знаходить батьківський layer для зображення
+   * ✅ FIX: Створює повний ієрархічний шлях за структурою Figma шарів
    */
-  findParentLayer(imageInfo, allLayers) {
+  buildHierarchicalPath(imageInfo, allLayers) {
     if (!allLayers || allLayers.length === 0) {
-      return null;
+      return ['unknown-canvas', 'unknown-layer'];
     }
 
+    // Знаходимо layer для цього зображення
+    const targetLayer = this.findTargetLayer(imageInfo, allLayers);
+    if (!targetLayer) {
+      return ['unknown-canvas', 'unknown-layer'];
+    }
+
+    // Будуємо повний ієрархічний шлях від canvas до поточного layer
+    const pathParts = [];
+    let currentLayer = targetLayer;
+
+    // Йдемо вгору по ієрархії до самого верху
+    while (currentLayer) {
+      const safeName = this.sanitizeFileName(currentLayer.name || currentLayer.type || 'unnamed');
+      pathParts.unshift(safeName); // Додаємо на початок для правильного порядку
+
+      // Шукаємо батьківський layer
+      const parent = allLayers.find(l => l.id === currentLayer.parentId);
+      currentLayer = parent;
+
+      // Якщо досягли canvas (depth = 0), зупиняємося
+      if (currentLayer && currentLayer.depth === 0) {
+        const canvasName = this.sanitizeFileName(currentLayer.name || 'canvas');
+        pathParts.unshift(canvasName);
+        break;
+      }
+    }
+
+    // Якщо шлях пустий, використовуємо fallback
+    if (pathParts.length === 0) {
+      pathParts.push('unknown-canvas', 'unknown-layer');
+    }
+
+    logger.info(`📁 Ієрархічний шлях для ${imageInfo.name}: ${pathParts.join(' / ')}`);
+    return pathParts;
+  }
+
+  /**
+   * ✅ FIX: Знаходить цільовий layer для зображення
+   */
+  findTargetLayer(imageInfo, allLayers) {
     // Спочатку шукаємо прямий збіг по ID
     let layer = allLayers.find(l => l.id === imageInfo.id);
     if (layer) {
@@ -747,67 +843,49 @@ class ImageImporter {
       }
     }
 
-    // Рекурсивний пошук у батьківській ієрархії
-    const findInHierarchy = (nodeId) => {
-      const node = allLayers.find(l => l.id === nodeId);
-      if (node) {
-        return node;
+    // Шукаємо серед батьківських елементів
+    for (const l of allLayers) {
+      if (l.children && l.children.some(child => child.id === imageInfo.id)) {
+        return l;
       }
-      // Шукаємо серед батьківських елементів
-      for (const l of allLayers) {
-        if (l.children && l.children.some(child => child.id === nodeId)) {
-          return l;
-        }
-      }
-      return null;
-    };
+    }
 
-    // Якщо нічого не знайшли, повертаємо перший layer з canvas
+    // Fallback - повертаємо перший layer з canvas
     const canvasLayer = allLayers.find(l => l.canvasId === imageInfo.canvasId);
     return canvasLayer || allLayers[0] || null;
   }
 
   /**
-   * ✅ FIX: Розпізнає векторні іконки на основі типу та назви
+   * ✅ FIX: Знаходить батьківський layer для зображення (legacy функція)
+   */
+  findParentLayer(imageInfo, allLayers) {
+    return this.findTargetLayer(imageInfo, allLayers);
+  }
+
+  /**
+   * ✅ FIX: Розпізнає векторні іконки ТІЛЬКИ для FRAME з назвою, що починається з #
    */
   isVectorIcon(node) {
     if (!node || !node.type) return false;
 
-    // Векторні типи в Figma
-    const vectorTypes = [
-      'VECTOR',
-      'STAR',
-      'POLYGON',
-      'ELLIPSE',
-      'LINE'
-    ];
+    // ✅ FIX: Імпортуємо ТІЛЬКИ FRAME, що мають назви, які починаються з '#'
+    if (node.type === 'FRAME') {
+      // Перевіряємо, чи назва починається з '#frame' (для іконок спрайту)
+      const isFrameIcon = node.name && node.name.startsWith('#');
 
-    // Перевіряємо тип
-    if (vectorTypes.includes(node.type)) {
-      return true;
+      if (isFrameIcon) {
+        // Також перевіряємо наявність векторних дочірніх елементів для підтвердження
+        const vectorTypes = ['VECTOR', 'STAR', 'POLYGON', 'ELLIPSE', 'LINE'];
+        const hasVectorChildren = node.children?.some(child =>
+          vectorTypes.includes(child.type)
+        );
+
+        // Якщо це #frame ТА має векторні елементи - це іконка для спрайту
+        return hasVectorChildren;
+      }
     }
 
-    // Перевіряємо групи з векторними дочірніми елементами
-    if (node.type === 'GROUP' || node.type === 'FRAME') {
-      const hasVectorChildren = node.children?.some(child =>
-        vectorTypes.includes(child.type)
-      );
-
-      // Додаткова перевірка за назвою для іконок
-      const hasIconName = node.name && (
-        node.name.toLowerCase().includes('icon') ||
-        node.name.toLowerCase().includes('ico') ||
-        node.name.toLowerCase().includes('symbol') ||
-        node.name.toLowerCase().includes('arrow') ||
-        node.name.toLowerCase().includes('button') ||
-        node.name.toLowerCase().includes('menu') ||
-        node.name.toLowerCase().startsWith('ic_') ||
-        node.name.startsWith('Icon')
-      );
-
-      return hasVectorChildren && hasIconName;
-    }
-
+    // Інші типи та FRAME без '#' не імпортуємо як векторні іконки для спрайту
     return false;
   }
 
@@ -855,23 +933,41 @@ class ImageImporter {
   }
 
   /**
-   * ✅ FIX: Оптимізує SVG для іконок
+   * ✅ FIX: Розширена оптимізація SVG для іконок
    */
   optimizeSVGForIcon(svgContent) {
     if (!svgContent) return svgContent;
 
     return svgContent
-      // Видаляємо коментарі
+      // Видаляємо коментарі та metadata
       .replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/<metadata[\s\S]*?<\/metadata>/gi, '')
+      .replace(/<!DOCTYPE[\s\S]*?>/gi, '')
+      .replace(/<\?xml[\s\S]*?\?>/gi, '')
       // Видаляємо зайві атрибути
-      .replace(/\s*(id|class)\s*=\s*["'][^"']*["']/gi, '')
-      // Видаляємо зайві xmlns
+      .replace(/\s*(id|class|data-[\w-]+)\s*=\s*["'][^"']*["']/gi, '')
+      // Видаляємо зайві namespace
       .replace(/\s*xmlns:[\w]+\s*=\s*["'][^"']*["']/gi, '')
+      // Видаляємо editor-specific атрибути
+      .replace(/\s*(inkscape|sodipodi|adobe|sketch)[\w:-]*\s*=\s*["'][^"']*["']/gi, '')
+      // Видаляємо title та desc елементи
+      .replace(/<title[\s\S]*?<\/title>/gi, '')
+      .replace(/<desc[\s\S]*?<\/desc>/gi, '')
+      // Видаляємо пусті групи
+      .replace(/<g[^>]*>\s*<\/g>/gi, '')
+      // Видаляємо defs якщо вони пусті
+      .replace(/<defs[^>]*>\s*<\/defs>/gi, '')
+      // Оптимізуємо path команди
+      .replace(/\s*([MLHVCSQTAZ])\s*/gi, '$1')
+      .replace(/\s*,\s*/g, ',')
       // Стискаємо пробіли
       .replace(/\s+/g, ' ')
       .replace(/>\s+</g, '><')
-      // Округлюємо числа в path
+      // Округлюємо числа з високою точністю
       .replace(/(\d+\.\d{3,})/g, (match) => parseFloat(match).toFixed(2))
+      // Видаляємо зайві нулі
+      .replace(/(\.\d*?)0+(?=\D)/g, '$1')
+      .replace(/\.0+(?=\D)/g, '')
       .trim();
   }
 
@@ -902,6 +998,25 @@ class ImageImporter {
       fs.mkdirSync(this.outputDir, {recursive: true});
       logger.info(`📁 Created output directory: ${this.outputDir}`);
     }
+  }
+
+  /**
+   * ✅ FIX: Створює унікальну назву файлу зберігаючи оригінальну назву з Figma
+   */
+  createUniqueFileName(originalName, nodeId) {
+    // Зберігаємо оригінальну назву, але робимо її безпечною для файлової системи
+    let safeName = originalName
+      .trim()
+      .replace(/[<>:"/\\|?*]/g, '') // Видаляємо заборонені символи для файлів
+      .replace(/[^\x20-\x7E\u00A0-\uFFFF]/g, '') // Видаляємо контрольні символи
+      .replace(/\s+/g, '_') // Замінюємо пробіли на підкреслення
+      .replace(/\.+$/g, '') // Видаляємо крапки в кінці
+      .slice(0, 50) || 'unnamed'; // Обмежуємо довжину
+
+    // Додаємо короткий унікальний ідентифікатор з nodeId
+    const shortId = nodeId.substring(nodeId.length - 6); // Останні 6 символів ID
+
+    return `${safeName}_${shortId}`;
   }
 
   sanitizeFileName(name) {
