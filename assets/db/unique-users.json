@@ -1,14 +1,13 @@
 {
-  "total_unique_users": 5,
+  "total_unique_users": 4,
   "unique_visitors": 1,
   "stargazers": {
-    "count": 5,
+    "count": 4,
     "users": [
   "VuToV-Mykola",
   "juliavutova-oss",
   "frankman74",
-  "DimaDvizhok",
-  "cedendahlkim"
+  "DimaDvizhok"
 ]
   },
   "manual_likes": {
@@ -18,9 +17,8 @@
   "all_engaged_users": [
   "DimaDvizhok",
   "VuToV-Mykola",
-  "cedendahlkim",
   "frankman74",
   "juliavutova-oss"
 ],
-  "updated_at": "2026-07-30 10:30:29"
+  "updated_at": "2026-07-30 14:21:00"
 }
